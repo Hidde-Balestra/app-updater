@@ -17,7 +17,9 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('toggling dark mode switch updates the settings controller', (tester) async {
+  testWidgets('toggling dark mode switch updates the settings controller', (
+    tester,
+  ) async {
     final settings = SettingsController();
     await settings.load();
     expect(settings.themeMode, ThemeMode.system);
@@ -31,7 +33,9 @@ void main() {
     expect(settings.themeMode, ThemeMode.dark);
   });
 
-  testWidgets('picking a language in the language sheet updates the locale', (tester) async {
+  testWidgets('picking a language in the language sheet updates the locale', (
+    tester,
+  ) async {
     final settings = SettingsController();
     await settings.load();
     expect(settings.locale, isNull);
@@ -48,7 +52,9 @@ void main() {
     expect(settings.locale, const Locale('en'));
   });
 
-  testWidgets('toggling auto-check switch updates the settings controller', (tester) async {
+  testWidgets('toggling auto-check switch updates the settings controller', (
+    tester,
+  ) async {
     final settings = SettingsController();
     await settings.load();
     expect(settings.autoCheckEnabled, isTrue);
@@ -56,7 +62,9 @@ void main() {
     await tester.pumpWidget(_wrap(SettingsScreen(settings: settings)));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(SwitchListTile, 'Automatisch controleren'));
+    await tester.tap(
+      find.widgetWithText(SwitchListTile, 'Automatisch controleren'),
+    );
     await tester.pumpAndSettle();
 
     expect(settings.autoCheckEnabled, isFalse);

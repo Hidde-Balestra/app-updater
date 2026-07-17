@@ -38,7 +38,9 @@ class SettingsController extends ChangeNotifier {
       orElse: () => ThemeMode.system,
     );
     final localeCode = prefs.getString(_kLocale);
-    locale = (localeCode == null || localeCode.isEmpty) ? null : Locale(localeCode);
+    locale = (localeCode == null || localeCode.isEmpty)
+        ? null
+        : Locale(localeCode);
     autoCheckEnabled = prefs.getBool(_kAutoCheck) ?? true;
     autoCheckIntervalHours = prefs.getInt(_kAutoCheckIntervalHours) ?? 12;
     wifiOnly = prefs.getBool(_kWifiOnly) ?? true;

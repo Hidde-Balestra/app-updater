@@ -57,7 +57,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               for (final locale in options)
                 ListTile(
                   title: Text(_languageName(l10n, locale)),
-                  trailing: widget.settings.locale == locale ? const Icon(Icons.check) : null,
+                  trailing: widget.settings.locale == locale
+                      ? const Icon(Icons.check)
+                      : null,
                   onTap: () {
                     widget.settings.setLocale(locale);
                     Navigator.of(sheetContext).pop();
@@ -89,8 +91,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: Text(l10n.darkMode),
                 subtitle: Text(l10n.darkModeSubtitle),
                 value: settings.themeMode == ThemeMode.dark,
-                onChanged: (value) =>
-                    settings.setThemeMode(value ? ThemeMode.dark : ThemeMode.light),
+                onChanged: (value) => settings.setThemeMode(
+                  value ? ThemeMode.dark : ThemeMode.light,
+                ),
               ),
               SectionHeader(title: l10n.sectionLanguage),
               ListTile(
@@ -103,7 +106,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(l10n.autoCheck),
-                subtitle: Text(l10n.autoCheckSubtitle(settings.autoCheckIntervalHours)),
+                subtitle: Text(
+                  l10n.autoCheckSubtitle(settings.autoCheckIntervalHours),
+                ),
                 value: settings.autoCheckEnabled,
                 onChanged: settings.setAutoCheckEnabled,
               ),
@@ -136,9 +141,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           children: [
                             Text(
                               l10n.privacyTitle,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.w700),
                             ),
                             const SizedBox(height: 4),
                             Text(l10n.privacyMessage),
@@ -153,13 +157,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(l10n.versionLabel),
-                subtitle: Text(l10n.versionValue(_version.isEmpty ? '…' : _version)),
+                subtitle: Text(
+                  l10n.versionValue(_version.isEmpty ? '…' : _version),
+                ),
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(l10n.sourceCodeLink),
                 trailing: const Icon(Icons.open_in_new, size: 18),
-                onTap: () => launchUrl(Uri.parse(_repoUrl), mode: LaunchMode.externalApplication),
+                onTap: () => launchUrl(
+                  Uri.parse(_repoUrl),
+                  mode: LaunchMode.externalApplication,
+                ),
               ),
               const SizedBox(height: 24),
             ],

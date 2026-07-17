@@ -33,7 +33,9 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('shows the empty state when there are no tracked apps', (tester) async {
+  testWidgets('shows the empty state when there are no tracked apps', (
+    tester,
+  ) async {
     final library = _offlineLibrary();
     await library.load();
 
@@ -43,25 +45,26 @@ void main() {
     expect(find.text('Nog geen apps'), findsOneWidget);
   });
 
-  testWidgets('renders a custom app under "Mijn apps" and a favorite under "Favoriete apps"', (
-    tester,
-  ) async {
-    final library = _offlineLibrary();
-    await library.load();
-    await library.addCustomApp(
-      name: 'MijnBudget',
-      type: AppSourceType.direct,
-      source: 'https://example.com/mijnbudget.apk',
-    );
-    await library.addFavorite(library.curatedApps.first);
+  testWidgets(
+    'renders a custom app under "Mijn apps" and a favorite under "Favoriete apps"',
+    (tester) async {
+      final library = _offlineLibrary();
+      await library.load();
+      await library.addCustomApp(
+        name: 'MijnBudget',
+        type: AppSourceType.direct,
+        source: 'https://example.com/mijnbudget.apk',
+      );
+      await library.addFavorite(library.curatedApps.first);
 
-    await tester.pumpWidget(_wrap(HomeScreen(library: library)));
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(_wrap(HomeScreen(library: library)));
+      await tester.pumpAndSettle();
 
-    // SectionHeader renders titles upper-cased.
-    expect(find.text('MIJN APPS'), findsOneWidget);
-    expect(find.text('MijnBudget'), findsOneWidget);
-    expect(find.text('FAVORIETE APPS'), findsOneWidget);
-    expect(find.text(library.curatedApps.first.name), findsOneWidget);
-  });
+      // SectionHeader renders titles upper-cased.
+      expect(find.text('MIJN APPS'), findsOneWidget);
+      expect(find.text('MijnBudget'), findsOneWidget);
+      expect(find.text('FAVORIETE APPS'), findsOneWidget);
+      expect(find.text(library.curatedApps.first.name), findsOneWidget);
+    },
+  );
 }

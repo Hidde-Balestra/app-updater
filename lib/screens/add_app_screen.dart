@@ -19,7 +19,8 @@ class AddAppScreen extends StatefulWidget {
   State<AddAppScreen> createState() => _AddAppScreenState();
 }
 
-class _AddAppScreenState extends State<AddAppScreen> with SingleTickerProviderStateMixin {
+class _AddAppScreenState extends State<AddAppScreen>
+    with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final _sourceController = TextEditingController();
   final _nameController = TextEditingController();
@@ -57,7 +58,10 @@ class _AddAppScreenState extends State<AddAppScreen> with SingleTickerProviderSt
       });
       return;
     }
-    _debounce = Timer(const Duration(milliseconds: 400), () => _resolvePreview(text));
+    _debounce = Timer(
+      const Duration(milliseconds: 400),
+      () => _resolvePreview(text),
+    );
   }
 
   Future<void> _resolvePreview(String rawInput) async {
@@ -91,9 +95,16 @@ class _AddAppScreenState extends State<AddAppScreen> with SingleTickerProviderSt
     setState(() => _isSaving = true);
     final displayName = _nameController.text.trim().isNotEmpty
         ? _nameController.text.trim()
-        : defaultNameFor(identifierKind: _sourceType.name, identifier: identifier);
+        : defaultNameFor(
+            identifierKind: _sourceType.name,
+            identifier: identifier,
+          );
 
-    await widget.library.addCustomApp(name: displayName, type: _sourceType, source: identifier);
+    await widget.library.addCustomApp(
+      name: displayName,
+      type: _sourceType,
+      source: identifier,
+    );
     if (!mounted) return;
     setState(() => _isSaving = false);
     _sourceController.clear();
@@ -115,7 +126,10 @@ class _AddAppScreenState extends State<AddAppScreen> with SingleTickerProviderSt
         title: Text(l10n.addAppTitle),
         bottom: TabBar(
           controller: _tabController,
-          tabs: [Tab(text: l10n.tabCustomApp), Tab(text: l10n.tabFavorite)],
+          tabs: [
+            Tab(text: l10n.tabCustomApp),
+            Tab(text: l10n.tabFavorite),
+          ],
         ),
       ),
       body: TabBarView(
@@ -139,9 +153,18 @@ class _AddAppScreenState extends State<AddAppScreen> with SingleTickerProviderSt
         const SizedBox(height: 8),
         SegmentedButton<AppSourceType>(
           segments: [
-            ButtonSegment(value: AppSourceType.github, label: Text(l10n.sourceTypeGithub)),
-            ButtonSegment(value: AppSourceType.fdroid, label: Text(l10n.sourceTypeFdroid)),
-            ButtonSegment(value: AppSourceType.direct, label: Text(l10n.sourceTypeDirect)),
+            ButtonSegment(
+              value: AppSourceType.github,
+              label: Text(l10n.sourceTypeGithub),
+            ),
+            ButtonSegment(
+              value: AppSourceType.fdroid,
+              label: Text(l10n.sourceTypeFdroid),
+            ),
+            ButtonSegment(
+              value: AppSourceType.direct,
+              label: Text(l10n.sourceTypeDirect),
+            ),
           ],
           selected: {_sourceType},
           onSelectionChanged: (selection) {
@@ -173,7 +196,9 @@ class _AddAppScreenState extends State<AddAppScreen> with SingleTickerProviderSt
         _buildPreviewCard(l10n),
         const SizedBox(height: 24),
         FilledButton(
-          onPressed: (_previewResult is ReleaseSuccess && !_isSaving) ? _addCustomApp : null,
+          onPressed: (_previewResult is ReleaseSuccess && !_isSaving)
+              ? _addCustomApp
+              : null,
           child: _isSaving
               ? const SizedBox(
                   height: 20,
@@ -188,7 +213,12 @@ class _AddAppScreenState extends State<AddAppScreen> with SingleTickerProviderSt
 
   Widget _buildPreviewCard(AppLocalizations l10n) {
     if (_isChecking) {
-      return const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()));
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: CircularProgressIndicator(),
+        ),
+      );
     }
     final result = _previewResult;
     if (result == null) return const SizedBox.shrink();
@@ -217,9 +247,9 @@ class _AddAppScreenState extends State<AddAppScreen> with SingleTickerProviderSt
                               identifierKind: _sourceType.name,
                               identifier: _resolvedIdentifier ?? '',
                             ),
-                      style: Theme.of(
-                        context,
-                      ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     Text(
                       _resolvedIdentifier ?? '',
@@ -256,8 +286,15 @@ class _AddAppScreenState extends State<AddAppScreen> with SingleTickerProviderSt
   String _previewInitials() {
     final source = _nameController.text.trim().isNotEmpty
         ? _nameController.text.trim()
-        : defaultNameFor(identifierKind: _sourceType.name, identifier: _resolvedIdentifier ?? '?');
-    final words = source.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
+        : defaultNameFor(
+            identifierKind: _sourceType.name,
+            identifier: _resolvedIdentifier ?? '?',
+          );
+    final words = source
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .toList();
     if (words.isEmpty) return '?';
     if (words.length == 1) {
       final w = words.first;
@@ -306,7 +343,9 @@ class _FavoriteTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final initials = app.name.length >= 2 ? app.name.substring(0, 2).toUpperCase() : app.name.toUpperCase();
+    final initials = app.name.length >= 2
+        ? app.name.substring(0, 2).toUpperCase()
+        : app.name.toUpperCase();
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -320,9 +359,9 @@ class _FavoriteTile extends StatelessWidget {
                 children: [
                   Text(
                     app.name,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   Text(
                     app.sourceIdentifier,
@@ -355,7 +394,12 @@ class _MessageCard extends StatelessWidget {
       color: Theme.of(context).colorScheme.errorContainer,
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Text(message, style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer)),
+        child: Text(
+          message,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onErrorContainer,
+          ),
+        ),
       ),
     );
   }

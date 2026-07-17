@@ -22,7 +22,8 @@ class AppLibrary extends ChangeNotifier {
 
   final ReleaseResolver _resolver;
 
-  AppLibrary({ReleaseResolver? resolver}) : _resolver = resolver ?? ReleaseResolver();
+  AppLibrary({ReleaseResolver? resolver})
+    : _resolver = resolver ?? ReleaseResolver();
 
   List<LibraryEntry> entries = [];
   List<CuratedApp> curatedApps = [];
@@ -82,7 +83,10 @@ class AppLibrary extends ChangeNotifier {
       sourceType: type,
       sourceIdentifier: source,
     );
-    entries = [...entries, LibraryEntry(app: app, status: AppCheckStatus.checking)];
+    entries = [
+      ...entries,
+      LibraryEntry(app: app, status: AppCheckStatus.checking),
+    ];
     notifyListeners();
     await _persist();
     await checkOne(app.id);
@@ -98,7 +102,10 @@ class AppLibrary extends ChangeNotifier {
       sourceIdentifier: curated.sourceIdentifier,
       isCurated: true,
     );
-    entries = [...entries, LibraryEntry(app: app, status: AppCheckStatus.checking)];
+    entries = [
+      ...entries,
+      LibraryEntry(app: app, status: AppCheckStatus.checking),
+    ];
     notifyListeners();
     await _persist();
     await checkOne(app.id);
@@ -114,7 +121,10 @@ class AppLibrary extends ChangeNotifier {
     entries = [
       for (final e in entries)
         if (e.app.id == id)
-          e.copyWith(app: e.app.copyWith(installedVersion: version), status: AppCheckStatus.upToDate)
+          e.copyWith(
+            app: e.app.copyWith(installedVersion: version),
+            status: AppCheckStatus.upToDate,
+          )
         else
           e,
     ];
@@ -133,19 +143,30 @@ class AppLibrary extends ChangeNotifier {
 
     _updateEntry(id, (e) => e.copyWith(status: AppCheckStatus.checking));
 
-    final result = await _resolver.resolve(entry.app.sourceType, entry.app.sourceIdentifier);
+    final result = await _resolver.resolve(
+      entry.app.sourceType,
+      entry.app.sourceIdentifier,
+    );
 
     switch (result) {
       case ReleaseSuccess(:final info):
         final status = _statusFor(entry.app, info);
         _updateEntry(
           id,
-          (e) => e.copyWith(status: status, latestRelease: info, errorMessage: null),
+          (e) => e.copyWith(
+            status: status,
+            latestRelease: info,
+            errorMessage: null,
+          ),
         );
       case ReleaseNotFound():
         _updateEntry(id, (e) => e.copyWith(status: AppCheckStatus.noReleases));
       case ReleaseError(:final message):
-        _updateEntry(id, (e) => e.copyWith(status: AppCheckStatus.error, errorMessage: message));
+        _updateEntry(
+          id,
+          (e) =>
+              e.copyWith(status: AppCheckStatus.error, errorMessage: message),
+        );
     }
   }
 

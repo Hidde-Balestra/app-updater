@@ -30,7 +30,8 @@ class GithubService {
         return ReleaseError('HTTP ${response.statusCode}');
       }
       final json = jsonDecode(response.body) as Map<String, dynamic>;
-      final assets = (json['assets'] as List? ?? const []).cast<Map<String, dynamic>>();
+      final assets = (json['assets'] as List? ?? const [])
+          .cast<Map<String, dynamic>>();
 
       Map<String, dynamic>? apkAsset;
       for (final asset in assets) {
@@ -53,7 +54,9 @@ class GithubService {
           changelog: json['body'] as String?,
           downloadUrl: apkAsset['browser_download_url'] as String,
           sizeBytes: apkAsset['size'] as int?,
-          sourcePageUrl: json['html_url'] as String? ?? 'https://github.com/$repo/releases',
+          sourcePageUrl:
+              json['html_url'] as String? ??
+              'https://github.com/$repo/releases',
         ),
       );
     } catch (e) {

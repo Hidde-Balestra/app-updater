@@ -48,7 +48,10 @@ String? parseFdroidSource(String input) {
 
 /// Derives a reasonable default display name from a resolved identifier
 /// when the user leaves the optional display-name field empty.
-String defaultNameFor({required String identifierKind, required String identifier}) {
+String defaultNameFor({
+  required String identifierKind,
+  required String identifier,
+}) {
   switch (identifierKind) {
     case 'github':
       final parts = identifier.split('/');

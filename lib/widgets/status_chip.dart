@@ -22,18 +22,24 @@ class StatusChip extends StatelessWidget {
       case AppCheckStatus.updateAvailable:
         label = l10n.statusUpdate;
         foreground = AppColors.updateOrange;
-        background = isDark ? AppColors.updateOrangeBgDark : AppColors.updateOrangeBgLight;
+        background = isDark
+            ? AppColors.updateOrangeBgDark
+            : AppColors.updateOrangeBgLight;
       case AppCheckStatus.upToDate:
         label = l10n.statusUpToDate;
         foreground = AppColors.upToDateGreen;
-        background = isDark ? AppColors.upToDateGreenBgDark : AppColors.upToDateGreenBgLight;
+        background = isDark
+            ? AppColors.upToDateGreenBgDark
+            : AppColors.upToDateGreenBgLight;
       case AppCheckStatus.checking:
         label = l10n.statusChecking;
         foreground = AppColors.neutralGrey;
       case AppCheckStatus.error:
         label = l10n.statusError;
         foreground = AppColors.errorRed;
-        background = isDark ? AppColors.errorRedBgDark : AppColors.errorRedBgLight;
+        background = isDark
+            ? AppColors.errorRedBgDark
+            : AppColors.errorRedBgLight;
       case AppCheckStatus.noReleases:
         label = l10n.statusNoReleases;
         foreground = AppColors.neutralGrey;
@@ -41,10 +47,17 @@ class StatusChip extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(20),
+      ),
       child: Text(
         label,
-        style: TextStyle(color: foreground, fontWeight: FontWeight.w600, fontSize: 12),
+        style: TextStyle(
+          color: foreground,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
       ),
     );
   }

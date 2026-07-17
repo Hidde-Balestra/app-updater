@@ -11,7 +11,8 @@ import 'package:path_provider/path_provider.dart';
 class ApkInstallerService {
   final http.Client _client;
 
-  ApkInstallerService({http.Client? client}) : _client = client ?? http.Client();
+  ApkInstallerService({http.Client? client})
+    : _client = client ?? http.Client();
 
   Future<String> downloadApk({
     required String url,

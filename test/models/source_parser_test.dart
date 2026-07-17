@@ -4,7 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('parseGithubSource', () {
     test('accepts bare owner/repo', () {
-      expect(parseGithubSource('Hidde-Balestra/taalleer'), 'Hidde-Balestra/taalleer');
+      expect(
+        parseGithubSource('Hidde-Balestra/taalleer'),
+        'Hidde-Balestra/taalleer',
+      );
     });
 
     test('accepts a github.com repo URL', () {
@@ -16,7 +19,9 @@ void main() {
 
     test('accepts a github.com releases URL', () {
       expect(
-        parseGithubSource('https://github.com/Hidde-Balestra/taalleer/releases'),
+        parseGithubSource(
+          'https://github.com/Hidde-Balestra/taalleer/releases',
+        ),
         'Hidde-Balestra/taalleer',
       );
     });
@@ -50,14 +55,20 @@ void main() {
   group('defaultNameFor', () {
     test('github uses the repo name', () {
       expect(
-        defaultNameFor(identifierKind: 'github', identifier: 'Hidde-Balestra/taalleer'),
+        defaultNameFor(
+          identifierKind: 'github',
+          identifier: 'Hidde-Balestra/taalleer',
+        ),
         'taalleer',
       );
     });
 
     test('direct strips the .apk extension', () {
       expect(
-        defaultNameFor(identifierKind: 'direct', identifier: 'https://f-droid.org/F-Droid.apk'),
+        defaultNameFor(
+          identifierKind: 'direct',
+          identifier: 'https://f-droid.org/F-Droid.apk',
+        ),
         'F-Droid',
       );
     });

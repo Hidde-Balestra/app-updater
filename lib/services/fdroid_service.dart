@@ -27,7 +27,8 @@ class FdroidService {
         return ReleaseError('HTTP ${response.statusCode}');
       }
       final json = jsonDecode(response.body) as Map<String, dynamic>;
-      final packages = (json['packages'] as List? ?? const []).cast<Map<String, dynamic>>();
+      final packages = (json['packages'] as List? ?? const [])
+          .cast<Map<String, dynamic>>();
       if (packages.isEmpty) {
         return const ReleaseNotFound();
       }

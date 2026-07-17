@@ -13,7 +13,11 @@ class AppDetailScreen extends StatefulWidget {
   final AppLibrary library;
   final String appId;
 
-  const AppDetailScreen({super.key, required this.library, required this.appId});
+  const AppDetailScreen({
+    super.key,
+    required this.library,
+    required this.appId,
+  });
 
   @override
   State<AppDetailScreen> createState() => _AppDetailScreenState();
@@ -58,7 +62,9 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
       await widget.library.markInstalled(entry.app.id, installedVersion);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$e')));
       }
     } finally {
       if (mounted) setState(() => _isDownloading = false);
@@ -80,10 +86,16 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
         title: Text(l10n.removeAppConfirmTitle),
         content: Text(l10n.removeAppConfirmMessage(entry.app.name)),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.cancel)),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.remove, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            child: Text(
+              l10n.remove,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
           ),
         ],
       ),
@@ -100,7 +112,9 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
     return ListenableBuilder(
       listenable: widget.library,
       builder: (context, _) {
-        final entry = widget.library.entries.where((e) => e.app.id == widget.appId).firstOrNull;
+        final entry = widget.library.entries
+            .where((e) => e.app.id == widget.appId)
+            .firstOrNull;
         if (entry == null) {
           return Scaffold(appBar: AppBar(), body: const SizedBox.shrink());
         }
@@ -116,25 +130,38 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
         return Scaffold(
           appBar: AppBar(
             title: Text(l10n.detailsTitle),
-            actions: [StatusChip(status: entry.status), const SizedBox(width: 12)],
+            actions: [
+              StatusChip(status: entry.status),
+              const SizedBox(width: 12),
+            ],
           ),
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
               Row(
                 children: [
-                  AppAvatar(name: entry.app.name, initials: entry.app.initials, size: 56),
+                  AppAvatar(
+                    name: entry.app.name,
+                    initials: entry.app.initials,
+                    size: 56,
+                  ),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(entry.app.name, style: Theme.of(context).textTheme.titleLarge),
+                        Text(
+                          entry.app.name,
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
                         Text(
                           entry.app.sourceIdentifier,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
                       ],
                     ),
@@ -163,12 +190,17 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
               const SizedBox(height: 16),
               if (release != null)
                 FilledButton.icon(
-                  onPressed: _isDownloading ? null : () => _downloadAndInstall(entry),
+                  onPressed: _isDownloading
+                      ? null
+                      : () => _downloadAndInstall(entry),
                   icon: _isDownloading
                       ? const SizedBox(
                           height: 16,
                           width: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : const Icon(Icons.download),
                   label: Text(
@@ -180,7 +212,9 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
               if (changelogLines.isNotEmpty && release != null) ...[
                 const SizedBox(height: 24),
                 Text(
-                  l10n.changesInVersion(release.version.isEmpty ? '—' : release.version),
+                  l10n.changesInVersion(
+                    release.version.isEmpty ? '—' : release.version,
+                  ),
                   style: Theme.of(
                     context,
                   ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
@@ -195,7 +229,9 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
               ],
               const SizedBox(height: 20),
               InkWell(
-                onTap: () => _openSource(release?.sourcePageUrl ?? entry.app.sourceLabel),
+                onTap: () => _openSource(
+                  release?.sourcePageUrl ?? entry.app.sourceLabel,
+                ),
                 child: Row(
                   children: [
                     Icon(

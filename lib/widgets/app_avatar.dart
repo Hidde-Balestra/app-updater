@@ -18,7 +18,12 @@ class AppAvatar extends StatelessWidget {
   final String initials;
   final double size;
 
-  const AppAvatar({super.key, required this.name, required this.initials, this.size = 44});
+  const AppAvatar({
+    super.key,
+    required this.name,
+    required this.initials,
+    this.size = 44,
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -25,33 +25,48 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  test('load() seeds the four required curated apps from the bundled asset', () async {
-    final library = AppLibrary(resolver: _offlineResolver());
-    await library.load();
+  test(
+    'load() seeds the four required curated apps from the bundled asset',
+    () async {
+      final library = AppLibrary(resolver: _offlineResolver());
+      await library.load();
 
-    final ids = library.curatedApps.map((c) => c.id).toSet();
-    expect(
-      ids,
-      containsAll({'taalleer', 'task_planner', 'musicplayer', 'fdroid'}),
-    );
+      final ids = library.curatedApps.map((c) => c.id).toSet();
+      expect(
+        ids,
+        containsAll({'taalleer', 'task_planner', 'musicplayer', 'fdroid'}),
+      );
 
-    final taalleer = library.curatedApps.firstWhere((c) => c.id == 'taalleer');
-    expect(taalleer.sourceIdentifier, 'Hidde-Balestra/taalleer');
+      final taalleer = library.curatedApps.firstWhere(
+        (c) => c.id == 'taalleer',
+      );
+      expect(taalleer.sourceIdentifier, 'Hidde-Balestra/taalleer');
 
-    final taskPlanner = library.curatedApps.firstWhere((c) => c.id == 'task_planner');
-    expect(taskPlanner.sourceIdentifier, 'Hidde-Balestra/Task_Planner');
+      final taskPlanner = library.curatedApps.firstWhere(
+        (c) => c.id == 'task_planner',
+      );
+      expect(taskPlanner.sourceIdentifier, 'Hidde-Balestra/Task_Planner');
 
-    final musicPlayer = library.curatedApps.firstWhere((c) => c.id == 'musicplayer');
-    expect(musicPlayer.sourceIdentifier, 'privacy-creator/musicplayer-flutter');
+      final musicPlayer = library.curatedApps.firstWhere(
+        (c) => c.id == 'musicplayer',
+      );
+      expect(
+        musicPlayer.sourceIdentifier,
+        'privacy-creator/musicplayer-flutter',
+      );
 
-    final fdroid = library.curatedApps.firstWhere((c) => c.id == 'fdroid');
-    expect(fdroid.infoUrl, 'https://f-droid.org/en/');
-  });
+      final fdroid = library.curatedApps.firstWhere((c) => c.id == 'fdroid');
+      expect(fdroid.infoUrl, 'https://f-droid.org/en/');
+    },
+  );
 
-  test('a freshly loaded library with no tracked apps offers all curated apps as favorites', () async {
-    final library = AppLibrary(resolver: _offlineResolver());
-    await library.load();
+  test(
+    'a freshly loaded library with no tracked apps offers all curated apps as favorites',
+    () async {
+      final library = AppLibrary(resolver: _offlineResolver());
+      await library.load();
 
-    expect(library.availableFavorites.length, library.curatedApps.length);
-  });
+      expect(library.availableFavorites.length, library.curatedApps.length);
+    },
+  );
 }

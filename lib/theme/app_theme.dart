@@ -30,7 +30,9 @@ class AppTheme {
       seedColor: AppColors.accent,
       brightness: Brightness.light,
     );
-    return _base(scheme).copyWith(scaffoldBackgroundColor: const Color(0xFFF6F6FA));
+    return _base(
+      scheme,
+    ).copyWith(scaffoldBackgroundColor: const Color(0xFFF6F6FA));
   }
 
   static ThemeData dark() {
@@ -38,7 +40,9 @@ class AppTheme {
       seedColor: AppColors.accent,
       brightness: Brightness.dark,
     );
-    return _base(scheme).copyWith(scaffoldBackgroundColor: const Color(0xFF121212));
+    return _base(
+      scheme,
+    ).copyWith(scaffoldBackgroundColor: const Color(0xFF121212));
   }
 
   static ThemeData _base(ColorScheme scheme) {
@@ -68,18 +72,25 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
       ),
     );

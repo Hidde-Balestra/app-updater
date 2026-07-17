@@ -46,7 +46,11 @@ class TrackedApp {
 
   /// Two initials used for the avatar, e.g. "MijnBudget" -> "MB".
   String get initials {
-    final words = name.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
+    final words = name
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .toList();
     if (words.isEmpty) return '?';
     if (words.length == 1) {
       final w = words.first;

@@ -13,13 +13,17 @@ class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, required this.library});
 
   void _openDetail(BuildContext context, String appId) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => AppDetailScreen(library: library, appId: appId)));
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AppDetailScreen(library: library, appId: appId),
+      ),
+    );
   }
 
   void _openAdd(BuildContext context) {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => AddAppScreen(library: library)));
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => AddAppScreen(library: library)));
   }
 
   @override
@@ -30,7 +34,10 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: [
-          IconButton(icon: const Icon(Icons.add), onPressed: () => _openAdd(context)),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () => _openAdd(context),
+          ),
         ],
       ),
       body: ListenableBuilder(
@@ -40,8 +47,12 @@ class HomeScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final myApps = library.entries.where((e) => !e.app.isCurated).toList();
-          final favoriteApps = library.entries.where((e) => e.app.isCurated).toList();
+          final myApps = library.entries
+              .where((e) => !e.app.isCurated)
+              .toList();
+          final favoriteApps = library.entries
+              .where((e) => e.app.isCurated)
+              .toList();
           final isEmpty = myApps.isEmpty && favoriteApps.isEmpty;
 
           return RefreshIndicator(
@@ -102,7 +113,10 @@ class _EmptyState extends StatelessWidget {
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
           const SizedBox(height: 16),
-          Text(l10n.emptyLibraryTitle, style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l10n.emptyLibraryTitle,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 6),
           Text(
             l10n.emptyLibraryMessage,
