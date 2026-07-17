@@ -1,0 +1,120 @@
+{
+  "@@locale": "it",
+
+  "appTitle": "App Updater",
+  "navApps": "App",
+  "navAdd": "Aggiungi",
+  "navSettings": "Impostazioni",
+
+  "sectionMyApps": "Le mie app",
+  "sectionFavoriteApps": "App preferite",
+  "statusUpdate": "Aggiorna",
+  "statusUpToDate": "Aggiornata",
+  "statusChecking": "Verifica in corso…",
+  "statusError": "Errore",
+  "statusNoReleases": "Nessuna release",
+  "emptyLibraryTitle": "Ancora nessuna app",
+  "emptyLibraryMessage": "Aggiungi la tua prima app con l'icona +.",
+
+  "addAppTitle": "Aggiungi app",
+  "tabCustomApp": "App personalizzata",
+  "tabFavorite": "Preferita",
+  "sourceLabel": "ORIGINE",
+  "sourceTypeGithub": "GitHub",
+  "sourceTypeFdroid": "F-Droid",
+  "sourceTypeDirect": "URL .apk diretto",
+  "sourceFieldHint": "GitHub / F-Droid / URL .apk diretto",
+  "displayNameLabel": "NOME VISUALIZZATO (opzionale)",
+  "displayNameHint": "es. IlMioBudget",
+  "latestReleaseFound": "Ultima release: {version} — trovata tramite {source}",
+  "@latestReleaseFound": {
+    "placeholders": {
+      "version": {"type": "String"},
+      "source": {"type": "String"}
+    }
+  },
+  "addAppButton": "Aggiungi app",
+  "favoritesEmptyAllAdded": "Tutte le app preferite sono già state aggiunte.",
+  "addFavoriteButton": "Aggiungi",
+  "sourceResolveError": "Nessuna release trovata per questa origine.",
+  "invalidSourceError": "Inserisci un'origine valida.",
+
+  "detailsTitle": "Dettagli",
+  "updateAvailableBanner": "Aggiornamento disponibile {oldVersion} → {newVersion} · {size}",
+  "@updateAvailableBanner": {
+    "placeholders": {
+      "oldVersion": {"type": "String"},
+      "newVersion": {"type": "String"},
+      "size": {"type": "String"}
+    }
+  },
+  "downloadInstallButton": "Scarica e installa APK",
+  "downloadingButton": "Download in corso… {percent}%",
+  "@downloadingButton": {
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "changesInVersion": "Modifiche nella {version}",
+  "@changesInVersion": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
+  "sourceLabelDetail": "Origine: {source}",
+  "@sourceLabelDetail": {
+    "placeholders": {
+      "source": {"type": "String"}
+    }
+  },
+  "openInBrowser": "Apri nel browser",
+  "removeAppButton": "Rimuovi app",
+  "removeAppConfirmTitle": "Rimuovere l'app?",
+  "removeAppConfirmMessage": "Vuoi davvero rimuovere {name} dalla tua lista? L'app in sé non verrà rimossa dal dispositivo.",
+  "@removeAppConfirmMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "cancel": "Annulla",
+  "remove": "Rimuovi",
+  "retry": "Riprova",
+  "noApkAssetFound": "Nessun file .apk trovato nell'ultima release.",
+
+  "settingsTitle": "Impostazioni",
+  "sectionDisplay": "VISUALIZZAZIONE",
+  "darkMode": "Modalità scura",
+  "darkModeSubtitle": "Segue l'impostazione di sistema o manuale",
+  "sectionLanguage": "LINGUA",
+  "languageSubtitle": "Scegli la lingua dell'app",
+  "languageSystem": "Lingua di sistema",
+  "languageDutch": "Olandese",
+  "languageEnglish": "Inglese",
+  "languageSpanish": "Spagnolo",
+  "languageGerman": "Tedesco",
+  "languageItalian": "Italiano",
+  "sectionUpdates": "AGGIORNAMENTI",
+  "autoCheck": "Verifica automatica",
+  "autoCheckSubtitle": "Ogni {hours} ore",
+  "@autoCheckSubtitle": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "wifiOnly": "Solo Wi-Fi",
+  "wifiOnlySubtitle": "Risparmia dati mobili",
+  "notifications": "Notifiche",
+  "notificationsSubtitle": "Quando è disponibile un aggiornamento",
+  "sectionPrivacy": "PRIVACY",
+  "privacyTitle": "Nessun Google Play Services",
+  "privacyMessage": "Questa app si installa e funziona interamente al di fuori del Play Store. Nessun tracciamento, nessuna analisi, nessun account richiesto.",
+  "sectionAbout": "INFORMAZIONI",
+  "versionLabel": "Versione",
+  "versionValue": "{version} (open source)",
+  "@versionValue": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
+  "sourceCodeLink": "Codice sorgente su GitHub"
+}

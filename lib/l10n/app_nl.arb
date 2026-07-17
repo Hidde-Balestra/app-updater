@@ -1,0 +1,120 @@
+{
+  "@@locale": "nl",
+
+  "appTitle": "App Updater",
+  "navApps": "Apps",
+  "navAdd": "Toevoegen",
+  "navSettings": "Instellingen",
+
+  "sectionMyApps": "Mijn apps",
+  "sectionFavoriteApps": "Favoriete apps",
+  "statusUpdate": "Update",
+  "statusUpToDate": "Actueel",
+  "statusChecking": "Controleren…",
+  "statusError": "Fout",
+  "statusNoReleases": "Geen releases",
+  "emptyLibraryTitle": "Nog geen apps",
+  "emptyLibraryMessage": "Voeg je eerste app toe via het + icoon.",
+
+  "addAppTitle": "App toevoegen",
+  "tabCustomApp": "Eigen app",
+  "tabFavorite": "Favoriet",
+  "sourceLabel": "BRON",
+  "sourceTypeGithub": "GitHub",
+  "sourceTypeFdroid": "F-Droid",
+  "sourceTypeDirect": "Directe .apk URL",
+  "sourceFieldHint": "GitHub / F-Droid / directe .apk URL",
+  "displayNameLabel": "WEERGAVENAAM (optioneel)",
+  "displayNameHint": "bijv. MijnBudget",
+  "latestReleaseFound": "Laatste release: {version} — gevonden via {source}",
+  "@latestReleaseFound": {
+    "placeholders": {
+      "version": {"type": "String"},
+      "source": {"type": "String"}
+    }
+  },
+  "addAppButton": "App toevoegen",
+  "favoritesEmptyAllAdded": "Alle favoriete apps zijn al toegevoegd.",
+  "addFavoriteButton": "Toevoegen",
+  "sourceResolveError": "Kon geen release vinden voor deze bron.",
+  "invalidSourceError": "Vul een geldige bron in.",
+
+  "detailsTitle": "Details",
+  "updateAvailableBanner": "Update beschikbaar {oldVersion} → {newVersion} · {size}",
+  "@updateAvailableBanner": {
+    "placeholders": {
+      "oldVersion": {"type": "String"},
+      "newVersion": {"type": "String"},
+      "size": {"type": "String"}
+    }
+  },
+  "downloadInstallButton": "Download & installeer APK",
+  "downloadingButton": "Downloaden… {percent}%",
+  "@downloadingButton": {
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "changesInVersion": "Wijzigingen in {version}",
+  "@changesInVersion": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
+  "sourceLabelDetail": "Bron: {source}",
+  "@sourceLabelDetail": {
+    "placeholders": {
+      "source": {"type": "String"}
+    }
+  },
+  "openInBrowser": "Openen in browser",
+  "removeAppButton": "App verwijderen",
+  "removeAppConfirmTitle": "App verwijderen?",
+  "removeAppConfirmMessage": "Weet je zeker dat je {name} wilt verwijderen uit je lijst? De app zelf wordt niet van je toestel verwijderd.",
+  "@removeAppConfirmMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "cancel": "Annuleren",
+  "remove": "Verwijderen",
+  "retry": "Opnieuw proberen",
+  "noApkAssetFound": "Geen .apk-bestand gevonden in de laatste release.",
+
+  "settingsTitle": "Instellingen",
+  "sectionDisplay": "WEERGAVE",
+  "darkMode": "Donkere modus",
+  "darkModeSubtitle": "Volgt systeeminstelling of handmatig",
+  "sectionLanguage": "TAAL",
+  "languageSubtitle": "Kies de taal van de app",
+  "languageSystem": "Systeemtaal",
+  "languageDutch": "Nederlands",
+  "languageEnglish": "Engels",
+  "languageSpanish": "Spaans",
+  "languageGerman": "Duits",
+  "languageItalian": "Italiaans",
+  "sectionUpdates": "UPDATES",
+  "autoCheck": "Automatisch controleren",
+  "autoCheckSubtitle": "Elke {hours} uur",
+  "@autoCheckSubtitle": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "wifiOnly": "Alleen via wifi",
+  "wifiOnlySubtitle": "Bespaart mobiele data",
+  "notifications": "Meldingen",
+  "notificationsSubtitle": "Bij beschikbare update",
+  "sectionPrivacy": "PRIVACY",
+  "privacyTitle": "Geen Google Play Services",
+  "privacyMessage": "Deze app installeert en werkt volledig buiten de Play Store om. Geen tracking, geen analytics, geen accounts nodig.",
+  "sectionAbout": "OVER",
+  "versionLabel": "Versie",
+  "versionValue": "{version} (open source)",
+  "@versionValue": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
+  "sourceCodeLink": "Broncode op GitHub"
+}

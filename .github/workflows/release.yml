@@ -1,0 +1,99 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release-APK's bouwen en publiceren
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Java installeren
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Flutter installeren
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.41.6
+          cache: true
+
+      - name: Dependencies ophalen
+        run: flutter pub get
+
+      - name: Analyzer
+        run: flutter analyze
+
+      - name: Tests
+        run: flutter test
+
+      # De release-keystore staat als secret in de repo. Zonder deze stap
+      # zou Gradle terugvallen op de debug-sleutel, die per runner verschilt —
+      # dan kan een nieuwe APK een geïnstalleerde app niet updaten.
+      - name: Release-keystore herstellen
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 ontbreekt; de APK zou met een debug-sleutel worden ondertekend."
+            exit 1
+          fi
+          # tr verwijdert eventuele CR/newlines uit het secret; base64 --decode
+          # weigert die anders.
+          printf '%s' "$KEYSTORE_BASE64" | tr -d '\r\n' | base64 --decode > "$RUNNER_TEMP/release.jks"
+          if [ ! -s "$RUNNER_TEMP/release.jks" ]; then
+            echo "::error::De keystore kon niet gedecodeerd worden."
+            exit 1
+          fi
+          cat > android/key.properties <<EOF
+          storePassword=$(printf '%s' "$KEYSTORE_PASSWORD" | tr -d '\r\n')
+          keyPassword=$(printf '%s' "$KEY_PASSWORD" | tr -d '\r\n')
+          keyAlias=$(printf '%s' "$KEY_ALIAS" | tr -d '\r\n')
+          storeFile=$RUNNER_TEMP/release.jks
+          EOF
+
+      - name: Universele release-APK bouwen
+        run: flutter build apk --release
+
+      - name: Handtekening controleren
+        run: |
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -r | head -n1)
+          "$APKSIGNER" verify --print-certs build/app/outputs/flutter-apk/app-release.apk | tee certs.txt
+          if grep -q "CN=Android Debug" certs.txt; then
+            echo "::error::De APK is met de debug-sleutel ondertekend."
+            exit 1
+          fi
+
+      - name: APK hernoemen met versienummer
+        run: |
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-release.apk "dist/app-updater-${GITHUB_REF_NAME}-universal.apk"
+          ls -la dist/
+
+      # softprops/action-gh-release's generate_release_notes gebruikt GitHub's
+      # eigen "Generate release notes"-API; die is taal-onafhankelijk qua opmaak
+      # (lijst van PR's/commits). Release notes voor dit project zijn altijd
+      # Engels, dus houd commit- en PR-titels in het Engels voor een leesbare log.
+      - name: GitHub Release aanmaken met APK
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/app-updater-${{ github.ref_name }}-universal.apk
+          generate_release_notes: true
+
+      - name: Sleutelbestanden opruimen
+        if: always()
+        run: rm -f android/key.properties "$RUNNER_TEMP/release.jks"

@@ -1,0 +1,120 @@
+{
+  "@@locale": "es",
+
+  "appTitle": "App Updater",
+  "navApps": "Apps",
+  "navAdd": "Añadir",
+  "navSettings": "Ajustes",
+
+  "sectionMyApps": "Mis apps",
+  "sectionFavoriteApps": "Apps favoritas",
+  "statusUpdate": "Actualizar",
+  "statusUpToDate": "Actualizada",
+  "statusChecking": "Comprobando…",
+  "statusError": "Error",
+  "statusNoReleases": "Sin versiones",
+  "emptyLibraryTitle": "Aún no hay apps",
+  "emptyLibraryMessage": "Añade tu primera app con el icono +.",
+
+  "addAppTitle": "Añadir app",
+  "tabCustomApp": "App propia",
+  "tabFavorite": "Favorita",
+  "sourceLabel": "ORIGEN",
+  "sourceTypeGithub": "GitHub",
+  "sourceTypeFdroid": "F-Droid",
+  "sourceTypeDirect": "URL .apk directa",
+  "sourceFieldHint": "GitHub / F-Droid / URL .apk directa",
+  "displayNameLabel": "NOMBRE VISIBLE (opcional)",
+  "displayNameHint": "p. ej. MiPresupuesto",
+  "latestReleaseFound": "Última versión: {version} — encontrada vía {source}",
+  "@latestReleaseFound": {
+    "placeholders": {
+      "version": {"type": "String"},
+      "source": {"type": "String"}
+    }
+  },
+  "addAppButton": "Añadir app",
+  "favoritesEmptyAllAdded": "Ya se han añadido todas las apps favoritas.",
+  "addFavoriteButton": "Añadir",
+  "sourceResolveError": "No se encontró ninguna versión para este origen.",
+  "invalidSourceError": "Introduce un origen válido.",
+
+  "detailsTitle": "Detalles",
+  "updateAvailableBanner": "Actualización disponible {oldVersion} → {newVersion} · {size}",
+  "@updateAvailableBanner": {
+    "placeholders": {
+      "oldVersion": {"type": "String"},
+      "newVersion": {"type": "String"},
+      "size": {"type": "String"}
+    }
+  },
+  "downloadInstallButton": "Descargar e instalar APK",
+  "downloadingButton": "Descargando… {percent}%",
+  "@downloadingButton": {
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "changesInVersion": "Cambios en {version}",
+  "@changesInVersion": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
+  "sourceLabelDetail": "Origen: {source}",
+  "@sourceLabelDetail": {
+    "placeholders": {
+      "source": {"type": "String"}
+    }
+  },
+  "openInBrowser": "Abrir en el navegador",
+  "removeAppButton": "Eliminar app",
+  "removeAppConfirmTitle": "¿Eliminar app?",
+  "removeAppConfirmMessage": "¿Seguro que quieres eliminar {name} de tu lista? La app en sí no se eliminará de tu dispositivo.",
+  "@removeAppConfirmMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "cancel": "Cancelar",
+  "remove": "Eliminar",
+  "retry": "Reintentar",
+  "noApkAssetFound": "No se encontró ningún archivo .apk en la última versión.",
+
+  "settingsTitle": "Ajustes",
+  "sectionDisplay": "PANTALLA",
+  "darkMode": "Modo oscuro",
+  "darkModeSubtitle": "Sigue el ajuste del sistema o manual",
+  "sectionLanguage": "IDIOMA",
+  "languageSubtitle": "Elige el idioma de la app",
+  "languageSystem": "Idioma del sistema",
+  "languageDutch": "Neerlandés",
+  "languageEnglish": "Inglés",
+  "languageSpanish": "Español",
+  "languageGerman": "Alemán",
+  "languageItalian": "Italiano",
+  "sectionUpdates": "ACTUALIZACIONES",
+  "autoCheck": "Comprobar automáticamente",
+  "autoCheckSubtitle": "Cada {hours} horas",
+  "@autoCheckSubtitle": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "wifiOnly": "Solo con wifi",
+  "wifiOnlySubtitle": "Ahorra datos móviles",
+  "notifications": "Notificaciones",
+  "notificationsSubtitle": "Cuando haya una actualización disponible",
+  "sectionPrivacy": "PRIVACIDAD",
+  "privacyTitle": "Sin Google Play Services",
+  "privacyMessage": "Esta app se instala y funciona completamente fuera de la Play Store. Sin seguimiento, sin análisis, sin cuentas necesarias.",
+  "sectionAbout": "ACERCA DE",
+  "versionLabel": "Versión",
+  "versionValue": "{version} (código abierto)",
+  "@versionValue": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
+  "sourceCodeLink": "Código fuente en GitHub"
+}

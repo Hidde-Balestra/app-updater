@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Analyse & tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Flutter installeren
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.41.6
+          cache: true
+
+      - name: Dependencies ophalen
+        run: flutter pub get
+
+      - name: Formattering controleren
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyzer
+        run: flutter analyze
+
+      - name: Tests
+        run: flutter test
+
+  build-apk:
+    name: Debug-APK bouwen (smoke build)
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Java installeren
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Flutter installeren
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.41.6
+          cache: true
+
+      - name: Dependencies ophalen
+        run: flutter pub get
+
+      - name: Debug-APK bouwen
+        run: flutter build apk --debug
+
+      - name: APK uploaden als artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-updater-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 7

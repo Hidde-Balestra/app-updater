@@ -1,0 +1,120 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "App Updater",
+  "navApps": "Apps",
+  "navAdd": "Add",
+  "navSettings": "Settings",
+
+  "sectionMyApps": "My apps",
+  "sectionFavoriteApps": "Favorite apps",
+  "statusUpdate": "Update",
+  "statusUpToDate": "Up to date",
+  "statusChecking": "Checking…",
+  "statusError": "Error",
+  "statusNoReleases": "No releases",
+  "emptyLibraryTitle": "No apps yet",
+  "emptyLibraryMessage": "Add your first app using the + icon.",
+
+  "addAppTitle": "Add app",
+  "tabCustomApp": "Custom app",
+  "tabFavorite": "Favorite",
+  "sourceLabel": "SOURCE",
+  "sourceTypeGithub": "GitHub",
+  "sourceTypeFdroid": "F-Droid",
+  "sourceTypeDirect": "Direct .apk URL",
+  "sourceFieldHint": "GitHub / F-Droid / direct .apk URL",
+  "displayNameLabel": "DISPLAY NAME (optional)",
+  "displayNameHint": "e.g. MyBudget",
+  "latestReleaseFound": "Latest release: {version} — found via {source}",
+  "@latestReleaseFound": {
+    "placeholders": {
+      "version": {"type": "String"},
+      "source": {"type": "String"}
+    }
+  },
+  "addAppButton": "Add app",
+  "favoritesEmptyAllAdded": "All favorite apps have already been added.",
+  "addFavoriteButton": "Add",
+  "sourceResolveError": "Could not find a release for this source.",
+  "invalidSourceError": "Enter a valid source.",
+
+  "detailsTitle": "Details",
+  "updateAvailableBanner": "Update available {oldVersion} → {newVersion} · {size}",
+  "@updateAvailableBanner": {
+    "placeholders": {
+      "oldVersion": {"type": "String"},
+      "newVersion": {"type": "String"},
+      "size": {"type": "String"}
+    }
+  },
+  "downloadInstallButton": "Download & install APK",
+  "downloadingButton": "Downloading… {percent}%",
+  "@downloadingButton": {
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "changesInVersion": "Changes in {version}",
+  "@changesInVersion": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
+  "sourceLabelDetail": "Source: {source}",
+  "@sourceLabelDetail": {
+    "placeholders": {
+      "source": {"type": "String"}
+    }
+  },
+  "openInBrowser": "Open in browser",
+  "removeAppButton": "Remove app",
+  "removeAppConfirmTitle": "Remove app?",
+  "removeAppConfirmMessage": "Are you sure you want to remove {name} from your list? The app itself will not be removed from your device.",
+  "@removeAppConfirmMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "cancel": "Cancel",
+  "remove": "Remove",
+  "retry": "Retry",
+  "noApkAssetFound": "No .apk file found in the latest release.",
+
+  "settingsTitle": "Settings",
+  "sectionDisplay": "DISPLAY",
+  "darkMode": "Dark mode",
+  "darkModeSubtitle": "Follows system setting or manual",
+  "sectionLanguage": "LANGUAGE",
+  "languageSubtitle": "Choose the app language",
+  "languageSystem": "System language",
+  "languageDutch": "Dutch",
+  "languageEnglish": "English",
+  "languageSpanish": "Spanish",
+  "languageGerman": "German",
+  "languageItalian": "Italian",
+  "sectionUpdates": "UPDATES",
+  "autoCheck": "Check automatically",
+  "autoCheckSubtitle": "Every {hours} hours",
+  "@autoCheckSubtitle": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "wifiOnly": "Wi-Fi only",
+  "wifiOnlySubtitle": "Saves mobile data",
+  "notifications": "Notifications",
+  "notificationsSubtitle": "When an update is available",
+  "sectionPrivacy": "PRIVACY",
+  "privacyTitle": "No Google Play Services",
+  "privacyMessage": "This app installs and works entirely outside of the Play Store. No tracking, no analytics, no accounts required.",
+  "sectionAbout": "ABOUT",
+  "versionLabel": "Version",
+  "versionValue": "{version} (open source)",
+  "@versionValue": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
+  "sourceCodeLink": "Source code on GitHub"
+}

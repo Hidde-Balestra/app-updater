@@ -1,0 +1,30 @@
+[
+  {
+    "id": "taalleer",
+    "name": "TaalLeer",
+    "sourceType": "github",
+    "sourceIdentifier": "Hidde-Balestra/taalleer",
+    "infoUrl": "https://github.com/Hidde-Balestra/taalleer/releases"
+  },
+  {
+    "id": "task_planner",
+    "name": "Task Planner",
+    "sourceType": "github",
+    "sourceIdentifier": "Hidde-Balestra/Task_Planner",
+    "infoUrl": "https://github.com/Hidde-Balestra/Task_Planner/releases"
+  },
+  {
+    "id": "musicplayer",
+    "name": "MusicPlayer",
+    "sourceType": "github",
+    "sourceIdentifier": "privacy-creator/musicplayer-flutter",
+    "infoUrl": "https://github.com/privacy-creator/musicplayer-flutter"
+  },
+  {
+    "id": "fdroid",
+    "name": "F-Droid",
+    "sourceType": "direct",
+    "sourceIdentifier": "https://f-droid.org/F-Droid.apk",
+    "infoUrl": "https://f-droid.org/en/"
+  }
+]
