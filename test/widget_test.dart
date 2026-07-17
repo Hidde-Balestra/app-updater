@@ -11,6 +11,8 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/fake_curated_apps.dart';
+
 void main() {
   testWidgets('app boots to the Apps tab and can switch to Instellingen', (
     WidgetTester tester,
@@ -25,7 +27,7 @@ void main() {
       ),
     );
     final settings = SettingsController();
-    await library.load();
+    await library.load(curatedAppsOverride: testCuratedApps);
     await settings.load();
 
     await tester.pumpWidget(

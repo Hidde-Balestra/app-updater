@@ -11,6 +11,8 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../support/fake_curated_apps.dart';
+
 AppLibrary _offlineLibrary() {
   final client = MockClient((request) async => http.Response('', 503));
   return AppLibrary(
@@ -37,7 +39,7 @@ void main() {
     tester,
   ) async {
     final library = _offlineLibrary();
-    await library.load();
+    await library.load(curatedAppsOverride: testCuratedApps);
 
     await tester.pumpWidget(_wrap(HomeScreen(library: library)));
     await tester.pumpAndSettle();
@@ -49,7 +51,7 @@ void main() {
     'renders a custom app under "Mijn apps" and a favorite under "Favoriete apps"',
     (tester) async {
       final library = _offlineLibrary();
-      await library.load();
+      await library.load(curatedAppsOverride: testCuratedApps);
       await library.addCustomApp(
         name: 'MijnBudget',
         type: AppSourceType.direct,

@@ -33,8 +33,19 @@ class AppLibrary extends ChangeNotifier {
       .where((c) => !entries.any((e) => e.app.isCurated && e.app.id == c.id))
       .toList();
 
-  Future<void> load() async {
-    curatedApps = await _loadCuratedApps();
+  /// Loads curated apps and previously tracked apps, then kicks off a
+  /// background release check for everything that's tracked.
+  ///
+  /// [curatedAppsOverride] skips the `rootBundle.loadString` asset read and
+  /// is meant for widget tests: calling `rootBundle.loadString` from more
+  /// than one `testWidgets` block in the same file has been observed to
+  /// deadlock under `flutter test`'s concurrent multi-file execution (an
+  /// asset-channel binding quirk between the two `TestWidgetsFlutterBinding`
+  /// resets, not an app bug — plain `test()` cases and single-file runs are
+  /// unaffected). Only [AppLibrary]'s own asset-loading test exercises the
+  /// real path.
+  Future<void> load({List<CuratedApp>? curatedAppsOverride}) async {
+    curatedApps = curatedAppsOverride ?? await _loadCuratedApps();
     entries = await _loadTrackedApps();
     isLoaded = true;
     notifyListeners();
