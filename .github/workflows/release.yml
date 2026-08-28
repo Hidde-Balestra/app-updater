@@ -29,6 +29,13 @@ jobs:
           flutter-version: 3.41.6
           cache: true
 
+      - name: Pub-cache credentials wissen
+        # subosito/flutter-action se cache:true bewaart ~/.pub-cache tussen
+        # runs. Een stale/ongeldig credentials-bestand daarin laat `pub get`
+        # ten onrechte een authenticated request doen naar pub.dev's
+        # advisories-endpoint, wat daar met een 403 wordt afgewezen.
+        run: rm -f ~/.pub-cache/credentials.json ~/.config/dart/pub-credentials.json
+
       - name: Dependencies ophalen
         run: flutter pub get
 
