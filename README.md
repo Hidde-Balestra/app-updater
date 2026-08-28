@@ -6,7 +6,7 @@ Ontworpen op basis van deze [Figma-schermen](https://www.figma.com/design/i81CFU
 
 ## Functionaliteit
 
-- **Mijn apps**: apps die je zelf hebt toegevoegd via een GitHub-repo, een F-Droid package-id, of een directe `.apk`-link.
+- **Mijn apps**: apps die je zelf hebt toegevoegd via een GitHub-repo, een F-Droid package-id, of een directe `.apk`-link — of via het tabblad "Van toestel" bij het toevoegen, dat alle apps toont die al op je telefoon staan maar nog niet getrackt worden, zodat je naam en package-naam niet met de hand hoeft over te typen.
 - **Favoriete apps**: een meegeleverde lijst met suggesties die je met één tik kunt toevoegen — momenteel:
   - [TaalLeer](https://github.com/Hidde-Balestra/taalleer/releases)
   - [Task Planner](https://github.com/Hidde-Balestra/Task_Planner/releases)
