@@ -42,6 +42,15 @@
   "addAppTitle": "App toevoegen",
   "tabCustomApp": "Eigen app",
   "tabFavorite": "Favoriet",
+  "tabDeviceApps": "Van toestel",
+  "deviceAppsEmpty": "Geen nieuwe apps gevonden op je toestel.",
+  "useInstalledAppButton": "Gebruiken",
+  "useInstalledAppHint": "Kies nu een bron om {name} te kunnen volgen.",
+  "@useInstalledAppHint": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
   "sourceLabel": "BRON",
   "sourceTypeGithub": "GitHub",
   "sourceTypeFdroid": "F-Droid",

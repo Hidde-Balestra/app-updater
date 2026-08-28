@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../models/app_source_type.dart';
 import '../models/curated_app.dart';
+import '../models/installed_app.dart';
 import '../models/release_info.dart';
 import '../models/source_parser.dart';
 import '../state/app_library.dart';
@@ -33,11 +34,38 @@ class _AddAppScreenState extends State<AddAppScreen>
   bool _isChecking = false;
   bool _isSaving = false;
 
+  Future<List<InstalledApp>>? _installedAppsFuture;
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _sourceController.addListener(_onSourceChanged);
+    _loadInstalledApps();
+  }
+
+  void _loadInstalledApps() {
+    setState(() {
+      _installedAppsFuture = widget.library.installedAppsNotTracked();
+    });
+  }
+
+  void _useInstalledApp(InstalledApp app) {
+    _nameController.text = app.name;
+    _packageNameController.text = app.packageName;
+    _sourceController.clear();
+    setState(() {
+      _previewResult = null;
+      _resolvedIdentifier = null;
+    });
+    _tabController.animateTo(0);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          AppLocalizations.of(context)!.useInstalledAppHint(app.name),
+        ),
+      ),
+    );
   }
 
   @override
@@ -135,12 +163,17 @@ class _AddAppScreenState extends State<AddAppScreen>
           tabs: [
             Tab(text: l10n.tabCustomApp),
             Tab(text: l10n.tabFavorite),
+            Tab(text: l10n.tabDeviceApps),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [_buildCustomAppTab(l10n), _buildFavoriteTab(l10n)],
+        children: [
+          _buildCustomAppTab(l10n),
+          _buildFavoriteTab(l10n),
+          _buildDeviceAppsTab(l10n),
+        ],
       ),
     );
   }
@@ -351,6 +384,46 @@ class _AddAppScreenState extends State<AddAppScreen>
       },
     );
   }
+
+  Widget _buildDeviceAppsTab(AppLocalizations l10n) {
+    return RefreshIndicator(
+      onRefresh: () async => _loadInstalledApps(),
+      child: FutureBuilder<List<InstalledApp>>(
+        future: _installedAppsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final apps = snapshot.data ?? const <InstalledApp>[];
+          if (apps.isEmpty) {
+            return ListView(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    l10n.deviceAppsEmpty,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }
+          return ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: apps.length,
+            separatorBuilder: (_, _) => const SizedBox(height: 10),
+            itemBuilder: (context, index) => _DeviceAppTile(
+              app: apps[index],
+              onUse: () => _useInstalledApp(apps[index]),
+            ),
+          );
+        },
+      ),
+    );
+  }
 }
 
 class _FavoriteTile extends StatelessWidget {
@@ -394,6 +467,55 @@ class _FavoriteTile extends StatelessWidget {
             FilledButton.tonal(
               onPressed: () => library.addFavorite(app),
               child: Text(l10n.addFavoriteButton),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DeviceAppTile extends StatelessWidget {
+  final InstalledApp app;
+  final VoidCallback onUse;
+
+  const _DeviceAppTile({required this.app, required this.onUse});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final initials = app.name.length >= 2
+        ? app.name.substring(0, 2).toUpperCase()
+        : app.name.toUpperCase();
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            AppAvatar(name: app.name, initials: initials),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    app.name,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    app.packageName,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            FilledButton.tonal(
+              onPressed: onUse,
+              child: Text(l10n.useInstalledAppButton),
             ),
           ],
         ),

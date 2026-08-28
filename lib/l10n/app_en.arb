@@ -42,6 +42,15 @@
   "addAppTitle": "Add app",
   "tabCustomApp": "Custom app",
   "tabFavorite": "Favorite",
+  "tabDeviceApps": "From device",
+  "deviceAppsEmpty": "No new apps found on your device.",
+  "useInstalledAppButton": "Use",
+  "useInstalledAppHint": "Now pick a source to track {name}.",
+  "@useInstalledAppHint": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
   "sourceLabel": "SOURCE",
   "sourceTypeGithub": "GitHub",
   "sourceTypeFdroid": "F-Droid",

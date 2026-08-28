@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/app_source_type.dart';
 import '../models/curated_app.dart';
+import '../models/installed_app.dart';
 import '../models/release_info.dart';
 import '../models/tracked_app.dart';
 import '../models/version_compare.dart';
@@ -310,6 +311,21 @@ class AppLibrary extends ChangeNotifier {
       await checkAll();
     }
     return (eligible: eligible.length, updated: updated);
+  }
+
+  /// Every app installed on the device that isn't already tracked (matched
+  /// by package name), for the "scan device" tab in the add-app flow — so
+  /// the user can browse what's already on their phone instead of typing
+  /// names in by hand.
+  Future<List<InstalledApp>> installedAppsNotTracked() async {
+    final installed = await _deviceApps.installedApps();
+    final trackedPackageNames = entries
+        .map((e) => e.app.packageName)
+        .whereType<String>()
+        .toSet();
+    return installed
+        .where((app) => !trackedPackageNames.contains(app.packageName))
+        .toList();
   }
 
   Future<bool> _syncInstalledVersion(String id) async {

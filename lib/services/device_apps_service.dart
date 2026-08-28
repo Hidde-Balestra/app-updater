@@ -1,5 +1,7 @@
 import 'package:installed_apps/installed_apps.dart';
 
+import '../models/installed_app.dart';
+
 /// Reads an app's installed version straight from the device's package
 /// manager (via the `installed_apps` plugin), keyed by Android package
 /// name. Used to sync a tracked app's installed version with what's
@@ -21,7 +23,22 @@ class DeviceAppsService {
   /// got installed, since neither Android nor open_filex tells this app
   /// which package the user actually confirmed installing.
   Future<Set<String>> installedPackageNames() async {
-    final apps = await InstalledApps.getInstalledApps();
+    final apps = await installedApps();
     return apps.map((app) => app.packageName).toSet();
+  }
+
+  /// Every launchable, non-system app currently installed on the device,
+  /// for the "scan device" tab in the add-app flow.
+  Future<List<InstalledApp>> installedApps() async {
+    final apps = await InstalledApps.getInstalledApps();
+    return apps
+        .map(
+          (app) => InstalledApp(
+            name: app.name,
+            packageName: app.packageName,
+            versionName: app.versionName,
+          ),
+        )
+        .toList();
   }
 }

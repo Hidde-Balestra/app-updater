@@ -87,4 +87,30 @@ void main() {
       expect(names, isEmpty);
     },
   );
+
+  test('installedApps maps every installed app to InstalledApp', () async {
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      expect(call.method, 'getInstalledApps');
+      return [
+        {
+          'name': 'One',
+          'package_name': 'com.example.one',
+          'version_name': '1.0.0',
+        },
+        {
+          'name': 'Two',
+          'package_name': 'com.example.two',
+          'version_name': '2.0.0',
+        },
+      ];
+    });
+
+    final apps = await DeviceAppsService().installedApps();
+
+    expect(apps, hasLength(2));
+    expect(apps[0].name, 'One');
+    expect(apps[0].packageName, 'com.example.one');
+    expect(apps[0].versionName, '1.0.0');
+    expect(apps[1].packageName, 'com.example.two');
+  });
 }

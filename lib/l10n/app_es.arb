@@ -42,6 +42,15 @@
   "addAppTitle": "Añadir app",
   "tabCustomApp": "App propia",
   "tabFavorite": "Favorita",
+  "tabDeviceApps": "Del dispositivo",
+  "deviceAppsEmpty": "No se encontraron apps nuevas en tu dispositivo.",
+  "useInstalledAppButton": "Usar",
+  "useInstalledAppHint": "Elige ahora un origen para seguir {name}.",
+  "@useInstalledAppHint": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
   "sourceLabel": "ORIGEN",
   "sourceTypeGithub": "GitHub",
   "sourceTypeFdroid": "F-Droid",
