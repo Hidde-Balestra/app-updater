@@ -15,6 +15,15 @@
   "statusNoReleases": "Sin versiones",
   "emptyLibraryTitle": "Aún no hay apps",
   "emptyLibraryMessage": "Añade tu primera app con el icono +.",
+  "scanDeviceTooltip": "Escanear dispositivo",
+  "scanDeviceResult": "{updated} de {eligible} apps sincronizadas",
+  "@scanDeviceResult": {
+    "placeholders": {
+      "updated": {"type": "int"},
+      "eligible": {"type": "int"}
+    }
+  },
+  "scanDeviceNoneEligible": "Ninguna de tus apps tiene un nombre de paquete configurado. Añade uno en 'App propia' para habilitar la sincronización automática.",
 
   "addAppTitle": "Añadir app",
   "tabCustomApp": "App propia",
@@ -26,6 +35,8 @@
   "sourceFieldHint": "GitHub / F-Droid / URL .apk directa",
   "displayNameLabel": "NOMBRE VISIBLE (opcional)",
   "displayNameHint": "p. ej. MiPresupuesto",
+  "packageNameLabel": "NOMBRE DE PAQUETE (opcional)",
+  "packageNameHint": "p. ej. com.example.app — permite detectar automáticamente la versión instalada",
   "latestReleaseFound": "Última versión: {version} — encontrada vía {source}",
   "@latestReleaseFound": {
     "placeholders": {

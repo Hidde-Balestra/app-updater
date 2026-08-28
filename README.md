@@ -13,6 +13,7 @@ Ontworpen op basis van deze [Figma-schermen](https://www.figma.com/design/i81CFU
   - [MusicPlayer](https://github.com/privacy-creator/musicplayer-flutter)
   - [F-Droid](https://f-droid.org/en/)
 - Updates worden gedetecteerd via de GitHub Releases API (nieuwste `.apk`-asset) of de F-Droid index-API, en rechtstreeks gedownload en geïnstalleerd via de Android package installer.
+- **Apparaat scannen**: voor een getrackte app kun je optioneel een Android package-naam invullen; de scan-knop leest dan via de package manager van het toestel de daadwerkelijk geïnstalleerde versie uit (in plaats van dat je die na een download-en-installeer handmatig hoeft te bevestigen) en controleert meteen opnieuw op updates.
 - Instellingen: donkere modus, taal (Nederlands, Engels, Spaans, Duits, Italiaans), automatisch controleren op updates, alleen-wifi, meldingen.
 - Geen Google Play Services, geen tracking, geen accounts.
 

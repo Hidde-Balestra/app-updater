@@ -24,6 +24,7 @@ void main() {
         sourceIdentifier: 'Hidde-Balestra/taalleer',
         isCurated: true,
         installedVersion: '1.8.0',
+        packageName: 'nl.hiddebalestra.taalleer',
       );
 
       final restored = TrackedApp.fromJson(app.toJson());
@@ -34,6 +35,30 @@ void main() {
       expect(restored.sourceIdentifier, app.sourceIdentifier);
       expect(restored.isCurated, app.isCurated);
       expect(restored.installedVersion, app.installedVersion);
+      expect(restored.packageName, app.packageName);
+    });
+
+    test('fromJson defaults packageName to null when absent', () {
+      final app = TrackedApp.fromJson({
+        'id': '123',
+        'name': 'TaalLeer',
+        'sourceType': 'github',
+        'sourceIdentifier': 'Hidde-Balestra/taalleer',
+      });
+
+      expect(app.packageName, isNull);
+    });
+  });
+
+  group('TrackedApp.copyWith', () {
+    test('sets packageName without touching other fields', () {
+      final app = _app('TaalLeer');
+
+      final updated = app.copyWith(packageName: 'nl.hiddebalestra.taalleer');
+
+      expect(updated.packageName, 'nl.hiddebalestra.taalleer');
+      expect(updated.name, app.name);
+      expect(updated.installedVersion, app.installedVersion);
     });
   });
 }

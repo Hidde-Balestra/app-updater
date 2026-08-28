@@ -8,6 +8,13 @@ class TrackedApp {
   final bool isCurated;
   final String? installedVersion;
 
+  /// Android package id (e.g. "com.example.app"), used to look up the
+  /// actually-installed version straight from the device's package manager
+  /// during a device scan. Optional — apps added without one simply aren't
+  /// eligible for that sync and fall back to the manual "mark installed"
+  /// flow that already runs after a download-and-install.
+  final String? packageName;
+
   const TrackedApp({
     required this.id,
     required this.name,
@@ -15,15 +22,21 @@ class TrackedApp {
     required this.sourceIdentifier,
     this.isCurated = false,
     this.installedVersion,
+    this.packageName,
   });
 
-  TrackedApp copyWith({String? name, String? installedVersion}) => TrackedApp(
+  TrackedApp copyWith({
+    String? name,
+    String? installedVersion,
+    String? packageName,
+  }) => TrackedApp(
     id: id,
     name: name ?? this.name,
     sourceType: sourceType,
     sourceIdentifier: sourceIdentifier,
     isCurated: isCurated,
     installedVersion: installedVersion ?? this.installedVersion,
+    packageName: packageName ?? this.packageName,
   );
 
   Map<String, dynamic> toJson() => {
@@ -33,6 +46,7 @@ class TrackedApp {
     'sourceIdentifier': sourceIdentifier,
     'isCurated': isCurated,
     'installedVersion': installedVersion,
+    'packageName': packageName,
   };
 
   factory TrackedApp.fromJson(Map<String, dynamic> json) => TrackedApp(
@@ -42,6 +56,7 @@ class TrackedApp {
     sourceIdentifier: json['sourceIdentifier'] as String,
     isCurated: json['isCurated'] as bool? ?? false,
     installedVersion: json['installedVersion'] as String?,
+    packageName: json['packageName'] as String?,
   );
 
   /// Two initials used for the avatar, e.g. "MijnBudget" -> "MB".

@@ -10,6 +10,7 @@ import '../models/curated_app.dart';
 import '../models/release_info.dart';
 import '../models/tracked_app.dart';
 import '../models/version_compare.dart';
+import '../services/device_apps_service.dart';
 import '../services/release_resolver.dart';
 import 'library_entry.dart';
 
@@ -21,9 +22,11 @@ class AppLibrary extends ChangeNotifier {
   static const _kTrackedApps = 'library.trackedApps';
 
   final ReleaseResolver _resolver;
+  final DeviceAppsService _deviceApps;
 
-  AppLibrary({ReleaseResolver? resolver})
-    : _resolver = resolver ?? ReleaseResolver();
+  AppLibrary({ReleaseResolver? resolver, DeviceAppsService? deviceApps})
+    : _resolver = resolver ?? ReleaseResolver(),
+      _deviceApps = deviceApps ?? DeviceAppsService();
 
   List<LibraryEntry> entries = [];
   List<CuratedApp> curatedApps = [];
@@ -87,12 +90,17 @@ class AppLibrary extends ChangeNotifier {
     required String name,
     required AppSourceType type,
     required String source,
+    String? packageName,
   }) async {
+    final trimmedPackageName = packageName?.trim();
     final app = TrackedApp(
       id: '${DateTime.now().microsecondsSinceEpoch}',
       name: name,
       sourceType: type,
       sourceIdentifier: source,
+      packageName: (trimmedPackageName == null || trimmedPackageName.isEmpty)
+          ? null
+          : trimmedPackageName,
     );
     entries = [
       ...entries,
@@ -145,6 +153,45 @@ class AppLibrary extends ChangeNotifier {
 
   Future<void> checkAll() async {
     await Future.wait(entries.map((e) => checkOne(e.app.id)));
+  }
+
+  /// Scans the device for every tracked app that has a [TrackedApp.packageName]
+  /// set, re-reading its installed version from the device's package
+  /// manager and re-checking for updates when that version changed.
+  ///
+  /// Returns the number of apps eligible for the scan (i.e. with a package
+  /// name set) and how many of those had their installed version updated.
+  Future<({int eligible, int updated})> syncInstalledVersions() async {
+    final eligible = entries
+        .where((e) => (e.app.packageName ?? '').trim().isNotEmpty)
+        .toList();
+
+    final changedFlags = await Future.wait(
+      eligible.map((e) => _syncInstalledVersion(e.app.id)),
+    );
+    final updated = changedFlags.where((changed) => changed).length;
+    if (updated > 0) {
+      await checkAll();
+    }
+    return (eligible: eligible.length, updated: updated);
+  }
+
+  Future<bool> _syncInstalledVersion(String id) async {
+    final index = entries.indexWhere((e) => e.app.id == id);
+    if (index == -1) return false;
+    final app = entries[index].app;
+    final packageName = app.packageName;
+    if (packageName == null || packageName.trim().isEmpty) return false;
+
+    final detected = await _deviceApps.installedVersion(packageName);
+    if (detected == null || detected == app.installedVersion) return false;
+
+    _updateEntry(
+      id,
+      (e) => e.copyWith(app: e.app.copyWith(installedVersion: detected)),
+    );
+    await _persist();
+    return true;
   }
 
   Future<void> checkOne(String id) async {

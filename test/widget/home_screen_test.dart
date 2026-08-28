@@ -1,6 +1,7 @@
 import 'package:app_updater/l10n/app_localizations.dart';
 import 'package:app_updater/models/app_source_type.dart';
 import 'package:app_updater/screens/home_screen.dart';
+import 'package:app_updater/services/device_apps_service.dart';
 import 'package:app_updater/services/fdroid_service.dart';
 import 'package:app_updater/services/github_service.dart';
 import 'package:app_updater/services/release_resolver.dart';
@@ -13,13 +14,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/fake_curated_apps.dart';
 
-AppLibrary _offlineLibrary() {
+class _FakeDeviceAppsService extends DeviceAppsService {
+  _FakeDeviceAppsService([this._versions = const {}]);
+  final Map<String, String?> _versions;
+
+  @override
+  Future<String?> installedVersion(String packageName) async =>
+      _versions[packageName];
+}
+
+AppLibrary _offlineLibrary({DeviceAppsService? deviceApps}) {
   final client = MockClient((request) async => http.Response('', 503));
   return AppLibrary(
     resolver: ReleaseResolver(
       github: GithubService(client: client),
       fdroid: FdroidService(client: client),
     ),
+    deviceApps: deviceApps ?? _FakeDeviceAppsService(),
   );
 }
 
@@ -67,6 +78,58 @@ void main() {
       expect(find.text('MijnBudget'), findsOneWidget);
       expect(find.text('FAVORIETE APPS'), findsOneWidget);
       expect(find.text(library.curatedApps.first.name), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'tapping "scan device" with no eligible apps shows the none-eligible message',
+    (tester) async {
+      final library = _offlineLibrary();
+      await library.load(curatedAppsOverride: testCuratedApps);
+      await library.addCustomApp(
+        name: 'MijnBudget',
+        type: AppSourceType.direct,
+        source: 'https://example.com/mijnbudget.apk',
+      );
+
+      await tester.pumpWidget(_wrap(HomeScreen(library: library)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.sync));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          "Geen van je apps heeft een package naam ingesteld. "
+          "Voeg er een toe bij ‘Eigen app’ voor automatische synchronisatie.",
+        ),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'tapping "scan device" syncs the installed version of eligible apps and reports the result',
+    (tester) async {
+      final library = _offlineLibrary(
+        deviceApps: _FakeDeviceAppsService({'com.example.app': '9.9.9'}),
+      );
+      await library.load(curatedAppsOverride: testCuratedApps);
+      await library.addCustomApp(
+        name: 'MijnBudget',
+        type: AppSourceType.direct,
+        source: 'https://example.com/mijnbudget.apk',
+        packageName: 'com.example.app',
+      );
+
+      await tester.pumpWidget(_wrap(HomeScreen(library: library)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.sync));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 van 1 apps gesynchroniseerd'), findsOneWidget);
+      expect(library.entries.single.app.installedVersion, '9.9.9');
     },
   );
 }

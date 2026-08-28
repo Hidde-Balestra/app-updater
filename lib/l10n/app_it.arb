@@ -15,6 +15,15 @@
   "statusNoReleases": "Nessuna release",
   "emptyLibraryTitle": "Ancora nessuna app",
   "emptyLibraryMessage": "Aggiungi la tua prima app con l'icona +.",
+  "scanDeviceTooltip": "Scansiona dispositivo",
+  "scanDeviceResult": "{updated} di {eligible} app sincronizzate",
+  "@scanDeviceResult": {
+    "placeholders": {
+      "updated": {"type": "int"},
+      "eligible": {"type": "int"}
+    }
+  },
+  "scanDeviceNoneEligible": "Nessuna delle tue app ha un nome pacchetto impostato. Aggiungine uno in 'App personalizzata' per abilitare la sincronizzazione automatica.",
 
   "addAppTitle": "Aggiungi app",
   "tabCustomApp": "App personalizzata",
@@ -26,6 +35,8 @@
   "sourceFieldHint": "GitHub / F-Droid / URL .apk diretto",
   "displayNameLabel": "NOME VISUALIZZATO (opzionale)",
   "displayNameHint": "es. IlMioBudget",
+  "packageNameLabel": "NOME PACCHETTO (opzionale)",
+  "packageNameHint": "es. com.example.app — abilita il rilevamento automatico della versione installata",
   "latestReleaseFound": "Ultima release: {version} — trovata tramite {source}",
   "@latestReleaseFound": {
     "placeholders": {

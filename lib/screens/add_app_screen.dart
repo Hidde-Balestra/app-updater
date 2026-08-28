@@ -24,6 +24,7 @@ class _AddAppScreenState extends State<AddAppScreen>
   late final TabController _tabController;
   final _sourceController = TextEditingController();
   final _nameController = TextEditingController();
+  final _packageNameController = TextEditingController();
 
   AppSourceType _sourceType = AppSourceType.github;
   Timer? _debounce;
@@ -44,6 +45,7 @@ class _AddAppScreenState extends State<AddAppScreen>
     _debounce?.cancel();
     _sourceController.dispose();
     _nameController.dispose();
+    _packageNameController.dispose();
     _tabController.dispose();
     super.dispose();
   }
@@ -104,11 +106,15 @@ class _AddAppScreenState extends State<AddAppScreen>
       name: displayName,
       type: _sourceType,
       source: identifier,
+      packageName: _packageNameController.text.trim().isNotEmpty
+          ? _packageNameController.text.trim()
+          : null,
     );
     if (!mounted) return;
     setState(() => _isSaving = false);
     _sourceController.clear();
     _nameController.clear();
+    _packageNameController.clear();
     setState(() {
       _previewResult = null;
       _resolvedIdentifier = null;
@@ -191,6 +197,19 @@ class _AddAppScreenState extends State<AddAppScreen>
         TextField(
           controller: _nameController,
           decoration: InputDecoration(hintText: l10n.displayNameHint),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          l10n.packageNameLabel,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _packageNameController,
+          decoration: InputDecoration(hintText: l10n.packageNameHint),
         ),
         const SizedBox(height: 20),
         _buildPreviewCard(l10n),

@@ -12,6 +12,16 @@ class HomeScreen extends StatelessWidget {
 
   const HomeScreen({super.key, required this.library});
 
+  Future<void> _scanDevice(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await library.syncInstalledVersions();
+    final message = result.eligible == 0
+        ? l10n.scanDeviceNoneEligible
+        : l10n.scanDeviceResult(result.updated, result.eligible);
+    messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
   void _openDetail(BuildContext context, String appId) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -34,6 +44,11 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.sync),
+            tooltip: l10n.scanDeviceTooltip,
+            onPressed: () => _scanDevice(context),
+          ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => _openAdd(context),
