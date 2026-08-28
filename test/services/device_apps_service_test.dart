@@ -6,9 +6,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   const channel = MethodChannel('installed_apps');
-  final messenger = TestDefaultBinaryMessengerBinding
-      .instance
-      .defaultBinaryMessenger;
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
 
   tearDown(() {
     messenger.setMockMethodCallHandler(channel, null);
@@ -43,16 +42,19 @@ void main() {
     expect(version, isNull);
   });
 
-  test('returns null for a blank package name without calling the platform', () async {
-    var called = false;
-    messenger.setMockMethodCallHandler(channel, (call) async {
-      called = true;
-      return null;
-    });
+  test(
+    'returns null for a blank package name without calling the platform',
+    () async {
+      var called = false;
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        called = true;
+        return null;
+      });
 
-    final version = await DeviceAppsService().installedVersion('   ');
+      final version = await DeviceAppsService().installedVersion('   ');
 
-    expect(version, isNull);
-    expect(called, isFalse);
-  });
+      expect(version, isNull);
+      expect(called, isFalse);
+    },
+  );
 }
