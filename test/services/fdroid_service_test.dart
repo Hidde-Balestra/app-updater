@@ -7,27 +7,23 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
-  test('resolves the newest package entry into a repo download URL', () async {
+  test('resolves the suggested (stable) version into a repo download URL, '
+      'not the newest list entry', () async {
     final client = MockClient((request) async {
       expect(
         request.url.toString(),
         'https://f-droid.org/api/v1/packages/org.fdroid.fdroid',
       );
+      // Real F-Droid API shape: no apkName/hash/size, and the list can
+      // lead with a pre-release build newer than the suggested version.
       return http.Response(
         jsonEncode({
+          'packageName': 'org.fdroid.fdroid',
+          'suggestedVersionCode': 1023052,
           'packages': [
-            {
-              'versionName': '1.20',
-              'versionCode': 1020050,
-              'apkName': 'org.fdroid.fdroid_1020050.apk',
-              'size': 12345,
-            },
-            {
-              'versionName': '1.19',
-              'versionCode': 1019000,
-              'apkName': 'org.fdroid.fdroid_1019000.apk',
-              'size': 12000,
-            },
+            {'versionName': '2.0-rc1', 'versionCode': 2000041},
+            {'versionName': '1.23.2', 'versionCode': 1023052},
+            {'versionName': '1.23.1', 'versionCode': 1023051},
           ],
         }),
         200,
@@ -40,16 +36,52 @@ void main() {
 
     expect(result, isA<ReleaseSuccess>());
     final info = (result as ReleaseSuccess).info;
-    expect(info.version, '1.20');
+    expect(info.version, '1.23.2');
     expect(
       info.downloadUrl,
-      'https://f-droid.org/repo/org.fdroid.fdroid_1020050.apk',
+      'https://f-droid.org/repo/org.fdroid.fdroid_1023052.apk',
+    );
+    expect(
+      info.sourcePageUrl,
+      'https://f-droid.org/packages/org.fdroid.fdroid/',
+    );
+  });
+
+  test('falls back to the first package entry when nothing matches the '
+      'suggested version code', () async {
+    final client = MockClient((request) async {
+      return http.Response(
+        jsonEncode({
+          'packageName': 'org.example.app',
+          'suggestedVersionCode': 999,
+          'packages': [
+            {'versionName': '2.0', 'versionCode': 200},
+            {'versionName': '1.0', 'versionCode': 100},
+          ],
+        }),
+        200,
+      );
+    });
+
+    final result = await FdroidService(
+      client: client,
+    ).fetchLatestRelease('org.example.app');
+
+    expect(result, isA<ReleaseSuccess>());
+    final info = (result as ReleaseSuccess).info;
+    expect(info.version, '2.0');
+    expect(
+      info.downloadUrl,
+      'https://f-droid.org/repo/org.example.app_200.apk',
     );
   });
 
   test('returns ReleaseNotFound when there are no packages', () async {
     final client = MockClient(
-      (request) async => http.Response(jsonEncode({'packages': []}), 200),
+      (request) async => http.Response(
+        jsonEncode({'packageName': 'some.unknown.id', 'packages': []}),
+        200,
+      ),
     );
     final result = await FdroidService(
       client: client,

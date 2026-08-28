@@ -57,12 +57,10 @@ ReleaseResolver _resolver() {
     }
     return http.Response(
       jsonEncode({
+        'packageName': 'org.fdroid.fdroid',
+        'suggestedVersionCode': 1,
         'packages': [
-          {
-            'versionName': '1.20',
-            'apkName': 'org.fdroid.fdroid_1.apk',
-            'size': 1,
-          },
+          {'versionName': '1.20', 'versionCode': 1},
         ],
       }),
       200,

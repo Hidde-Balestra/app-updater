@@ -132,12 +132,10 @@ void main() {
         );
         return http.Response(
           jsonEncode({
+            'packageName': 'com.example.mijnbudget',
+            'suggestedVersionCode': 3,
             'packages': [
-              {
-                'versionName': '3.4.0',
-                'apkName': 'com.example.mijnbudget_3.apk',
-                'size': 1000,
-              },
+              {'versionName': '3.4.0', 'versionCode': 3},
             ],
           }),
           200,
