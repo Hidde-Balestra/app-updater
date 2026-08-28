@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/app_source_type.dart';
 import '../models/curated_app.dart';
+import '../models/device_app_entry.dart';
 import '../models/installed_app.dart';
 import '../models/release_info.dart';
 import '../models/tracked_app.dart';
@@ -39,6 +40,7 @@ class AppLibrary extends ChangeNotifier {
 
   List<LibraryEntry> entries = [];
   List<CuratedApp> curatedApps = [];
+  Set<String> ignoredPackageNames = {};
   bool isLoaded = false;
 
   List<CuratedApp> get availableFavorites => curatedApps
@@ -59,6 +61,7 @@ class AppLibrary extends ChangeNotifier {
   Future<void> load({List<CuratedApp>? curatedAppsOverride}) async {
     curatedApps = curatedAppsOverride ?? await _loadCuratedApps();
     entries = await _loadTrackedApps();
+    ignoredPackageNames = await _loadIgnoredPackageNames();
     isLoaded = true;
     notifyListeners();
     unawaited(checkAll());
@@ -89,6 +92,20 @@ class AppLibrary extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final raw = jsonEncode(entries.map((e) => e.app.toJson()).toList());
     await prefs.setString(_kTrackedApps, raw);
+  }
+
+  Future<Set<String>> _loadIgnoredPackageNames() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getStringList(StorageKeys.ignoredPackageNames);
+    return raw?.toSet() ?? {};
+  }
+
+  Future<void> _persistIgnoredPackageNames() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      StorageKeys.ignoredPackageNames,
+      ignoredPackageNames.toList(),
+    );
   }
 
   Future<ReleaseResult> previewSource(AppSourceType type, String source) {
@@ -314,9 +331,9 @@ class AppLibrary extends ChangeNotifier {
   }
 
   /// Every app installed on the device that isn't already tracked (matched
-  /// by package name), for the "scan device" tab in the add-app flow — so
-  /// the user can browse what's already on their phone instead of typing
-  /// names in by hand.
+  /// by package name) and hasn't been dismissed via [ignorePackage], for
+  /// the "scan device" tab in the add-app flow — so the user can browse
+  /// what's already on their phone instead of typing names in by hand.
   Future<List<InstalledApp>> installedAppsNotTracked() async {
     final installed = await _deviceApps.installedApps();
     final trackedPackageNames = entries
@@ -324,8 +341,49 @@ class AppLibrary extends ChangeNotifier {
         .whereType<String>()
         .toSet();
     return installed
-        .where((app) => !trackedPackageNames.contains(app.packageName))
+        .where(
+          (app) =>
+              !trackedPackageNames.contains(app.packageName) &&
+              !ignoredPackageNames.contains(app.packageName),
+        )
         .toList();
+  }
+
+  /// Every app installed on the device, classified as tracked, ignored, or
+  /// available — the combined overview shown on the "Apparaat-apps" screen
+  /// in Settings.
+  Future<List<DeviceAppEntry>> deviceAppOverview() async {
+    final installed = await _deviceApps.installedApps();
+    final trackedPackageNames = entries
+        .map((e) => e.app.packageName)
+        .whereType<String>()
+        .toSet();
+    return installed
+        .map(
+          (app) => DeviceAppEntry(
+            app: app,
+            status: trackedPackageNames.contains(app.packageName)
+                ? DeviceAppStatus.tracked
+                : ignoredPackageNames.contains(app.packageName)
+                ? DeviceAppStatus.ignored
+                : DeviceAppStatus.available,
+          ),
+        )
+        .toList();
+  }
+
+  /// Dismisses [packageName] from add-app suggestions until
+  /// [unignorePackage] is called for it.
+  Future<void> ignorePackage(String packageName) async {
+    if (!ignoredPackageNames.add(packageName)) return;
+    notifyListeners();
+    await _persistIgnoredPackageNames();
+  }
+
+  Future<void> unignorePackage(String packageName) async {
+    if (!ignoredPackageNames.remove(packageName)) return;
+    notifyListeners();
+    await _persistIgnoredPackageNames();
   }
 
   Future<bool> _syncInstalledVersion(String id) async {

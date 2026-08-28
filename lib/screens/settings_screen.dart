@@ -7,6 +7,7 @@ import '../l10n/app_localizations.dart';
 import '../state/app_library.dart';
 import '../state/settings_controller.dart';
 import '../widgets/section_header.dart';
+import 'device_apps_screen.dart';
 
 const _repoUrl = 'https://github.com/Hidde-Balestra/app-updater';
 
@@ -163,6 +164,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 subtitle: Text(l10n.notificationsSubtitle),
                 value: settings.notificationsEnabled,
                 onChanged: settings.setNotificationsEnabled,
+              ),
+              SectionHeader(title: l10n.sectionDevice),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.phone_android_outlined),
+                title: Text(l10n.deviceAppsMenuTitle),
+                subtitle: Text(l10n.deviceAppsMenuSubtitle),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => DeviceAppsScreen(library: widget.library),
+                  ),
+                ),
               ),
               SectionHeader(title: l10n.sectionBackup),
               ListTile(

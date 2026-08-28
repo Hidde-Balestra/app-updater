@@ -14,7 +14,12 @@ import '../widgets/app_avatar.dart';
 class AddAppScreen extends StatefulWidget {
   final AppLibrary library;
 
-  const AddAppScreen({super.key, required this.library});
+  /// When set, prefills the custom-app tab's name and package name fields
+  /// on open — used when navigating here from the device-apps overview in
+  /// Settings, so the user only has to pick a source.
+  final InstalledApp? prefillApp;
+
+  const AddAppScreen({super.key, required this.library, this.prefillApp});
 
   @override
   State<AddAppScreen> createState() => _AddAppScreenState();
@@ -42,6 +47,11 @@ class _AddAppScreenState extends State<AddAppScreen>
     _tabController = TabController(length: 3, vsync: this);
     _sourceController.addListener(_onSourceChanged);
     _loadInstalledApps();
+    final prefill = widget.prefillApp;
+    if (prefill != null) {
+      _nameController.text = prefill.name;
+      _packageNameController.text = prefill.packageName;
+    }
   }
 
   void _loadInstalledApps() {

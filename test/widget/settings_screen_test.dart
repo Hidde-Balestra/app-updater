@@ -125,6 +125,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    // The BACK-UP section is below the fold now that a DEVICE section sits
+    // above it, so scroll it into view before tapping — a plain ListView
+    // only mounts elements near the viewport, `find` alone won't see it.
+    await tester.scrollUntilVisible(
+      find.text('Exporteren naar klembord'),
+      300,
+      scrollable: find.byType(Scrollable),
+    );
     await tester.tap(find.text('Exporteren naar klembord'));
     await tester.pumpAndSettle();
 
