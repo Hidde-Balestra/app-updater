@@ -192,9 +192,7 @@ void main() {
       expect(result.succeeded, 1);
       expect(result.failed, 1);
       final badEntry = library.entries.firstWhere((e) => e.app.id == bad.id);
-      final goodEntry = library.entries.firstWhere(
-        (e) => e.app.id == good.id,
-      );
+      final goodEntry = library.entries.firstWhere((e) => e.app.id == good.id);
       expect(badEntry.status, isNot(AppCheckStatus.upToDate));
       expect(goodEntry.status, AppCheckStatus.upToDate);
     },
@@ -254,9 +252,7 @@ void main() {
     });
 
     test('leaves the package name unset when nothing new appears', () async {
-      final deviceApps = _FakeDeviceAppsService([
-        {'com.example.other'},
-      ]);
+      final deviceApps = _FakeDeviceAppsService([{'com.example.other'}]);
       final library = AppLibrary(
         resolver: _offlineResolver(),
         deviceApps: deviceApps,

@@ -51,10 +51,10 @@ class NotificationService {
         : '${appNames.length} apps have an update';
 
     await _plugin.show(
-      0,
-      title,
-      appNames.join(', '),
-      const NotificationDetails(android: androidDetails),
+      id: 0,
+      title: title,
+      body: appNames.join(', '),
+      notificationDetails: const NotificationDetails(android: androidDetails),
     );
   }
 }
