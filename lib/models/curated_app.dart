@@ -10,12 +10,19 @@ class CuratedApp {
   final String sourceIdentifier;
   final String infoUrl;
 
+  /// Android package id, when known. Propagated to the [TrackedApp]
+  /// created when the user adds this favorite, so device-scan matching
+  /// and installed-version sync work immediately instead of requiring the
+  /// user to type it in by hand.
+  final String? packageName;
+
   const CuratedApp({
     required this.id,
     required this.name,
     required this.sourceType,
     required this.sourceIdentifier,
     required this.infoUrl,
+    this.packageName,
   });
 
   factory CuratedApp.fromJson(Map<String, dynamic> json) => CuratedApp(
@@ -24,5 +31,6 @@ class CuratedApp {
     sourceType: AppSourceType.fromJson(json['sourceType'] as String),
     sourceIdentifier: json['sourceIdentifier'] as String,
     infoUrl: json['infoUrl'] as String,
+    packageName: json['packageName'] as String?,
   );
 }

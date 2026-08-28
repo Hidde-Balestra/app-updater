@@ -51,6 +51,19 @@
       "name": {"type": "String"}
     }
   },
+  "addAllFdroidBannerTitle": "{count} apps beschikbaar via F-Droid",
+  "@addAllFdroidBannerTitle": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "addAllFdroidButton": "Alles toevoegen",
+  "addAllFdroidResult": "{count} apps toegevoegd via F-Droid",
+  "@addAllFdroidResult": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "sourceLabel": "BRON",
   "sourceTypeGithub": "GitHub",
   "sourceTypeGitlab": "GitLab",

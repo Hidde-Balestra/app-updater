@@ -51,6 +51,19 @@
       "name": {"type": "String"}
     }
   },
+  "addAllFdroidBannerTitle": "{count} Apps auf F-Droid verfügbar",
+  "@addAllFdroidBannerTitle": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "addAllFdroidButton": "Alle hinzufügen",
+  "addAllFdroidResult": "{count} Apps über F-Droid hinzugefügt",
+  "@addAllFdroidResult": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "sourceLabel": "QUELLE",
   "sourceTypeGithub": "GitHub",
   "sourceTypeGitlab": "GitLab",

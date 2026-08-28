@@ -11,6 +11,11 @@ import '../models/source_parser.dart';
 import '../state/app_library.dart';
 import '../widgets/app_avatar.dart';
 
+typedef _DeviceAppsPage = ({
+  List<InstalledApp> apps,
+  Set<String> fdroidAvailable,
+});
+
 class AddAppScreen extends StatefulWidget {
   final AppLibrary library;
 
@@ -39,7 +44,8 @@ class _AddAppScreenState extends State<AddAppScreen>
   bool _isChecking = false;
   bool _isSaving = false;
 
-  Future<List<InstalledApp>>? _installedAppsFuture;
+  Future<_DeviceAppsPage>? _deviceAppsFuture;
+  bool _isBulkAddingFdroid = false;
 
   @override
   void initState() {
@@ -55,8 +61,41 @@ class _AddAppScreenState extends State<AddAppScreen>
 
   void _loadInstalledApps() {
     setState(() {
-      _installedAppsFuture = widget.library.installedAppsNotTracked();
+      _deviceAppsFuture = _loadDeviceAppsPage();
     });
+  }
+
+  Future<_DeviceAppsPage> _loadDeviceAppsPage() async {
+    final apps = await widget.library.installedAppsNotTracked();
+    final fdroidAvailable = await widget.library.findFdroidAvailable(apps);
+    return (apps: apps, fdroidAvailable: fdroidAvailable);
+  }
+
+  Future<void> _addAllFdroidApps(_DeviceAppsPage page) async {
+    final targets = page.apps
+        .where((app) => page.fdroidAvailable.contains(app.packageName))
+        .toList();
+    if (targets.isEmpty) return;
+
+    setState(() => _isBulkAddingFdroid = true);
+    for (final app in targets) {
+      await widget.library.addCustomApp(
+        name: app.name,
+        type: AppSourceType.fdroid,
+        source: app.packageName,
+        packageName: app.packageName,
+      );
+    }
+    if (!mounted) return;
+    setState(() => _isBulkAddingFdroid = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          AppLocalizations.of(context)!.addAllFdroidResult(targets.length),
+        ),
+      ),
+    );
+    _loadInstalledApps();
   }
 
   /// Fills in the name/package fields for [app] and tries F-Droid as the
@@ -424,13 +463,15 @@ class _AddAppScreenState extends State<AddAppScreen>
   Widget _buildDeviceAppsTab(AppLocalizations l10n) {
     return RefreshIndicator(
       onRefresh: () async => _loadInstalledApps(),
-      child: FutureBuilder<List<InstalledApp>>(
-        future: _installedAppsFuture,
+      child: FutureBuilder<_DeviceAppsPage>(
+        future: _deviceAppsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator());
           }
-          final apps = snapshot.data ?? const <InstalledApp>[];
+          final apps = snapshot.data?.apps ?? const <InstalledApp>[];
+          final fdroidAvailable =
+              snapshot.data?.fdroidAvailable ?? const <String>{};
           if (apps.isEmpty) {
             return ListView(
               children: [
@@ -447,14 +488,29 @@ class _AddAppScreenState extends State<AddAppScreen>
               ],
             );
           }
+          final showBanner = fdroidAvailable.isNotEmpty;
           return ListView.separated(
             padding: const EdgeInsets.all(16),
-            itemCount: apps.length,
+            itemCount: apps.length + (showBanner ? 1 : 0),
             separatorBuilder: (_, _) => const SizedBox(height: 10),
-            itemBuilder: (context, index) => _DeviceAppTile(
-              app: apps[index],
-              onUse: () => _useInstalledApp(apps[index]),
-            ),
+            itemBuilder: (context, index) {
+              if (showBanner && index == 0) {
+                return _AddAllFdroidBanner(
+                  count: fdroidAvailable.length,
+                  isBusy: _isBulkAddingFdroid,
+                  onPressed: () => _addAllFdroidApps((
+                    apps: apps,
+                    fdroidAvailable: fdroidAvailable,
+                  )),
+                );
+              }
+              final app = apps[showBanner ? index - 1 : index];
+              return _DeviceAppTile(
+                app: app,
+                onUse: () => _useInstalledApp(app),
+                isFdroidAvailable: fdroidAvailable.contains(app.packageName),
+              );
+            },
           );
         },
       ),
@@ -511,11 +567,63 @@ class _FavoriteTile extends StatelessWidget {
   }
 }
 
+class _AddAllFdroidBanner extends StatelessWidget {
+  final int count;
+  final bool isBusy;
+  final VoidCallback onPressed;
+
+  const _AddAllFdroidBanner({
+    required this.count,
+    required this.isBusy,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Card(
+      color: Theme.of(context).colorScheme.primaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.addAllFdroidBannerTitle(count),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            FilledButton(
+              onPressed: isBusy ? null : onPressed,
+              child: isBusy
+                  ? const SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(l10n.addAllFdroidButton),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _DeviceAppTile extends StatelessWidget {
   final InstalledApp app;
   final VoidCallback onUse;
+  final bool isFdroidAvailable;
 
-  const _DeviceAppTile({required this.app, required this.onUse});
+  const _DeviceAppTile({
+    required this.app,
+    required this.onUse,
+    this.isFdroidAvailable = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -534,11 +642,21 @@ class _DeviceAppTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    app.name,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          app.name,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      if (isFdroidAvailable) ...[
+                        const SizedBox(width: 6),
+                        _SourceBadge(label: l10n.sourceTypeFdroid),
+                      ],
+                    ],
                   ),
                   Text(
                     app.packageName,
@@ -554,6 +672,30 @@ class _DeviceAppTile extends StatelessWidget {
               child: Text(l10n.useInstalledAppButton),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SourceBadge extends StatelessWidget {
+  final String label;
+
+  const _SourceBadge({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: Theme.of(context).colorScheme.onPrimaryContainer,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

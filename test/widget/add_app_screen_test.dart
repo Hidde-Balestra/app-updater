@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:app_updater/l10n/app_localizations.dart';
+import 'package:app_updater/models/app_source_type.dart';
 import 'package:app_updater/models/installed_app.dart';
 import 'package:app_updater/screens/add_app_screen.dart';
 import 'package:app_updater/services/device_apps_service.dart';
@@ -171,6 +172,65 @@ void main() {
         find.text('Laatste release: 3.4.0 — gevonden via F-Droid'),
         findsOneWidget,
       );
+    },
+  );
+
+  testWidgets(
+    'shows an F-Droid badge and a bulk-add banner for apps found there',
+    (tester) async {
+      final fdroidClient = MockClient((request) async {
+        if (request.url.toString().endsWith('com.example.onfdroid')) {
+          return http.Response(
+            jsonEncode({
+              'packageName': 'com.example.onfdroid',
+              'suggestedVersionCode': 5,
+              'packages': [
+                {'versionName': '5.0', 'versionCode': 5},
+              ],
+            }),
+            200,
+          );
+        }
+        return http.Response('', 404);
+      });
+      final library = AppLibrary(
+        resolver: ReleaseResolver(
+          github: GithubService(
+            client: MockClient((r) async => http.Response('', 503)),
+          ),
+          fdroid: FdroidService(client: fdroidClient),
+        ),
+        deviceApps: _FakeDeviceAppsService(const [
+          InstalledApp(
+            name: 'OnFdroid',
+            packageName: 'com.example.onfdroid',
+            versionName: '5.0',
+          ),
+          InstalledApp(
+            name: 'NotOnFdroid',
+            packageName: 'com.example.notonfdroid',
+            versionName: '1.0',
+          ),
+        ]),
+      );
+      await library.load(curatedAppsOverride: testCuratedApps);
+
+      await tester.pumpWidget(_wrap(AddAppScreen(library: library)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Van toestel'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 apps beschikbaar via F-Droid'), findsOneWidget);
+      expect(find.text('Alles toevoegen'), findsOneWidget);
+      expect(find.text('F-Droid'), findsOneWidget);
+
+      await tester.tap(find.text('Alles toevoegen'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 apps toegevoegd via F-Droid'), findsOneWidget);
+      expect(library.entries.single.app.sourceType, AppSourceType.fdroid);
+      expect(library.entries.single.app.packageName, 'com.example.onfdroid');
     },
   );
 }

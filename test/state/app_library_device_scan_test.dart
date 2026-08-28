@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:app_updater/models/app_source_type.dart';
 import 'package:app_updater/models/device_app_entry.dart';
 import 'package:app_updater/models/installed_app.dart';
@@ -219,5 +221,67 @@ void main() {
         expect(statuses['com.example.available'], DeviceAppStatus.available);
       },
     );
+  });
+
+  group('findFdroidAvailable', () {
+    test('returns only the package names F-Droid actually has', () async {
+      final fdroidClient = MockClient((request) async {
+        if (request.url.toString().endsWith('org.example.found')) {
+          return http.Response(
+            jsonEncode({
+              'packageName': 'org.example.found',
+              'suggestedVersionCode': 1,
+              'packages': [
+                {'versionName': '1.0', 'versionCode': 1},
+              ],
+            }),
+            200,
+          );
+        }
+        return http.Response('', 404);
+      });
+      final library = AppLibrary(
+        resolver: ReleaseResolver(
+          github: GithubService(
+            client: MockClient((r) async => http.Response('', 503)),
+          ),
+          fdroid: FdroidService(client: fdroidClient),
+        ),
+      );
+      await library.load(curatedAppsOverride: testCuratedApps);
+
+      final result = await library.findFdroidAvailable(const [
+        InstalledApp(
+          name: 'Found',
+          packageName: 'org.example.found',
+          versionName: '1.0',
+        ),
+        InstalledApp(
+          name: 'Missing',
+          packageName: 'org.example.missing',
+          versionName: '1.0',
+        ),
+      ]);
+
+      expect(result, {'org.example.found'});
+    });
+
+    test('returns an empty set for an empty input list', () async {
+      final library = AppLibrary(
+        resolver: ReleaseResolver(
+          github: GithubService(
+            client: MockClient((r) async => http.Response('', 503)),
+          ),
+          fdroid: FdroidService(
+            client: MockClient((r) async => http.Response('', 503)),
+          ),
+        ),
+      );
+      await library.load(curatedAppsOverride: testCuratedApps);
+
+      final result = await library.findFdroidAvailable(const []);
+
+      expect(result, isEmpty);
+    });
   });
 }

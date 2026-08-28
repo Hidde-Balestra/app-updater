@@ -64,7 +64,37 @@ class AppLibrary extends ChangeNotifier {
     ignoredPackageNames = await _loadIgnoredPackageNames();
     isLoaded = true;
     notifyListeners();
+    await _backfillCuratedPackageNames();
     unawaited(checkAll());
+  }
+
+  /// Self-heals tracked favorites added before their [CuratedApp] carried a
+  /// package name (or before this app knew it at all — e.g. Aurora Store):
+  /// without it, device-scan matching and installed-version sync silently
+  /// can't find the app, so it looks perpetually "update available" and
+  /// keeps reappearing in add-app suggestions even though it's tracked.
+  /// Runs once per [load], adopts the package name from the matching
+  /// curated entry wherever one is now known, and immediately syncs the
+  /// real installed version for it too — otherwise the false "update
+  /// available" would only clear itself the next time the user happens to
+  /// tap "scan device".
+  Future<void> _backfillCuratedPackageNames() async {
+    final backfilledIds = <String>[];
+    for (final entry in entries) {
+      if (!entry.app.isCurated) continue;
+      if ((entry.app.packageName ?? '').trim().isNotEmpty) continue;
+      final matches = curatedApps.where((c) => c.id == entry.app.id);
+      final packageName = matches.isEmpty ? null : matches.first.packageName;
+      if (packageName == null || packageName.trim().isEmpty) continue;
+      _updateEntry(
+        entry.app.id,
+        (e) => e.copyWith(app: e.app.copyWith(packageName: packageName)),
+      );
+      backfilledIds.add(entry.app.id);
+    }
+    if (backfilledIds.isEmpty) return;
+    await _persist();
+    await Future.wait(backfilledIds.map(_syncInstalledVersion));
   }
 
   Future<List<CuratedApp>> _loadCuratedApps() async {
@@ -146,6 +176,7 @@ class AppLibrary extends ChangeNotifier {
       sourceType: curated.sourceType,
       sourceIdentifier: curated.sourceIdentifier,
       isCurated: true,
+      packageName: curated.packageName,
     );
     entries = [
       ...entries,
@@ -347,6 +378,23 @@ class AppLibrary extends ChangeNotifier {
               !ignoredPackageNames.contains(app.packageName),
         )
         .toList();
+  }
+
+  /// Package names of [apps] that resolve on F-Droid, checked in parallel.
+  /// Backs the "Van toestel" tab's F-Droid badge and bulk-add: apps that
+  /// aren't on F-Droid (or that error out) are simply left out rather than
+  /// failing the whole batch.
+  Future<Set<String>> findFdroidAvailable(Iterable<InstalledApp> apps) async {
+    final results = await Future.wait(
+      apps.map((app) async {
+        final result = await _resolver.resolve(
+          AppSourceType.fdroid,
+          app.packageName,
+        );
+        return result is ReleaseSuccess ? app.packageName : null;
+      }),
+    );
+    return results.whereType<String>().toSet();
   }
 
   /// Every app installed on the device, classified as tracked, ignored, or

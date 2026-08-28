@@ -32,6 +32,7 @@ const testCuratedApps = [
     sourceType: AppSourceType.direct,
     sourceIdentifier: 'https://f-droid.org/F-Droid.apk',
     infoUrl: 'https://f-droid.org/en/',
+    packageName: 'org.fdroid.fdroid',
   ),
   CuratedApp(
     id: 'aurora_store',
@@ -39,5 +40,6 @@ const testCuratedApps = [
     sourceType: AppSourceType.gitlab,
     sourceIdentifier: 'AuroraOSS/AuroraStore',
     infoUrl: 'https://gitlab.com/AuroraOSS/AuroraStore',
+    packageName: 'com.aurora.store',
   ),
 ];
