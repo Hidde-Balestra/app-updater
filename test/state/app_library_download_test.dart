@@ -79,37 +79,34 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  test(
-    'downloadAndInstall downloads, hashes, installs and marks the app '
-    'installed',
-    () async {
-      final installer = _FakeApkInstallerService();
-      final library = AppLibrary(
-        resolver: _offlineResolver(),
-        installer: installer,
-        deviceApps: _FakeDeviceAppsService([<String>{}]),
-      );
-      await library.load(curatedAppsOverride: testCuratedApps);
-      // A package name is set up front so the fire-and-forget
-      // detectPackageNameAfterInstall() call inside downloadAndInstall()
-      // returns immediately instead of polling the fake in the background
-      // for the rest of the test run.
-      final app = await library.addCustomApp(
-        name: 'MijnApp',
-        type: AppSourceType.direct,
-        source: 'https://example.com/mijnapp.apk',
-        packageName: 'com.example.mijnapp',
-      );
+  test('downloadAndInstall downloads, hashes, installs and marks the app '
+      'installed', () async {
+    final installer = _FakeApkInstallerService();
+    final library = AppLibrary(
+      resolver: _offlineResolver(),
+      installer: installer,
+      deviceApps: _FakeDeviceAppsService([<String>{}]),
+    );
+    await library.load(curatedAppsOverride: testCuratedApps);
+    // A package name is set up front so the fire-and-forget
+    // detectPackageNameAfterInstall() call inside downloadAndInstall()
+    // returns immediately instead of polling the fake in the background
+    // for the rest of the test run.
+    final app = await library.addCustomApp(
+      name: 'MijnApp',
+      type: AppSourceType.direct,
+      source: 'https://example.com/mijnapp.apk',
+      packageName: 'com.example.mijnapp',
+    );
 
-      await library.downloadAndInstall(app.id);
+    await library.downloadAndInstall(app.id);
 
-      final entry = library.entries.single;
-      expect(entry.status, AppCheckStatus.upToDate);
-      expect(entry.app.installedVersion, isNotNull);
-      expect(entry.lastDownloadSha256, 'deadbeef');
-      expect(installer.installedPaths, hasLength(1));
-    },
-  );
+    final entry = library.entries.single;
+    expect(entry.status, AppCheckStatus.upToDate);
+    expect(entry.app.installedVersion, isNotNull);
+    expect(entry.lastDownloadSha256, 'deadbeef');
+    expect(installer.installedPaths, hasLength(1));
+  });
 
   test('downloadAndInstall does nothing without a resolved release', () async {
     final installer = _FakeApkInstallerService();
@@ -252,7 +249,9 @@ void main() {
     });
 
     test('leaves the package name unset when nothing new appears', () async {
-      final deviceApps = _FakeDeviceAppsService([{'com.example.other'}]);
+      final deviceApps = _FakeDeviceAppsService([
+        {'com.example.other'},
+      ]);
       final library = AppLibrary(
         resolver: _offlineResolver(),
         deviceApps: deviceApps,
