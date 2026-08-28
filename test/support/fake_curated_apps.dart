@@ -33,4 +33,11 @@ const testCuratedApps = [
     sourceIdentifier: 'https://f-droid.org/F-Droid.apk',
     infoUrl: 'https://f-droid.org/en/',
   ),
+  CuratedApp(
+    id: 'aurora_store',
+    name: 'Aurora Store',
+    sourceType: AppSourceType.gitlab,
+    sourceIdentifier: 'AuroraOSS/AuroraStore',
+    infoUrl: 'https://gitlab.com/AuroraOSS/AuroraStore',
+  ),
 ];

@@ -53,6 +53,7 @@
   },
   "sourceLabel": "SOURCE",
   "sourceTypeGithub": "GitHub",
+  "sourceTypeGitlab": "GitLab",
   "sourceTypeFdroid": "F-Droid",
   "sourceTypeDirect": "Direct .apk URL",
   "sourceFieldHint": "GitHub / F-Droid / direct .apk URL",

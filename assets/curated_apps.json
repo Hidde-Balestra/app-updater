@@ -26,5 +26,12 @@
     "sourceType": "direct",
     "sourceIdentifier": "https://f-droid.org/F-Droid.apk",
     "infoUrl": "https://f-droid.org/en/"
+  },
+  {
+    "id": "aurora_store",
+    "name": "Aurora Store",
+    "sourceType": "gitlab",
+    "sourceIdentifier": "AuroraOSS/AuroraStore",
+    "infoUrl": "https://gitlab.com/AuroraOSS/AuroraStore"
   }
 ]

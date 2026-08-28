@@ -107,6 +107,7 @@ class _AddAppScreenState extends State<AddAppScreen>
   Future<void> _resolvePreview(String rawInput) async {
     final identifier = switch (_sourceType) {
       AppSourceType.github => parseGithubSource(rawInput),
+      AppSourceType.gitlab => parseGitlabSource(rawInput),
       AppSourceType.fdroid => parseFdroidSource(rawInput),
       AppSourceType.direct => rawInput.trim(),
     };
@@ -205,6 +206,10 @@ class _AddAppScreenState extends State<AddAppScreen>
             ButtonSegment(
               value: AppSourceType.github,
               label: Text(l10n.sourceTypeGithub),
+            ),
+            ButtonSegment(
+              value: AppSourceType.gitlab,
+              label: Text(l10n.sourceTypeGitlab),
             ),
             ButtonSegment(
               value: AppSourceType.fdroid,
@@ -341,6 +346,7 @@ class _AddAppScreenState extends State<AddAppScreen>
 
   String _sourceTypeLabel(AppLocalizations l10n) => switch (_sourceType) {
     AppSourceType.github => l10n.sourceTypeGithub,
+    AppSourceType.gitlab => l10n.sourceTypeGitlab,
     AppSourceType.fdroid => l10n.sourceTypeFdroid,
     AppSourceType.direct => l10n.sourceTypeDirect,
   };

@@ -1,3 +1,4 @@
+import 'package:app_updater/models/app_source_type.dart';
 import 'package:app_updater/services/fdroid_service.dart';
 import 'package:app_updater/services/github_service.dart';
 import 'package:app_updater/services/release_resolver.dart';
@@ -26,7 +27,7 @@ void main() {
   });
 
   test(
-    'load() seeds the four required curated apps from the bundled asset',
+    'load() seeds the required curated apps from the bundled asset',
     () async {
       final library = AppLibrary(resolver: _offlineResolver());
       await library.load();
@@ -34,7 +35,13 @@ void main() {
       final ids = library.curatedApps.map((c) => c.id).toSet();
       expect(
         ids,
-        containsAll({'taalleer', 'task_planner', 'musicplayer', 'fdroid'}),
+        containsAll({
+          'taalleer',
+          'task_planner',
+          'musicplayer',
+          'fdroid',
+          'aurora_store',
+        }),
       );
 
       final taalleer = library.curatedApps.firstWhere(
@@ -57,6 +64,12 @@ void main() {
 
       final fdroid = library.curatedApps.firstWhere((c) => c.id == 'fdroid');
       expect(fdroid.infoUrl, 'https://f-droid.org/en/');
+
+      final auroraStore = library.curatedApps.firstWhere(
+        (c) => c.id == 'aurora_store',
+      );
+      expect(auroraStore.sourceType, AppSourceType.gitlab);
+      expect(auroraStore.sourceIdentifier, 'AuroraOSS/AuroraStore');
     },
   );
 

@@ -80,6 +80,8 @@ class TrackedApp {
     switch (sourceType) {
       case AppSourceType.github:
         return 'github.com/$sourceIdentifier';
+      case AppSourceType.gitlab:
+        return 'gitlab.com/$sourceIdentifier';
       case AppSourceType.fdroid:
         return sourceIdentifier;
       case AppSourceType.direct:

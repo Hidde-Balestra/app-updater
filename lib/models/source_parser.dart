@@ -27,6 +27,32 @@ String? parseGithubSource(String input) {
   }
 }
 
+/// GitLab: accepts "namespace/project" (nested groups allowed, e.g.
+/// "group/subgroup/project"), a gitlab.com project URL, or a releases URL,
+/// and returns the "namespace/project" path, or null if it can't be parsed.
+String? parseGitlabSource(String input) {
+  final trimmed = input.trim();
+  if (trimmed.isEmpty) return null;
+
+  if (!trimmed.contains('://')) {
+    final parts = trimmed.split('/').where((p) => p.isNotEmpty).toList();
+    if (parts.length >= 2) return parts.join('/');
+    return null;
+  }
+
+  try {
+    final uri = Uri.parse(trimmed);
+    if (uri.host != 'gitlab.com' && uri.host != 'www.gitlab.com') return null;
+    var segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
+    final dashIndex = segments.indexOf('-');
+    if (dashIndex != -1) segments = segments.sublist(0, dashIndex);
+    if (segments.length < 2) return null;
+    return segments.join('/');
+  } catch (_) {
+    return null;
+  }
+}
+
 /// F-Droid: accepts a bare package id or an f-droid.org packages URL and
 /// returns the package id, or null if it can't be parsed.
 String? parseFdroidSource(String input) {
@@ -56,6 +82,9 @@ String defaultNameFor({
     case 'github':
       final parts = identifier.split('/');
       return parts.length == 2 ? parts[1] : identifier;
+    case 'gitlab':
+      final parts = identifier.split('/');
+      return parts.isNotEmpty ? parts.last : identifier;
     case 'fdroid':
       return identifier;
     default:

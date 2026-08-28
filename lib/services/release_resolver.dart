@@ -2,6 +2,7 @@ import '../models/app_source_type.dart';
 import '../models/release_info.dart';
 import 'fdroid_service.dart';
 import 'github_service.dart';
+import 'gitlab_service.dart';
 
 /// Dispatches a source (type + identifier) to the right service. Direct
 /// .apk URLs carry no version metadata by themselves, so they resolve to a
@@ -9,16 +10,23 @@ import 'github_service.dart';
 /// installed" as the only update signal for that source type.
 class ReleaseResolver {
   final GithubService _github;
+  final GitlabService _gitlab;
   final FdroidService _fdroid;
 
-  ReleaseResolver({GithubService? github, FdroidService? fdroid})
-    : _github = github ?? GithubService(),
-      _fdroid = fdroid ?? FdroidService();
+  ReleaseResolver({
+    GithubService? github,
+    GitlabService? gitlab,
+    FdroidService? fdroid,
+  }) : _github = github ?? GithubService(),
+       _gitlab = gitlab ?? GitlabService(),
+       _fdroid = fdroid ?? FdroidService();
 
   Future<ReleaseResult> resolve(AppSourceType type, String sourceIdentifier) {
     switch (type) {
       case AppSourceType.github:
         return _github.fetchLatestRelease(sourceIdentifier);
+      case AppSourceType.gitlab:
+        return _gitlab.fetchLatestRelease(sourceIdentifier);
       case AppSourceType.fdroid:
         return _fdroid.fetchLatestRelease(sourceIdentifier);
       case AppSourceType.direct:

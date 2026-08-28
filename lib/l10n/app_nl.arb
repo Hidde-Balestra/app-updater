@@ -53,6 +53,7 @@
   },
   "sourceLabel": "BRON",
   "sourceTypeGithub": "GitHub",
+  "sourceTypeGitlab": "GitLab",
   "sourceTypeFdroid": "F-Droid",
   "sourceTypeDirect": "Directe .apk URL",
   "sourceFieldHint": "GitHub / F-Droid / directe .apk URL",

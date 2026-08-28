@@ -35,6 +35,50 @@ void main() {
     });
   });
 
+  group('parseGitlabSource', () {
+    test('accepts bare namespace/project', () {
+      expect(
+        parseGitlabSource('AuroraOSS/AuroraStore'),
+        'AuroraOSS/AuroraStore',
+      );
+    });
+
+    test('accepts nested groups', () {
+      expect(
+        parseGitlabSource('group/subgroup/project'),
+        'group/subgroup/project',
+      );
+    });
+
+    test('accepts a gitlab.com project URL', () {
+      expect(
+        parseGitlabSource('https://gitlab.com/AuroraOSS/AuroraStore'),
+        'AuroraOSS/AuroraStore',
+      );
+    });
+
+    test('accepts a gitlab.com releases URL, dropping the -/releases tail', () {
+      expect(
+        parseGitlabSource(
+          'https://gitlab.com/AuroraOSS/AuroraStore/-/releases',
+        ),
+        'AuroraOSS/AuroraStore',
+      );
+    });
+
+    test('rejects a non-gitlab host', () {
+      expect(parseGitlabSource('https://github.com/owner/repo'), isNull);
+    });
+
+    test('rejects empty input', () {
+      expect(parseGitlabSource('   '), isNull);
+    });
+
+    test('rejects a bare value with no slash', () {
+      expect(parseGitlabSource('notaproject'), isNull);
+    });
+  });
+
   group('parseFdroidSource', () {
     test('accepts a bare package id', () {
       expect(parseFdroidSource('org.fdroid.fdroid'), 'org.fdroid.fdroid');
@@ -60,6 +104,16 @@ void main() {
           identifier: 'Hidde-Balestra/taalleer',
         ),
         'taalleer',
+      );
+    });
+
+    test('gitlab uses the project name', () {
+      expect(
+        defaultNameFor(
+          identifierKind: 'gitlab',
+          identifier: 'AuroraOSS/AuroraStore',
+        ),
+        'AuroraStore',
       );
     });
 
