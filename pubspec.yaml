@@ -2,7 +2,7 @@ name: app_updater
 description: "App Updater - apps installeren en updaten via GitHub Releases en F-Droid, buiten de Play Store om."
 publish_to: 'none'
 
-version: 1.1.0+2
+version: 1.2.0+3
 
 environment:
   sdk: ^3.11.4
