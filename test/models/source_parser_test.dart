@@ -79,6 +79,34 @@ void main() {
     });
   });
 
+  group('parseCodebergSource', () {
+    test('accepts bare owner/repo', () {
+      expect(parseCodebergSource('gsantner/markor'), 'gsantner/markor');
+    });
+
+    test('accepts a codeberg.org repo URL', () {
+      expect(
+        parseCodebergSource('https://codeberg.org/gsantner/markor'),
+        'gsantner/markor',
+      );
+    });
+
+    test('accepts a codeberg.org releases URL', () {
+      expect(
+        parseCodebergSource('https://codeberg.org/gsantner/markor/releases'),
+        'gsantner/markor',
+      );
+    });
+
+    test('rejects a non-codeberg host', () {
+      expect(parseCodebergSource('https://github.com/owner/repo'), isNull);
+    });
+
+    test('rejects empty input', () {
+      expect(parseCodebergSource('   '), isNull);
+    });
+  });
+
   group('parseFdroidSource', () {
     test('accepts a bare package id', () {
       expect(parseFdroidSource('org.fdroid.fdroid'), 'org.fdroid.fdroid');
@@ -114,6 +142,13 @@ void main() {
           identifier: 'AuroraOSS/AuroraStore',
         ),
         'AuroraStore',
+      );
+    });
+
+    test('codeberg uses the repo name', () {
+      expect(
+        defaultNameFor(identifierKind: 'codeberg', identifier: 'owner/repo'),
+        'repo',
       );
     });
 

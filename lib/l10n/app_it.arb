@@ -54,6 +54,7 @@
   "sourceLabel": "ORIGINE",
   "sourceTypeGithub": "GitHub",
   "sourceTypeGitlab": "GitLab",
+  "sourceTypeCodeberg": "Codeberg",
   "sourceTypeFdroid": "F-Droid",
   "sourceTypeDirect": "URL .apk diretto",
   "sourceFieldHint": "GitHub / F-Droid / URL .apk diretto",

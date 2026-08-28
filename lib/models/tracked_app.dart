@@ -82,6 +82,8 @@ class TrackedApp {
         return 'github.com/$sourceIdentifier';
       case AppSourceType.gitlab:
         return 'gitlab.com/$sourceIdentifier';
+      case AppSourceType.codeberg:
+        return 'codeberg.org/$sourceIdentifier';
       case AppSourceType.fdroid:
         return sourceIdentifier;
       case AppSourceType.direct:

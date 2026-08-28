@@ -53,6 +53,31 @@ String? parseGitlabSource(String input) {
   }
 }
 
+/// Codeberg: accepts "owner/repo", a codeberg.org repo URL, or a releases
+/// URL and returns "owner/repo", or null if it can't be parsed.
+String? parseCodebergSource(String input) {
+  final trimmed = input.trim();
+  if (trimmed.isEmpty) return null;
+
+  if (!trimmed.contains('://')) {
+    final parts = trimmed.split('/').where((p) => p.isNotEmpty).toList();
+    if (parts.length >= 2) return '${parts[0]}/${parts[1]}';
+    return null;
+  }
+
+  try {
+    final uri = Uri.parse(trimmed);
+    if (uri.host != 'codeberg.org' && uri.host != 'www.codeberg.org') {
+      return null;
+    }
+    final segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
+    if (segments.length < 2) return null;
+    return '${segments[0]}/${segments[1]}';
+  } catch (_) {
+    return null;
+  }
+}
+
 /// F-Droid: accepts a bare package id or an f-droid.org packages URL and
 /// returns the package id, or null if it can't be parsed.
 String? parseFdroidSource(String input) {
@@ -85,6 +110,9 @@ String defaultNameFor({
     case 'gitlab':
       final parts = identifier.split('/');
       return parts.isNotEmpty ? parts.last : identifier;
+    case 'codeberg':
+      final parts = identifier.split('/');
+      return parts.length == 2 ? parts[1] : identifier;
     case 'fdroid':
       return identifier;
     default:

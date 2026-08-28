@@ -108,6 +108,7 @@ class _AddAppScreenState extends State<AddAppScreen>
     final identifier = switch (_sourceType) {
       AppSourceType.github => parseGithubSource(rawInput),
       AppSourceType.gitlab => parseGitlabSource(rawInput),
+      AppSourceType.codeberg => parseCodebergSource(rawInput),
       AppSourceType.fdroid => parseFdroidSource(rawInput),
       AppSourceType.direct => rawInput.trim(),
     };
@@ -201,32 +202,39 @@ class _AddAppScreenState extends State<AddAppScreen>
           ),
         ),
         const SizedBox(height: 8),
-        SegmentedButton<AppSourceType>(
-          segments: [
-            ButtonSegment(
-              value: AppSourceType.github,
-              label: Text(l10n.sourceTypeGithub),
-            ),
-            ButtonSegment(
-              value: AppSourceType.gitlab,
-              label: Text(l10n.sourceTypeGitlab),
-            ),
-            ButtonSegment(
-              value: AppSourceType.fdroid,
-              label: Text(l10n.sourceTypeFdroid),
-            ),
-            ButtonSegment(
-              value: AppSourceType.direct,
-              label: Text(l10n.sourceTypeDirect),
-            ),
-          ],
-          selected: {_sourceType},
-          onSelectionChanged: (selection) {
-            setState(() => _sourceType = selection.first);
-            if (_sourceController.text.trim().isNotEmpty) {
-              _resolvePreview(_sourceController.text);
-            }
-          },
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SegmentedButton<AppSourceType>(
+            segments: [
+              ButtonSegment(
+                value: AppSourceType.github,
+                label: Text(l10n.sourceTypeGithub),
+              ),
+              ButtonSegment(
+                value: AppSourceType.gitlab,
+                label: Text(l10n.sourceTypeGitlab),
+              ),
+              ButtonSegment(
+                value: AppSourceType.codeberg,
+                label: Text(l10n.sourceTypeCodeberg),
+              ),
+              ButtonSegment(
+                value: AppSourceType.fdroid,
+                label: Text(l10n.sourceTypeFdroid),
+              ),
+              ButtonSegment(
+                value: AppSourceType.direct,
+                label: Text(l10n.sourceTypeDirect),
+              ),
+            ],
+            selected: {_sourceType},
+            onSelectionChanged: (selection) {
+              setState(() => _sourceType = selection.first);
+              if (_sourceController.text.trim().isNotEmpty) {
+                _resolvePreview(_sourceController.text);
+              }
+            },
+          ),
         ),
         const SizedBox(height: 16),
         TextField(
@@ -347,6 +355,7 @@ class _AddAppScreenState extends State<AddAppScreen>
   String _sourceTypeLabel(AppLocalizations l10n) => switch (_sourceType) {
     AppSourceType.github => l10n.sourceTypeGithub,
     AppSourceType.gitlab => l10n.sourceTypeGitlab,
+    AppSourceType.codeberg => l10n.sourceTypeCodeberg,
     AppSourceType.fdroid => l10n.sourceTypeFdroid,
     AppSourceType.direct => l10n.sourceTypeDirect,
   };

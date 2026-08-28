@@ -1,6 +1,7 @@
 enum AppSourceType {
   github,
   gitlab,
+  codeberg,
   fdroid,
   direct;
 
