@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
@@ -49,5 +50,16 @@ class ApkInstallerService {
     if (result.type != ResultType.done) {
       throw Exception(result.message);
     }
+  }
+
+  /// Hex-encoded SHA-256 of the file at [filePath], streamed rather than
+  /// read fully into memory (APKs can be tens of MB). Shown to the user
+  /// before install so they can cross-check it against a hash published
+  /// elsewhere for the release — GitHub's releases API and F-Droid's index
+  /// don't reliably expose one themselves, so this is informational rather
+  /// than an automatic verification.
+  Future<String> sha256Of(String filePath) async {
+    final digest = await sha256.bind(File(filePath).openRead()).first;
+    return digest.toString();
   }
 }

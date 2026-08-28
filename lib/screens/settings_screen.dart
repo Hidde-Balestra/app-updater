@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/app_localizations.dart';
+import '../state/app_library.dart';
 import '../state/settings_controller.dart';
 import '../widgets/section_header.dart';
 
@@ -10,8 +12,13 @@ const _repoUrl = 'https://github.com/Hidde-Balestra/app-updater';
 
 class SettingsScreen extends StatefulWidget {
   final SettingsController settings;
+  final AppLibrary library;
 
-  const SettingsScreen({super.key, required this.settings});
+  const SettingsScreen({
+    super.key,
+    required this.settings,
+    required this.library,
+  });
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -41,6 +48,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
       'it' => l10n.languageItalian,
       _ => locale.languageCode,
     };
+  }
+
+  Future<void> _exportToClipboard() async {
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    final count = widget.library.entries.length;
+    await Clipboard.setData(ClipboardData(text: widget.library.exportJson()));
+    messenger.showSnackBar(SnackBar(content: Text(l10n.exportSuccess(count))));
+  }
+
+  Future<void> _importFromClipboard() async {
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final raw = data?.text ?? '';
+    if (raw.trim().isEmpty) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.importError)));
+      return;
+    }
+    try {
+      final added = await widget.library.importJson(raw);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            added == 0 ? l10n.importNothingNew : l10n.importSuccess(added),
+          ),
+        ),
+      );
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.importError)));
+    }
   }
 
   Future<void> _pickLanguage() async {
@@ -125,6 +163,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 subtitle: Text(l10n.notificationsSubtitle),
                 value: settings.notificationsEnabled,
                 onChanged: settings.setNotificationsEnabled,
+              ),
+              SectionHeader(title: l10n.sectionBackup),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.copy_all_outlined),
+                title: Text(l10n.exportButton),
+                onTap: _exportToClipboard,
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.content_paste_go_outlined),
+                title: Text(l10n.importButton),
+                onTap: _importFromClipboard,
               ),
               SectionHeader(title: l10n.sectionPrivacy),
               Card(

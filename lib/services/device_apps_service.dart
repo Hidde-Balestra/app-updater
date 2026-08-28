@@ -15,4 +15,13 @@ class DeviceAppsService {
     final info = await InstalledApps.getAppInfo(trimmed);
     return info?.versionName;
   }
+
+  /// Package names of every launchable, non-system app currently installed.
+  /// Used to diff a before/after snapshot and spot the package that just
+  /// got installed, since neither Android nor open_filex tells this app
+  /// which package the user actually confirmed installing.
+  Future<Set<String>> installedPackageNames() async {
+    final apps = await InstalledApps.getInstalledApps();
+    return apps.map((app) => app.packageName).toSet();
+  }
 }

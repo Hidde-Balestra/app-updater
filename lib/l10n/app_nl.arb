@@ -24,6 +24,20 @@
     }
   },
   "scanDeviceNoneEligible": "Geen van je apps heeft een package naam ingesteld. Voeg er een toe bij ‘Eigen app’ voor automatische synchronisatie.",
+  "updateAllButton": "Alles updaten",
+  "updateAllBannerTitle": "{count} updates beschikbaar",
+  "@updateAllBannerTitle": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "updateAllResult": "{succeeded} van {total} apps bijgewerkt",
+  "@updateAllResult": {
+    "placeholders": {
+      "succeeded": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
 
   "addAppTitle": "App toevoegen",
   "tabCustomApp": "Eigen app",
@@ -59,6 +73,13 @@
       "size": {"type": "String"}
     }
   },
+  "sha256Label": "SHA-256: {hash}",
+  "@sha256Label": {
+    "placeholders": {
+      "hash": {"type": "String"}
+    }
+  },
+  "sha256Copied": "SHA-256 gekopieerd naar klembord",
   "downloadInstallButton": "Download & installeer APK",
   "downloadingButton": "Downloaden… {percent}%",
   "@downloadingButton": {
@@ -119,6 +140,23 @@
   "sectionPrivacy": "PRIVACY",
   "privacyTitle": "Geen Google Play Services",
   "privacyMessage": "Deze app installeert en werkt volledig buiten de Play Store om. Geen tracking, geen analytics, geen accounts nodig.",
+  "sectionBackup": "BACK-UP",
+  "exportButton": "Exporteren naar klembord",
+  "exportSuccess": "{count} apps naar klembord gekopieerd",
+  "@exportSuccess": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "importButton": "Importeren vanaf klembord",
+  "importSuccess": "{count} nieuwe apps geïmporteerd",
+  "@importSuccess": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "importNothingNew": "Geen nieuwe apps gevonden in het klembord",
+  "importError": "Kon het klembord niet als app-lijst lezen",
   "sectionAbout": "OVER",
   "versionLabel": "Versie",
   "versionValue": "{version} (open source)",

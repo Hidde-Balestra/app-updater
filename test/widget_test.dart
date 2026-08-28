@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/fake_background_scheduler.dart';
 import 'support/fake_curated_apps.dart';
 
 void main() {
@@ -26,7 +27,7 @@ void main() {
         fdroid: FdroidService(client: client),
       ),
     );
-    final settings = SettingsController();
+    final settings = SettingsController(scheduler: FakeBackgroundScheduler());
     await library.load(curatedAppsOverride: testCuratedApps);
     await settings.load();
 

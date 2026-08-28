@@ -13,13 +13,25 @@ Ontworpen op basis van deze [Figma-schermen](https://www.figma.com/design/i81CFU
   - [MusicPlayer](https://github.com/privacy-creator/musicplayer-flutter)
   - [F-Droid](https://f-droid.org/en/)
 - Updates worden gedetecteerd via de GitHub Releases API (nieuwste `.apk`-asset) of de F-Droid index-API, en rechtstreeks gedownload en geïnstalleerd via de Android package installer.
-- **Apparaat scannen**: voor een getrackte app kun je optioneel een Android package-naam invullen; de scan-knop leest dan via de package manager van het toestel de daadwerkelijk geïnstalleerde versie uit (in plaats van dat je die na een download-en-installeer handmatig hoeft te bevestigen) en controleert meteen opnieuw op updates.
+- **Alles updaten**: staat er meer dan één update klaar, dan verschijnt er een banner boven de lijst waarmee je in één tik alle apps met een beschikbare update achter elkaar download en installeert.
+- **SHA-256-checksum**: na elke download wordt de SHA-256 van de gedownloade APK getoond (met kopieerknop), zodat je 'm zelf tegen een elders gepubliceerde hash kan controleren vóór het installeren.
+- **Apparaat scannen**: voor een getrackte app kun je optioneel een Android package-naam invullen; de scan-knop leest dan via de package manager van het toestel de daadwerkelijk geïnstalleerde versie uit (in plaats van dat je die na een download-en-installeer handmatig hoeft te bevestigen) en controleert meteen opnieuw op updates. Na een download-en-installeer via de app zelf wordt het package name bovendien automatisch gedetecteerd (door het toestel vlak vóór en ná de installatie te vergelijken), dus meestal hoef je 'm niet met de hand in te vullen.
+- **Back-up**: je apps-lijst kan als JSON naar het klembord geëxporteerd worden (en van daaruit weer geïmporteerd, bijv. op een nieuw toestel) via Instellingen.
+- **Achtergrondcontrole**: als "Automatisch controleren" aanstaat, draait er een periodieke WorkManager-taak (minimaal elke 15 minuten, Android's eigen ondergrens) die ook checkt terwijl de app dicht is, en een melding toont zodra er updates beschikbaar zijn.
 - Instellingen: donkere modus, taal (Nederlands, Engels, Spaans, Duits, Italiaans), automatisch controleren op updates, alleen-wifi, meldingen.
 - Geen Google Play Services, geen tracking, geen accounts.
 
 ### Nieuwe favoriete apps toevoegen
 
 De meegeleverde suggesties staan in [`assets/curated_apps.json`](assets/curated_apps.json). Voeg daar een nieuw object toe met `id`, `name`, `sourceType` (`github`/`fdroid`/`direct`), `sourceIdentifier` en `infoUrl` om een nieuwe app aan de lijst toe te voegen — geen Dart-code nodig.
+
+### App-icoon aanpassen
+
+Het launcher-icoon staat als bron in [`assets/icon/app_icon.svg`](assets/icon/app_icon.svg). Na het aanpassen van dat bestand genereer je de Android-mipmaps opnieuw met:
+
+```bash
+tool/render_app_icon.sh   # vereist rsvg-convert (librsvg2-bin)
+```
 
 ## Lokaal draaien
 
@@ -53,5 +65,7 @@ Release notes worden altijd in het Engels gepubliceerd (GitHub's auto-generated 
 
 ## Bekende beperkingen
 
-- "Automatisch controleren" checkt bij het opstarten/hervatten van de app en via een timer zolang de app open is — er is (nog) geen echte OS-achtergrondtaak (bijv. via WorkManager). Een controle gebeurt dus pas zodra je de app weer opent, niet exact elke N uur terwijl de app gesloten is.
+- Android's WorkManager staat geen periodieke taken toe die vaker dan elke 15 minuten draaien; een korter ingestelde interval wordt automatisch naar 15 minuten afgerond. Fabrikant-specifieke batterij-optimalisatie kan de achtergrondtaak bovendien alsnog uitstellen — dit is niet iets wat de app zelf kan garanderen.
 - Voor directe `.apk`-URL's is er geen versie-informatie beschikbaar; de app onthoudt alleen of je die bron al eens hebt geïnstalleerd.
+- SHA-256-verificatie is informatief, geen automatische blokkade: GitHub's Releases API en de F-Droid-index publiceren geen betrouwbare checksum om automatisch tegen te controleren, dus de app toont 'm alleen zodat je 'm zelf kan vergelijken.
+- Automatische package-name-detectie na installeren is best-effort: de app vergelijkt welke package er na de installatie is bijgekomen, maar kan dit niet garanderen als er op hetzelfde moment nog een andere app wordt geïnstalleerd.

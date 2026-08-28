@@ -1,17 +1,20 @@
 import 'package:app_updater/l10n/app_localizations.dart';
 import 'package:app_updater/models/app_source_type.dart';
 import 'package:app_updater/screens/home_screen.dart';
+import 'package:app_updater/services/apk_installer_service.dart';
 import 'package:app_updater/services/device_apps_service.dart';
 import 'package:app_updater/services/fdroid_service.dart';
 import 'package:app_updater/services/github_service.dart';
 import 'package:app_updater/services/release_resolver.dart';
 import 'package:app_updater/state/app_library.dart';
+import 'package:app_updater/state/library_entry.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../support/fake_apk_installer_service.dart';
 import '../support/fake_curated_apps.dart';
 
 class _FakeDeviceAppsService extends DeviceAppsService {
@@ -23,7 +26,10 @@ class _FakeDeviceAppsService extends DeviceAppsService {
       _versions[packageName];
 }
 
-AppLibrary _offlineLibrary({DeviceAppsService? deviceApps}) {
+AppLibrary _offlineLibrary({
+  DeviceAppsService? deviceApps,
+  ApkInstallerService? installer,
+}) {
   final client = MockClient((request) async => http.Response('', 503));
   return AppLibrary(
     resolver: ReleaseResolver(
@@ -31,6 +37,7 @@ AppLibrary _offlineLibrary({DeviceAppsService? deviceApps}) {
       fdroid: FdroidService(client: client),
     ),
     deviceApps: deviceApps ?? _FakeDeviceAppsService(),
+    installer: installer,
   );
 }
 
@@ -130,6 +137,37 @@ void main() {
 
       expect(find.text('1 van 1 apps gesynchroniseerd'), findsOneWidget);
       expect(library.entries.single.app.installedVersion, '9.9.9');
+    },
+  );
+
+  testWidgets(
+    'shows an update-all banner and installs every updatable app on tap',
+    (tester) async {
+      final installer = FakeApkInstallerService();
+      final library = _offlineLibrary(installer: installer);
+      await library.load(curatedAppsOverride: testCuratedApps);
+      // A package name is set up front so the fire-and-forget
+      // detectPackageNameAfterInstall() call inside downloadAndInstall()
+      // returns immediately instead of polling in the background for the
+      // rest of the test run.
+      await library.addCustomApp(
+        name: 'MijnBudget',
+        type: AppSourceType.direct,
+        source: 'https://example.com/mijnbudget.apk',
+        packageName: 'com.example.mijnbudget',
+      );
+
+      await tester.pumpWidget(_wrap(HomeScreen(library: library)));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 updates beschikbaar'), findsOneWidget);
+
+      await tester.tap(find.text('Alles updaten'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 van 1 apps bijgewerkt'), findsOneWidget);
+      expect(installer.installedPaths, hasLength(1));
+      expect(library.entries.single.status, AppCheckStatus.upToDate);
     },
   );
 }

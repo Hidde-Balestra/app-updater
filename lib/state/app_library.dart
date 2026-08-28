@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show ChangeNotifier;
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/app_source_type.dart';
@@ -10,23 +11,30 @@ import '../models/curated_app.dart';
 import '../models/release_info.dart';
 import '../models/tracked_app.dart';
 import '../models/version_compare.dart';
+import '../services/apk_installer_service.dart';
 import '../services/device_apps_service.dart';
 import '../services/release_resolver.dart';
 import 'library_entry.dart';
+import 'storage_keys.dart';
 
 /// Owns the list of tracked apps (user-added + curated apps the user opted
 /// into), the bundled list of curated suggestions, and drives release
 /// checks against them. A plain ChangeNotifier, consistent with
 /// [SettingsController] — no extra state-management package.
 class AppLibrary extends ChangeNotifier {
-  static const _kTrackedApps = 'library.trackedApps';
+  static const _kTrackedApps = StorageKeys.trackedApps;
 
   final ReleaseResolver _resolver;
   final DeviceAppsService _deviceApps;
+  final ApkInstallerService _installer;
 
-  AppLibrary({ReleaseResolver? resolver, DeviceAppsService? deviceApps})
-    : _resolver = resolver ?? ReleaseResolver(),
-      _deviceApps = deviceApps ?? DeviceAppsService();
+  AppLibrary({
+    ReleaseResolver? resolver,
+    DeviceAppsService? deviceApps,
+    ApkInstallerService? installer,
+  }) : _resolver = resolver ?? ReleaseResolver(),
+       _deviceApps = deviceApps ?? DeviceAppsService(),
+       _installer = installer ?? ApkInstallerService();
 
   List<LibraryEntry> entries = [];
   List<CuratedApp> curatedApps = [];
@@ -155,6 +163,134 @@ class AppLibrary extends ChangeNotifier {
     await Future.wait(entries.map((e) => checkOne(e.app.id)));
   }
 
+  /// Downloads and installs the latest release for [id], then records the
+  /// resulting version as installed. Shared by the per-app "download &
+  /// install" button and [downloadAndInstallAll], so both go through the
+  /// same SHA-256 recording and package-name detection.
+  Future<void> downloadAndInstall(
+    String id, {
+    void Function(int received, int? total)? onProgress,
+  }) async {
+    final index = entries.indexWhere((e) => e.app.id == id);
+    if (index == -1) return;
+    final entry = entries[index];
+    final release = entry.latestRelease;
+    if (release == null) return;
+
+    final safeVersion = release.version.isEmpty ? 'latest' : release.version;
+    final fileName = '${entry.app.id}-$safeVersion.apk';
+    final path = await _installer.downloadApk(
+      url: release.downloadUrl,
+      fileName: fileName,
+      onProgress: onProgress,
+    );
+
+    final sha256 = await _installer.sha256Of(path);
+    _updateEntry(id, (e) => e.copyWith(lastDownloadSha256: sha256));
+
+    await _installer.installApk(path);
+
+    final installedVersion = release.version.isEmpty
+        ? DateFormat('yyyy-MM-dd').format(DateTime.now())
+        : release.version;
+    await markInstalled(id, installedVersion);
+
+    // Best-effort and slow (polls for a few seconds), so it must not hold
+    // up the caller — neither the single-app "installing…" spinner nor a
+    // downloadAndInstallAll() batch waiting on this app before moving on.
+    unawaited(detectPackageNameAfterInstall(id));
+  }
+
+  /// Downloads and installs every app currently flagged as
+  /// [AppCheckStatus.updateAvailable], one at a time (the system installer
+  /// can't sensibly handle overlapping install intents). Apps that fail
+  /// don't stop the rest of the batch.
+  Future<({int succeeded, int failed})> downloadAndInstallAll() async {
+    final updatableIds = entries
+        .where((e) => e.status == AppCheckStatus.updateAvailable)
+        .map((e) => e.app.id)
+        .toList();
+
+    var succeeded = 0;
+    var failed = 0;
+    for (final id in updatableIds) {
+      try {
+        await downloadAndInstall(id);
+        succeeded++;
+      } catch (_) {
+        failed++;
+      }
+    }
+    return (succeeded: succeeded, failed: failed);
+  }
+
+  /// Best-effort: if [id]'s app doesn't have a package name yet, snapshots
+  /// the set of installed packages, then polls a few times for a package
+  /// that wasn't there before to appear, and records it as the app's
+  /// package name so future device scans (see [syncInstalledVersions]) can
+  /// find it. Used right after handing an APK to the system installer,
+  /// since neither Android nor open_filex reports which package the user
+  /// actually confirmed installing.
+  Future<void> detectPackageNameAfterInstall(
+    String id, {
+    int attempts = 5,
+    Duration interval = const Duration(seconds: 2),
+  }) async {
+    final index = entries.indexWhere((e) => e.app.id == id);
+    if (index == -1) return;
+    if ((entries[index].app.packageName ?? '').trim().isNotEmpty) return;
+
+    final before = await _deviceApps.installedPackageNames();
+    for (var i = 0; i < attempts; i++) {
+      await Future.delayed(interval);
+      final after = await _deviceApps.installedPackageNames();
+      final newPackages = after.difference(before);
+      if (newPackages.isNotEmpty) {
+        final detected = newPackages.first;
+        _updateEntry(
+          id,
+          (e) => e.copyWith(app: e.app.copyWith(packageName: detected)),
+        );
+        await _persist();
+        return;
+      }
+    }
+  }
+
+  /// Serializes every tracked app to JSON, for the user to back up or move
+  /// to another device.
+  String exportJson() =>
+      jsonEncode(entries.map((e) => e.app.toJson()).toList());
+
+  /// Merges apps from a previously-exported JSON string into the library.
+  /// Apps whose id already exists are left untouched — existing
+  /// install/version state always wins over an imported duplicate. Returns
+  /// how many new apps were added. Throws a [FormatException] for anything
+  /// that isn't a JSON list of app objects.
+  Future<int> importJson(String raw) async {
+    final decoded = jsonDecode(raw);
+    if (decoded is! List) {
+      throw const FormatException('Expected a JSON list of apps.');
+    }
+    final imported = decoded.cast<Map<String, dynamic>>().map(
+      TrackedApp.fromJson,
+    );
+    final newOnes = imported
+        .where((app) => !entries.any((e) => e.app.id == app.id))
+        .toList();
+    if (newOnes.isEmpty) return 0;
+
+    entries = [
+      ...entries,
+      for (final app in newOnes)
+        LibraryEntry(app: app, status: AppCheckStatus.checking),
+    ];
+    notifyListeners();
+    await _persist();
+    await Future.wait(newOnes.map((app) => checkOne(app.id)));
+    return newOnes.length;
+  }
+
   /// Scans the device for every tracked app that has a [TrackedApp.packageName]
   /// set, re-reading its installed version from the device's package
   /// manager and re-checking for updates when that version changed.
@@ -229,12 +365,8 @@ class AppLibrary extends ChangeNotifier {
   }
 
   AppCheckStatus _statusFor(TrackedApp app, ReleaseInfo info) {
-    if (app.sourceType == AppSourceType.direct) {
-      return app.installedVersion == null
-          ? AppCheckStatus.updateAvailable
-          : AppCheckStatus.upToDate;
-    }
-    final hasUpdate = isUpdateAvailable(
+    final hasUpdate = appHasUpdate(
+      sourceType: app.sourceType,
       installedVersion: app.installedVersion,
       latestVersion: info.version,
     );

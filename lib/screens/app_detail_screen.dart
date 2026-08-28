@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/app_localizations.dart';
-import '../services/apk_installer_service.dart';
 import '../state/app_library.dart';
 import '../state/library_entry.dart';
 import '../widgets/app_avatar.dart';
@@ -24,7 +23,6 @@ class AppDetailScreen extends StatefulWidget {
 }
 
 class _AppDetailScreenState extends State<AppDetailScreen> {
-  final _installer = ApkInstallerService();
   bool _isDownloading = false;
   double _progress = 0;
 
@@ -35,31 +33,21 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
   }
 
   Future<void> _downloadAndInstall(LibraryEntry entry) async {
-    final release = entry.latestRelease;
-    if (release == null) return;
+    if (entry.latestRelease == null) return;
 
     setState(() {
       _isDownloading = true;
       _progress = 0;
     });
     try {
-      final safeVersion = release.version.isEmpty ? 'latest' : release.version;
-      final fileName = '${entry.app.id}-$safeVersion.apk';
-      final path = await _installer.downloadApk(
-        url: release.downloadUrl,
-        fileName: fileName,
+      await widget.library.downloadAndInstall(
+        entry.app.id,
         onProgress: (received, total) {
           if (total != null && total > 0 && mounted) {
             setState(() => _progress = received / total);
           }
         },
       );
-      await _installer.installApk(path);
-      if (!mounted) return;
-      final installedVersion = release.version.isEmpty
-          ? DateFormat('yyyy-MM-dd').format(DateTime.now())
-          : release.version;
-      await widget.library.markInstalled(entry.app.id, installedVersion);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -69,6 +57,13 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
     } finally {
       if (mounted) setState(() => _isDownloading = false);
     }
+  }
+
+  Future<void> _copySha256(String hash) async {
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    await Clipboard.setData(ClipboardData(text: hash));
+    messenger.showSnackBar(SnackBar(content: Text(l10n.sha256Copied)));
   }
 
   Future<void> _openSource(String url) async {
@@ -209,6 +204,39 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                         : l10n.downloadInstallButton,
                   ),
                 ),
+              if (entry.lastDownloadSha256 != null) ...[
+                const SizedBox(height: 12),
+                InkWell(
+                  onTap: () => _copySha256(entry.lastDownloadSha256!),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.tag,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          l10n.sha256Label(entry.lastDownloadSha256!),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                                fontFamily: 'monospace',
+                              ),
+                        ),
+                      ),
+                      Icon(
+                        Icons.copy,
+                        size: 14,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               if (changelogLines.isNotEmpty && release != null) ...[
                 const SizedBox(height: 24),
                 Text(

@@ -57,4 +57,34 @@ void main() {
       expect(called, isFalse);
     },
   );
+
+  test(
+    'installedPackageNames returns the package name of every installed app',
+    () async {
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        expect(call.method, 'getInstalledApps');
+        return [
+          {'name': 'One', 'package_name': 'com.example.one'},
+          {'name': 'Two', 'package_name': 'com.example.two'},
+        ];
+      });
+
+      final names = await DeviceAppsService().installedPackageNames();
+
+      expect(names, {'com.example.one', 'com.example.two'});
+    },
+  );
+
+  test(
+    'installedPackageNames returns an empty set when the platform errors',
+    () async {
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        throw PlatformException(code: 'boom');
+      });
+
+      final names = await DeviceAppsService().installedPackageNames();
+
+      expect(names, isEmpty);
+    },
+  );
 }

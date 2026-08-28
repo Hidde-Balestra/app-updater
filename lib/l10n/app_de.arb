@@ -24,6 +24,20 @@
     }
   },
   "scanDeviceNoneEligible": "Keine deiner Apps hat einen Paketnamen festgelegt. Füge einen unter „Eigene App“ hinzu, um die automatische Synchronisierung zu aktivieren.",
+  "updateAllButton": "Alle aktualisieren",
+  "updateAllBannerTitle": "{count} Updates verfügbar",
+  "@updateAllBannerTitle": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "updateAllResult": "{succeeded} von {total} Apps aktualisiert",
+  "@updateAllResult": {
+    "placeholders": {
+      "succeeded": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
 
   "addAppTitle": "App hinzufügen",
   "tabCustomApp": "Eigene App",
@@ -59,6 +73,13 @@
       "size": {"type": "String"}
     }
   },
+  "sha256Label": "SHA-256: {hash}",
+  "@sha256Label": {
+    "placeholders": {
+      "hash": {"type": "String"}
+    }
+  },
+  "sha256Copied": "SHA-256 in Zwischenablage kopiert",
   "downloadInstallButton": "APK herunterladen & installieren",
   "downloadingButton": "Wird heruntergeladen… {percent}%",
   "@downloadingButton": {
@@ -119,6 +140,23 @@
   "sectionPrivacy": "DATENSCHUTZ",
   "privacyTitle": "Keine Google Play Services",
   "privacyMessage": "Diese App wird vollständig außerhalb des Play Store installiert und ausgeführt. Kein Tracking, keine Analyse, keine Konten erforderlich.",
+  "sectionBackup": "SICHERUNG",
+  "exportButton": "In Zwischenablage exportieren",
+  "exportSuccess": "{count} Apps in Zwischenablage kopiert",
+  "@exportSuccess": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "importButton": "Aus Zwischenablage importieren",
+  "importSuccess": "{count} neue Apps importiert",
+  "@importSuccess": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "importNothingNew": "Keine neuen Apps in der Zwischenablage gefunden",
+  "importError": "Zwischenablage konnte nicht als App-Liste gelesen werden",
   "sectionAbout": "ÜBER",
   "versionLabel": "Version",
   "versionValue": "{version} (Open Source)",

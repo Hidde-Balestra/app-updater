@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../state/app_library.dart';
+import '../state/library_entry.dart';
 import '../widgets/app_list_tile.dart';
 import '../widgets/section_header.dart';
 import 'add_app_screen.dart';
@@ -20,6 +21,16 @@ class HomeScreen extends StatelessWidget {
         ? l10n.scanDeviceNoneEligible
         : l10n.scanDeviceResult(result.updated, result.eligible);
     messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _updateAll(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await library.downloadAndInstallAll();
+    final total = result.succeeded + result.failed;
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.updateAllResult(result.succeeded, total))),
+    );
   }
 
   void _openDetail(BuildContext context, String appId) {
@@ -69,12 +80,23 @@ class HomeScreen extends StatelessWidget {
               .where((e) => e.app.isCurated)
               .toList();
           final isEmpty = myApps.isEmpty && favoriteApps.isEmpty;
+          final updatableCount = library.entries
+              .where((e) => e.status == AppCheckStatus.updateAvailable)
+              .length;
 
           return RefreshIndicator(
             onRefresh: library.checkAll,
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                if (updatableCount > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: _UpdateAllBanner(
+                      count: updatableCount,
+                      onUpdateAll: () => _updateAll(context),
+                    ),
+                  ),
                 if (isEmpty)
                   _EmptyState(onAdd: () => _openAdd(context))
                 else ...[
@@ -105,6 +127,42 @@ class HomeScreen extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _UpdateAllBanner extends StatelessWidget {
+  final int count;
+  final VoidCallback onUpdateAll;
+
+  const _UpdateAllBanner({required this.count, required this.onUpdateAll});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Card(
+      color: Theme.of(context).colorScheme.primaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.updateAllBannerTitle(count),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            FilledButton(
+              onPressed: onUpdateAll,
+              child: Text(l10n.updateAllButton),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -36,7 +36,10 @@ android {
         applicationId = "nl.hiddebalestra.app_updater"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        // flutter_local_notifications requires minSdkVersion 24; take the
+        // higher of that and Flutter's own default so neither requirement
+        // regresses if one of them changes.
+        minSdk = maxOf(flutter.minSdkVersion, 24)
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

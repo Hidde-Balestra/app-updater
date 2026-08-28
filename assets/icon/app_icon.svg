@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <!-- App Updater launcher icon: a download arrow into a tray, in the
+       in-app accent color (see AppColors.accent in lib/theme/app_theme.dart).
+       Rendered to android/app/src/main/res/mipmap-*/ic_launcher.png by
+       tool/render_app_icon.sh — edit this file and re-run that script
+       rather than the generated PNGs. -->
+  <rect width="192" height="192" rx="40" fill="#5B4FE5"/>
+  <g fill="none" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M96 50 L96 112"/>
+    <path d="M66 88 L96 118 L126 88"/>
+    <path d="M58 142 L134 142"/>
+  </g>
+</svg>

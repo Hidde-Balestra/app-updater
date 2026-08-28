@@ -24,6 +24,20 @@
     }
   },
   "scanDeviceNoneEligible": "Ninguna de tus apps tiene un nombre de paquete configurado. Añade uno en 'App propia' para habilitar la sincronización automática.",
+  "updateAllButton": "Actualizar todo",
+  "updateAllBannerTitle": "{count} actualizaciones disponibles",
+  "@updateAllBannerTitle": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "updateAllResult": "{succeeded} de {total} apps actualizadas",
+  "@updateAllResult": {
+    "placeholders": {
+      "succeeded": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
 
   "addAppTitle": "Añadir app",
   "tabCustomApp": "App propia",
@@ -59,6 +73,13 @@
       "size": {"type": "String"}
     }
   },
+  "sha256Label": "SHA-256: {hash}",
+  "@sha256Label": {
+    "placeholders": {
+      "hash": {"type": "String"}
+    }
+  },
+  "sha256Copied": "SHA-256 copiado al portapapeles",
   "downloadInstallButton": "Descargar e instalar APK",
   "downloadingButton": "Descargando… {percent}%",
   "@downloadingButton": {
@@ -119,6 +140,23 @@
   "sectionPrivacy": "PRIVACIDAD",
   "privacyTitle": "Sin Google Play Services",
   "privacyMessage": "Esta app se instala y funciona completamente fuera de la Play Store. Sin seguimiento, sin análisis, sin cuentas necesarias.",
+  "sectionBackup": "COPIA DE SEGURIDAD",
+  "exportButton": "Exportar al portapapeles",
+  "exportSuccess": "{count} apps copiadas al portapapeles",
+  "@exportSuccess": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "importButton": "Importar desde el portapapeles",
+  "importSuccess": "{count} apps nuevas importadas",
+  "@importSuccess": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "importNothingNew": "No se encontraron apps nuevas en el portapapeles",
+  "importError": "No se pudo leer el portapapeles como una lista de apps",
   "sectionAbout": "ACERCA DE",
   "versionLabel": "Versión",
   "versionValue": "{version} (código abierto)",

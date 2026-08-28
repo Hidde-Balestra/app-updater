@@ -24,6 +24,20 @@
     }
   },
   "scanDeviceNoneEligible": "Nessuna delle tue app ha un nome pacchetto impostato. Aggiungine uno in 'App personalizzata' per abilitare la sincronizzazione automatica.",
+  "updateAllButton": "Aggiorna tutto",
+  "updateAllBannerTitle": "{count} aggiornamenti disponibili",
+  "@updateAllBannerTitle": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "updateAllResult": "{succeeded} di {total} app aggiornate",
+  "@updateAllResult": {
+    "placeholders": {
+      "succeeded": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
 
   "addAppTitle": "Aggiungi app",
   "tabCustomApp": "App personalizzata",
@@ -59,6 +73,13 @@
       "size": {"type": "String"}
     }
   },
+  "sha256Label": "SHA-256: {hash}",
+  "@sha256Label": {
+    "placeholders": {
+      "hash": {"type": "String"}
+    }
+  },
+  "sha256Copied": "SHA-256 copiato negli appunti",
   "downloadInstallButton": "Scarica e installa APK",
   "downloadingButton": "Download in corso… {percent}%",
   "@downloadingButton": {
@@ -119,6 +140,23 @@
   "sectionPrivacy": "PRIVACY",
   "privacyTitle": "Nessun Google Play Services",
   "privacyMessage": "Questa app si installa e funziona interamente al di fuori del Play Store. Nessun tracciamento, nessuna analisi, nessun account richiesto.",
+  "sectionBackup": "BACKUP",
+  "exportButton": "Esporta negli appunti",
+  "exportSuccess": "{count} app copiate negli appunti",
+  "@exportSuccess": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "importButton": "Importa dagli appunti",
+  "importSuccess": "{count} nuove app importate",
+  "@importSuccess": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "importNothingNew": "Nessuna nuova app trovata negli appunti",
+  "importError": "Impossibile leggere gli appunti come elenco di app",
   "sectionAbout": "INFORMAZIONI",
   "versionLabel": "Versione",
   "versionValue": "{version} (open source)",

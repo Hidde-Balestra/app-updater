@@ -26,7 +26,7 @@ class _HomeShellState extends State<HomeShell> {
     final screens = [
       HomeScreen(library: widget.library),
       AddAppScreen(library: widget.library),
-      SettingsScreen(settings: widget.settings),
+      SettingsScreen(settings: widget.settings, library: widget.library),
     ];
 
     return Scaffold(
