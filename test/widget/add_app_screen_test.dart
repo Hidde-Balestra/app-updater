@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:app_updater/l10n/app_localizations.dart';
 import 'package:app_updater/models/installed_app.dart';
 import 'package:app_updater/screens/add_app_screen.dart';
@@ -109,9 +111,66 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('MijnBudget'), findsOneWidget);
-      expect(find.text('com.example.mijnbudget'), findsOneWidget);
+      // Appears twice: the package-name field, and the source field (which
+      // now also gets prefilled to drive the automatic F-Droid lookup).
+      expect(find.text('com.example.mijnbudget'), findsNWidgets(2));
       expect(
         find.text('Kies nu een bron om MijnBudget te kunnen volgen.'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'using an installed app auto-resolves it via F-Droid when the exact '
+    'package is found there',
+    (tester) async {
+      final fdroidClient = MockClient((request) async {
+        expect(
+          request.url.toString(),
+          'https://f-droid.org/api/v1/packages/com.example.mijnbudget',
+        );
+        return http.Response(
+          jsonEncode({
+            'packages': [
+              {
+                'versionName': '3.4.0',
+                'apkName': 'com.example.mijnbudget_3.apk',
+                'size': 1000,
+              },
+            ],
+          }),
+          200,
+        );
+      });
+      final library = AppLibrary(
+        resolver: ReleaseResolver(
+          github: GithubService(
+            client: MockClient((r) async => http.Response('', 503)),
+          ),
+          fdroid: FdroidService(client: fdroidClient),
+        ),
+        deviceApps: _FakeDeviceAppsService(const [
+          InstalledApp(
+            name: 'MijnBudget',
+            packageName: 'com.example.mijnbudget',
+            versionName: '1.2.0',
+          ),
+        ]),
+      );
+      await library.load(curatedAppsOverride: testCuratedApps);
+
+      await tester.pumpWidget(_wrap(AddAppScreen(library: library)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Van toestel'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Gebruiken'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Laatste release: 3.4.0 — gevonden via F-Droid'),
         findsOneWidget,
       );
     },

@@ -49,8 +49,7 @@ class _AddAppScreenState extends State<AddAppScreen>
     _loadInstalledApps();
     final prefill = widget.prefillApp;
     if (prefill != null) {
-      _nameController.text = prefill.name;
-      _packageNameController.text = prefill.packageName;
+      _prefillFromInstalledApp(prefill);
     }
   }
 
@@ -60,14 +59,26 @@ class _AddAppScreenState extends State<AddAppScreen>
     });
   }
 
-  void _useInstalledApp(InstalledApp app) {
+  /// Fills in the name/package fields for [app] and tries F-Droid as the
+  /// source, keyed by the exact package name — F-Droid indexes apps by
+  /// their Android application id, so this is a reliable auto-match when
+  /// the app happens to be on F-Droid, unlike GitHub/GitLab/Codeberg where
+  /// there's no equivalent exact lookup (only a fuzzy name search, which
+  /// risks matching the wrong project). Setting `_sourceController.text`
+  /// feeds the existing debounced preview pipeline, so if F-Droid doesn't
+  /// have it, this just shows the normal "not found" state and the user
+  /// can switch source type and enter it by hand.
+  void _prefillFromInstalledApp(InstalledApp app) {
     _nameController.text = app.name;
     _packageNameController.text = app.packageName;
-    _sourceController.clear();
-    setState(() {
-      _previewResult = null;
-      _resolvedIdentifier = null;
-    });
+    _sourceType = AppSourceType.fdroid;
+    _previewResult = null;
+    _resolvedIdentifier = null;
+    _sourceController.text = app.packageName;
+  }
+
+  void _useInstalledApp(InstalledApp app) {
+    setState(() => _prefillFromInstalledApp(app));
     _tabController.animateTo(0);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
