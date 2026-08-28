@@ -39,6 +39,12 @@ void main() {
       );
       final exported = source.exportJson();
 
+      // SharedPreferences.getInstance() is a single shared mock store per
+      // test, even across separate AppLibrary instances — reset it here to
+      // simulate importing into a genuinely separate install (e.g. a new
+      // device) rather than one that happens to already have `source`'s
+      // data persisted underneath it.
+      SharedPreferences.setMockInitialValues({});
       final target = AppLibrary(resolver: _offlineResolver());
       await target.load(curatedAppsOverride: testCuratedApps);
       final added = await target.importJson(exported);

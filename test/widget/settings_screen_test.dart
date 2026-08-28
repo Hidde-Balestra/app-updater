@@ -14,6 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/fake_background_scheduler.dart';
 import '../support/fake_curated_apps.dart';
+import '../support/mock_clipboard.dart';
 
 SettingsController _settings() =>
     SettingsController(scheduler: FakeBackgroundScheduler());
@@ -38,6 +39,7 @@ Widget _wrap(Widget child) => MaterialApp(
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+    MockClipboard().install();
   });
 
   testWidgets('toggling dark mode switch updates the settings controller', (
