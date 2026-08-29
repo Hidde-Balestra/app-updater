@@ -73,16 +73,28 @@ class HomeScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
+          // Apps with an update available get their own section up top so
+          // they're never buried below whatever else is tracked — the rest
+          // of the sections below only show apps that are already current.
+          final updatableApps = library.entries
+              .where((e) => e.status == AppCheckStatus.updateAvailable)
+              .toList();
           final myApps = library.entries
-              .where((e) => !e.app.isCurated)
+              .where(
+                (e) =>
+                    !e.app.isCurated &&
+                    e.status != AppCheckStatus.updateAvailable,
+              )
               .toList();
           final favoriteApps = library.entries
-              .where((e) => e.app.isCurated)
+              .where(
+                (e) =>
+                    e.app.isCurated &&
+                    e.status != AppCheckStatus.updateAvailable,
+              )
               .toList();
-          final isEmpty = myApps.isEmpty && favoriteApps.isEmpty;
-          final updatableCount = library.entries
-              .where((e) => e.status == AppCheckStatus.updateAvailable)
-              .length;
+          final isEmpty = library.entries.isEmpty;
+          final updatableCount = updatableApps.length;
 
           return RefreshIndicator(
             onRefresh: library.checkAll,
@@ -100,6 +112,17 @@ class HomeScreen extends StatelessWidget {
                 if (isEmpty)
                   _EmptyState(onAdd: () => _openAdd(context))
                 else ...[
+                  if (updatableApps.isNotEmpty) ...[
+                    SectionHeader(title: l10n.sectionUpdatesAvailable),
+                    for (final entry in updatableApps)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: AppListTile(
+                          entry: entry,
+                          onTap: () => _openDetail(context, entry.app.id),
+                        ),
+                      ),
+                  ],
                   if (myApps.isNotEmpty) ...[
                     SectionHeader(title: l10n.sectionMyApps),
                     for (final entry in myApps)

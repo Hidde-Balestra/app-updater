@@ -68,13 +68,20 @@ void main() {
   testWidgets(
     'renders a custom app under "Mijn apps" and a favorite under "Favoriete apps"',
     (tester) async {
-      final library = _offlineLibrary();
+      final library = _offlineLibrary(
+        deviceApps: _FakeDeviceAppsService({'com.example.mijnbudget': '1.0.0'}),
+      );
       await library.load(curatedAppsOverride: testCuratedApps);
+      // Already installed (packageName + a matching installedVersion), so
+      // it's up to date and lands in "Mijn apps" rather than the separate
+      // "Updates beschikbaar" section.
       await library.addCustomApp(
         name: 'MijnBudget',
         type: AppSourceType.direct,
         source: 'https://example.com/mijnbudget.apk',
+        packageName: 'com.example.mijnbudget',
       );
+      await library.syncInstalledVersions();
       await library.addFavorite(library.curatedApps.first);
 
       await tester.pumpWidget(_wrap(HomeScreen(library: library)));
@@ -170,4 +177,44 @@ void main() {
       expect(library.entries.single.status, AppCheckStatus.upToDate);
     },
   );
+
+  testWidgets('groups an updatable app under its own section, separate from an '
+      'up-to-date app in "Mijn apps"', (tester) async {
+    final library = _offlineLibrary(
+      deviceApps: _FakeDeviceAppsService({'com.example.uptodate': '1.0.0'}),
+    );
+    await library.load(curatedAppsOverride: testCuratedApps);
+    // No package name set, so checkAll() can't compare against an
+    // installed version and this one stays in "needs update".
+    await library.addCustomApp(
+      name: 'NeedsUpdate',
+      type: AppSourceType.direct,
+      source: 'https://example.com/needsupdate.apk',
+    );
+    await library.addCustomApp(
+      name: 'UpToDate',
+      type: AppSourceType.direct,
+      source: 'https://example.com/uptodate.apk',
+      packageName: 'com.example.uptodate',
+    );
+    await library.syncInstalledVersions();
+
+    await tester.pumpWidget(_wrap(HomeScreen(library: library)));
+    await tester.pumpAndSettle();
+
+    expect(find.text('UPDATES BESCHIKBAAR'), findsOneWidget);
+    expect(find.text('MIJN APPS'), findsOneWidget);
+
+    final updatesSection = tester.getCenter(find.text('UPDATES BESCHIKBAAR'));
+    final myAppsSection = tester.getCenter(find.text('MIJN APPS'));
+    final needsUpdateTile = tester.getCenter(find.text('NeedsUpdate'));
+    final upToDateTile = tester.getCenter(find.text('UpToDate'));
+
+    // NeedsUpdate sits between the two section headers, and UpToDate
+    // below the "Mijn apps" header — i.e. each app appears exactly once,
+    // grouped under the right section.
+    expect(needsUpdateTile.dy, greaterThan(updatesSection.dy));
+    expect(needsUpdateTile.dy, lessThan(myAppsSection.dy));
+    expect(upToDateTile.dy, greaterThan(myAppsSection.dy));
+  });
 }
