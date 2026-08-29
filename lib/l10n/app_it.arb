@@ -8,7 +8,7 @@
 
   "sectionUpdatesAvailable": "Aggiornamenti disponibili",
   "sectionMyApps": "Le mie app",
-  "sectionFavoriteApps": "App preferite",
+  "sectionFavoriteApps": "App consigliate",
   "statusUpdate": "Aggiorna",
   "statusUpToDate": "Aggiornata",
   "statusChecking": "Verifica in corso…",
@@ -43,8 +43,18 @@
 
   "addAppTitle": "Aggiungi app",
   "tabCustomApp": "App personalizzata",
-  "tabFavorite": "Preferita",
+  "tabFavorite": "Consigliata",
   "tabDeviceApps": "Dal dispositivo",
+  "tabFdroidCatalog": "F-Droid",
+  "fdroidCatalogSearchHint": "Cerca nel catalogo F-Droid…",
+  "fdroidCatalogPrompt": "Digita un nome per cercare nell'intero catalogo F-Droid.",
+  "fdroidCatalogEmpty": "Nessuna app trovata su F-Droid per \"{query}\".",
+  "@fdroidCatalogEmpty": {
+    "placeholders": {
+      "query": {"type": "String"}
+    }
+  },
+  "fdroidCatalogError": "Ricerca su F-Droid non riuscita. Riprova.",
   "deviceAppsEmpty": "Nessuna nuova app trovata sul tuo dispositivo.",
   "useInstalledAppButton": "Usa",
   "useInstalledAppHint": "Scegli ora un'origine per seguire {name}.",
@@ -85,8 +95,9 @@
     }
   },
   "addAppButton": "Aggiungi app",
-  "favoritesEmptyAllAdded": "Tutte le app preferite sono già state aggiunte.",
+  "favoritesEmptyAllAdded": "Tutte le app consigliate sono già state aggiunte.",
   "addFavoriteButton": "Aggiungi",
+  "addedButton": "Aggiunta",
   "sourceResolveError": "Nessuna release trovata per questa origine.",
   "invalidSourceError": "Inserisci un'origine valida.",
 

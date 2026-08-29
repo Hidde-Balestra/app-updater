@@ -8,7 +8,7 @@
 
   "sectionUpdatesAvailable": "Updates beschikbaar",
   "sectionMyApps": "Mijn apps",
-  "sectionFavoriteApps": "Favoriete apps",
+  "sectionFavoriteApps": "Aangeraden apps",
   "statusUpdate": "Update",
   "statusUpToDate": "Actueel",
   "statusChecking": "Controleren…",
@@ -43,8 +43,18 @@
 
   "addAppTitle": "App toevoegen",
   "tabCustomApp": "Eigen app",
-  "tabFavorite": "Favoriet",
+  "tabFavorite": "Aangeraden",
   "tabDeviceApps": "Van toestel",
+  "tabFdroidCatalog": "F-Droid",
+  "fdroidCatalogSearchHint": "Zoek in de F-Droid catalogus…",
+  "fdroidCatalogPrompt": "Typ een naam om te zoeken in de volledige F-Droid catalogus.",
+  "fdroidCatalogEmpty": "Geen apps gevonden op F-Droid voor \"{query}\".",
+  "@fdroidCatalogEmpty": {
+    "placeholders": {
+      "query": {"type": "String"}
+    }
+  },
+  "fdroidCatalogError": "Zoeken op F-Droid is mislukt. Probeer het opnieuw.",
   "deviceAppsEmpty": "Geen nieuwe apps gevonden op je toestel.",
   "useInstalledAppButton": "Gebruiken",
   "useInstalledAppHint": "Kies nu een bron om {name} te kunnen volgen.",
@@ -85,8 +95,9 @@
     }
   },
   "addAppButton": "App toevoegen",
-  "favoritesEmptyAllAdded": "Alle favoriete apps zijn al toegevoegd.",
+  "favoritesEmptyAllAdded": "Alle aangeraden apps zijn al toegevoegd.",
   "addFavoriteButton": "Toevoegen",
+  "addedButton": "Toegevoegd",
   "sourceResolveError": "Kon geen release vinden voor deze bron.",
   "invalidSourceError": "Vul een geldige bron in.",
 

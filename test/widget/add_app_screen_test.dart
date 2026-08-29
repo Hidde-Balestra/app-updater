@@ -5,6 +5,7 @@ import 'package:app_updater/models/app_source_type.dart';
 import 'package:app_updater/models/installed_app.dart';
 import 'package:app_updater/screens/add_app_screen.dart';
 import 'package:app_updater/services/device_apps_service.dart';
+import 'package:app_updater/services/fdroid_search_service.dart';
 import 'package:app_updater/services/fdroid_service.dart';
 import 'package:app_updater/services/github_service.dart';
 import 'package:app_updater/services/release_resolver.dart';
@@ -223,7 +224,16 @@ void main() {
 
       expect(find.text('1 apps beschikbaar via F-Droid'), findsOneWidget);
       expect(find.text('Alles toevoegen'), findsOneWidget);
-      expect(find.text('F-Droid'), findsOneWidget);
+      // "F-Droid" also labels the new catalog tab, so scope the badge check
+      // to the tile it's actually on rather than a bare find.text.
+      final onFdroidTile = find.ancestor(
+        of: find.text('OnFdroid'),
+        matching: find.byType(Card),
+      );
+      expect(
+        find.descendant(of: onFdroidTile, matching: find.text('F-Droid')),
+        findsOneWidget,
+      );
 
       await tester.tap(find.text('Alles toevoegen'));
       await tester.pumpAndSettle();
@@ -231,6 +241,126 @@ void main() {
       expect(find.text('1 apps toegevoegd via F-Droid'), findsOneWidget);
       expect(library.entries.single.app.sourceType, AppSourceType.fdroid);
       expect(library.entries.single.app.packageName, 'com.example.onfdroid');
+    },
+  );
+
+  testWidgets(
+    'searching the F-Droid catalog tab lists results, and tapping add '
+    'tracks the app via F-Droid',
+    (tester) async {
+      final fdroidClient = MockClient((request) async {
+        return http.Response(
+          jsonEncode({
+            'packageName': 'im.molly.app',
+            'suggestedVersionCode': 1,
+            'packages': [
+              {'versionName': '8.0.0', 'versionCode': 1},
+            ],
+          }),
+          200,
+        );
+      });
+      final library = AppLibrary(
+        resolver: ReleaseResolver(
+          github: GithubService(
+            client: MockClient((r) async => http.Response('', 503)),
+          ),
+          fdroid: FdroidService(client: fdroidClient),
+        ),
+        fdroidSearch: FdroidSearchService(
+          client: MockClient((request) async {
+            expect(request.url.queryParameters['q'], 'molly');
+            return http.Response(
+              jsonEncode({
+                'apps': [
+                  {
+                    'name': 'Molly',
+                    'summary': 'Hardened Signal fork',
+                    'url': 'https://f-droid.org/en/packages/im.molly.app',
+                  },
+                ],
+              }),
+              200,
+            );
+          }),
+        ),
+      );
+      await library.load(curatedAppsOverride: testCuratedApps);
+
+      await tester.pumpWidget(_wrap(AddAppScreen(library: library)));
+      await tester.pumpAndSettle();
+
+      // The custom-app tab's source-type selector also has an "F-Droid"
+      // label, so tap the Tab specifically rather than a bare find.text.
+      await tester.tap(find.widgetWithText(Tab, 'F-Droid'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'Typ een naam om te zoeken in de volledige F-Droid catalogus.',
+        ),
+        findsOneWidget,
+      );
+
+      await tester.enterText(
+        find.byKey(const Key('fdroidCatalogSearchField')),
+        'molly',
+      );
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Molly'), findsOneWidget);
+      expect(find.text('Hardened Signal fork'), findsOneWidget);
+
+      await tester.tap(find.text('Toevoegen'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Toegevoegd'), findsOneWidget);
+      expect(library.entries.single.app.name, 'Molly');
+      expect(library.entries.single.app.sourceType, AppSourceType.fdroid);
+      expect(library.entries.single.app.packageName, 'im.molly.app');
+    },
+  );
+
+  testWidgets(
+    'shows an empty message when the F-Droid catalog search has no hits',
+    (tester) async {
+      final library = AppLibrary(
+        resolver: ReleaseResolver(
+          github: GithubService(
+            client: MockClient((r) async => http.Response('', 503)),
+          ),
+          fdroid: FdroidService(
+            client: MockClient((r) async => http.Response('', 503)),
+          ),
+        ),
+        fdroidSearch: FdroidSearchService(
+          client: MockClient(
+            (request) async => http.Response(jsonEncode({'apps': []}), 200),
+          ),
+        ),
+      );
+      await library.load(curatedAppsOverride: testCuratedApps);
+
+      await tester.pumpWidget(_wrap(AddAppScreen(library: library)));
+      await tester.pumpAndSettle();
+
+      // The custom-app tab's source-type selector also has an "F-Droid"
+      // label, so tap the Tab specifically rather than a bare find.text.
+      await tester.tap(find.widgetWithText(Tab, 'F-Droid'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('fdroidCatalogSearchField')),
+        'nonexistentapp',
+      );
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Geen apps gevonden op F-Droid voor "nonexistentapp".'),
+        findsOneWidget,
+      );
     },
   );
 }

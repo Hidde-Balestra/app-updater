@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../models/app_source_type.dart';
 import '../models/curated_app.dart';
+import '../models/fdroid_search_result.dart';
 import '../models/installed_app.dart';
 import '../models/release_info.dart';
 import '../models/source_parser.dart';
@@ -47,11 +48,20 @@ class _AddAppScreenState extends State<AddAppScreen>
   Future<_DeviceAppsPage>? _deviceAppsFuture;
   bool _isBulkAddingFdroid = false;
 
+  final _fdroidQueryController = TextEditingController();
+  Timer? _fdroidSearchDebounce;
+  bool _isFdroidSearching = false;
+  String? _fdroidSearchError;
+  String? _fdroidSearchedQuery;
+  List<FdroidSearchResult> _fdroidResults = const [];
+  final _addedFdroidPackageIds = <String>{};
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _sourceController.addListener(_onSourceChanged);
+    _fdroidQueryController.addListener(_onFdroidQueryChanged);
     _loadInstalledApps();
     final prefill = widget.prefillApp;
     if (prefill != null) {
@@ -131,11 +141,66 @@ class _AddAppScreenState extends State<AddAppScreen>
   @override
   void dispose() {
     _debounce?.cancel();
+    _fdroidSearchDebounce?.cancel();
     _sourceController.dispose();
     _nameController.dispose();
     _packageNameController.dispose();
+    _fdroidQueryController.dispose();
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _onFdroidQueryChanged() {
+    _fdroidSearchDebounce?.cancel();
+    final query = _fdroidQueryController.text;
+    if (query.trim().isEmpty) {
+      setState(() {
+        _isFdroidSearching = false;
+        _fdroidSearchError = null;
+        _fdroidSearchedQuery = null;
+        _fdroidResults = const [];
+      });
+      return;
+    }
+    _fdroidSearchDebounce = Timer(
+      const Duration(milliseconds: 400),
+      () => _searchFdroid(query),
+    );
+  }
+
+  Future<void> _searchFdroid(String query) async {
+    setState(() {
+      _isFdroidSearching = true;
+      _fdroidSearchError = null;
+    });
+    try {
+      final results = await widget.library.searchFdroid(query);
+      if (!mounted) return;
+      setState(() {
+        _isFdroidSearching = false;
+        _fdroidSearchedQuery = query;
+        _fdroidResults = results;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isFdroidSearching = false;
+        _fdroidSearchedQuery = query;
+        _fdroidResults = const [];
+        _fdroidSearchError = AppLocalizations.of(context)!.fdroidCatalogError;
+      });
+    }
+  }
+
+  Future<void> _addFdroidResult(FdroidSearchResult result) async {
+    await widget.library.addCustomApp(
+      name: result.name,
+      type: AppSourceType.fdroid,
+      source: result.packageId,
+      packageName: result.packageId,
+    );
+    if (!mounted) return;
+    setState(() => _addedFdroidPackageIds.add(result.packageId));
   }
 
   void _onSourceChanged() {
@@ -222,10 +287,13 @@ class _AddAppScreenState extends State<AddAppScreen>
         title: Text(l10n.addAppTitle),
         bottom: TabBar(
           controller: _tabController,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
           tabs: [
             Tab(text: l10n.tabCustomApp),
             Tab(text: l10n.tabFavorite),
             Tab(text: l10n.tabDeviceApps),
+            Tab(text: l10n.tabFdroidCatalog),
           ],
         ),
       ),
@@ -235,6 +303,7 @@ class _AddAppScreenState extends State<AddAppScreen>
           _buildCustomAppTab(l10n),
           _buildFavoriteTab(l10n),
           _buildDeviceAppsTab(l10n),
+          _buildFdroidCatalogTab(l10n),
         ],
       ),
     );
@@ -516,6 +585,78 @@ class _AddAppScreenState extends State<AddAppScreen>
       ),
     );
   }
+
+  Widget _buildFdroidCatalogTab(AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            key: const Key('fdroidCatalogSearchField'),
+            controller: _fdroidQueryController,
+            decoration: InputDecoration(
+              hintText: l10n.fdroidCatalogSearchHint,
+              prefixIcon: const Icon(Icons.search),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(child: _buildFdroidCatalogResults(l10n)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFdroidCatalogResults(AppLocalizations l10n) {
+    if (_isFdroidSearching) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_fdroidSearchError != null) {
+      return Center(
+        child: Text(
+          _fdroidSearchError!,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.error,
+          ),
+        ),
+      );
+    }
+    if (_fdroidSearchedQuery == null) {
+      return Center(
+        child: Text(
+          l10n.fdroidCatalogPrompt,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      );
+    }
+    if (_fdroidResults.isEmpty) {
+      return Center(
+        child: Text(
+          l10n.fdroidCatalogEmpty(_fdroidSearchedQuery!),
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      );
+    }
+    return ListView.separated(
+      itemCount: _fdroidResults.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 10),
+      itemBuilder: (context, index) {
+        final result = _fdroidResults[index];
+        return _FdroidCatalogTile(
+          result: result,
+          isAdded: _addedFdroidPackageIds.contains(result.packageId),
+          onAdd: () => _addFdroidResult(result),
+        );
+      },
+    );
+  }
 }
 
 class _FavoriteTile extends StatelessWidget {
@@ -559,6 +700,77 @@ class _FavoriteTile extends StatelessWidget {
             FilledButton.tonal(
               onPressed: () => library.addFavorite(app),
               child: Text(l10n.addFavoriteButton),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FdroidCatalogTile extends StatelessWidget {
+  final FdroidSearchResult result;
+  final bool isAdded;
+  final VoidCallback onAdd;
+
+  const _FdroidCatalogTile({
+    required this.result,
+    required this.isAdded,
+    required this.onAdd,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final initials = result.name.length >= 2
+        ? result.name.substring(0, 2).toUpperCase()
+        : result.name.toUpperCase();
+    final iconUrl = result.iconUrl;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            iconUrl == null
+                ? AppAvatar(name: result.name, initials: initials)
+                : ClipRRect(
+                    borderRadius: BorderRadius.circular(22),
+                    child: Image.network(
+                      iconUrl,
+                      width: 44,
+                      height: 44,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          AppAvatar(name: result.name, initials: initials),
+                    ),
+                  ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    result.name,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (result.summary.isNotEmpty)
+                    Text(
+                      result.summary,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            FilledButton.tonal(
+              onPressed: isAdded ? null : onAdd,
+              child: Text(isAdded ? l10n.addedButton : l10n.addFavoriteButton),
             ),
           ],
         ),

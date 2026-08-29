@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/app_source_type.dart';
 import '../models/curated_app.dart';
 import '../models/device_app_entry.dart';
+import '../models/fdroid_search_result.dart';
 import '../models/installed_app.dart';
 import '../models/release_info.dart';
 import '../models/tracked_app.dart';
@@ -16,6 +17,7 @@ import '../models/update_history_entry.dart';
 import '../models/version_compare.dart';
 import '../services/apk_installer_service.dart';
 import '../services/device_apps_service.dart';
+import '../services/fdroid_search_service.dart';
 import '../services/release_resolver.dart';
 import 'library_entry.dart';
 import 'storage_keys.dart';
@@ -30,14 +32,17 @@ class AppLibrary extends ChangeNotifier {
   final ReleaseResolver _resolver;
   final DeviceAppsService _deviceApps;
   final ApkInstallerService _installer;
+  final FdroidSearchService _fdroidSearch;
 
   AppLibrary({
     ReleaseResolver? resolver,
     DeviceAppsService? deviceApps,
     ApkInstallerService? installer,
+    FdroidSearchService? fdroidSearch,
   }) : _resolver = resolver ?? ReleaseResolver(),
        _deviceApps = deviceApps ?? DeviceAppsService(),
-       _installer = installer ?? ApkInstallerService();
+       _installer = installer ?? ApkInstallerService(),
+       _fdroidSearch = fdroidSearch ?? FdroidSearchService();
 
   List<LibraryEntry> entries = [];
   List<CuratedApp> curatedApps = [];
@@ -449,6 +454,14 @@ class AppLibrary extends ChangeNotifier {
       }),
     );
     return results.whereType<String>().toSet();
+  }
+
+  /// Full-text search across F-Droid's entire catalog (not just apps
+  /// already installed on the device) — backs the "F-Droid" tab in the
+  /// add-app flow. Lets exceptions from [FdroidSearchService] propagate so
+  /// the screen can show a real error state instead of a silent empty list.
+  Future<List<FdroidSearchResult>> searchFdroid(String query) {
+    return _fdroidSearch.search(query);
   }
 
   /// Every app installed on the device, classified as tracked, ignored, or

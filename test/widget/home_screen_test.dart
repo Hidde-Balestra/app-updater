@@ -100,7 +100,7 @@ void main() {
   });
 
   testWidgets(
-    'renders a custom app under "Mijn apps" and a favorite under "Favoriete apps"',
+    'renders a custom app under "Mijn apps" and a favorite under "Aangeraden apps"',
     (tester) async {
       final library = _offlineLibrary(
         deviceApps: _FakeDeviceAppsService({'com.example.mijnbudget': '1.0.0'}),
@@ -124,7 +124,7 @@ void main() {
       // SectionHeader renders titles upper-cased.
       expect(find.text('MIJN APPS'), findsOneWidget);
       expect(find.text('MijnBudget'), findsOneWidget);
-      expect(find.text('FAVORIETE APPS'), findsOneWidget);
+      expect(find.text('AANGERADEN APPS'), findsOneWidget);
       expect(find.text(library.curatedApps.first.name), findsOneWidget);
     },
   );

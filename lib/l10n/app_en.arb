@@ -8,7 +8,7 @@
 
   "sectionUpdatesAvailable": "Updates available",
   "sectionMyApps": "My apps",
-  "sectionFavoriteApps": "Favorite apps",
+  "sectionFavoriteApps": "Recommended apps",
   "statusUpdate": "Update",
   "statusUpToDate": "Up to date",
   "statusChecking": "Checking…",
@@ -43,8 +43,18 @@
 
   "addAppTitle": "Add app",
   "tabCustomApp": "Custom app",
-  "tabFavorite": "Favorite",
+  "tabFavorite": "Recommended",
   "tabDeviceApps": "From device",
+  "tabFdroidCatalog": "F-Droid",
+  "fdroidCatalogSearchHint": "Search the F-Droid catalog…",
+  "fdroidCatalogPrompt": "Type a name to search the full F-Droid catalog.",
+  "fdroidCatalogEmpty": "No apps found on F-Droid for \"{query}\".",
+  "@fdroidCatalogEmpty": {
+    "placeholders": {
+      "query": {"type": "String"}
+    }
+  },
+  "fdroidCatalogError": "Searching F-Droid failed. Please try again.",
   "deviceAppsEmpty": "No new apps found on your device.",
   "useInstalledAppButton": "Use",
   "useInstalledAppHint": "Now pick a source to track {name}.",
@@ -85,8 +95,9 @@
     }
   },
   "addAppButton": "Add app",
-  "favoritesEmptyAllAdded": "All favorite apps have already been added.",
+  "favoritesEmptyAllAdded": "All recommended apps have already been added.",
   "addFavoriteButton": "Add",
+  "addedButton": "Added",
   "sourceResolveError": "Could not find a release for this source.",
   "invalidSourceError": "Enter a valid source.",
 
