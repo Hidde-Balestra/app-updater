@@ -40,6 +40,49 @@ void main() {
         isTrue,
       );
     });
+
+    test('false when only a leading v/V prefix differs (same release)', () {
+      // Seen in practice: Android's own versionName kept the "v" (as
+      // recorded by a device scan) while GithubService strips it from the
+      // release tag before storing it.
+      expect(
+        isUpdateAvailable(
+          installedVersion: 'v8.19.2-4',
+          latestVersion: '8.19.2-4',
+        ),
+        isFalse,
+      );
+      expect(
+        isUpdateAvailable(
+          installedVersion: '8.19.2-4',
+          latestVersion: 'v8.19.2-4',
+        ),
+        isFalse,
+      );
+      expect(
+        isUpdateAvailable(installedVersion: 'V1.2.3', latestVersion: '1.2.3'),
+        isFalse,
+      );
+    });
+
+    test('still an update when versions differ beyond just the v prefix', () {
+      expect(
+        isUpdateAvailable(
+          installedVersion: 'v8.19.2-3',
+          latestVersion: '8.19.2-4',
+        ),
+        isTrue,
+      );
+    });
+
+    test('does not strip a leading v/V that is not followed by a digit', () {
+      // Guards against mangling a version string that merely starts with
+      // the letter v/V for some other reason.
+      expect(
+        isUpdateAvailable(installedVersion: 'variant-1', latestVersion: '1'),
+        isTrue,
+      );
+    });
   });
 
   group('appHasUpdate', () {
