@@ -3,7 +3,8 @@ enum AppSourceType {
   gitlab,
   codeberg,
   fdroid,
-  direct;
+  direct,
+  accrescent;
 
   static AppSourceType fromJson(String value) => AppSourceType.values
       .firstWhere((t) => t.name == value, orElse: () => AppSourceType.direct);

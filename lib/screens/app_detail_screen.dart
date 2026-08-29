@@ -3,6 +3,7 @@ import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/app_source_type.dart';
 import '../state/app_library.dart';
 import '../state/library_entry.dart';
 import '../widgets/app_avatar.dart';
@@ -127,6 +128,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
         final release = entry.latestRelease;
         final hasUpdate = entry.status == AppCheckStatus.updateAvailable;
         final isSkipped = entry.status == AppCheckStatus.skipped;
+        final isAccrescent = entry.app.sourceType == AppSourceType.accrescent;
         final changelogLines = (release?.changelog ?? '')
             .split('\n')
             .map((l) => l.trim())
@@ -219,7 +221,20 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                   ),
                 ),
               const SizedBox(height: 16),
-              if (release != null)
+              if (release != null && isAccrescent) ...[
+                FilledButton.icon(
+                  onPressed: () => _openSource(release.downloadUrl),
+                  icon: const Icon(Icons.open_in_new),
+                  label: Text(l10n.openInAccrescentButton),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.accrescentNoDirectDownload,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ] else if (release != null)
                 FilledButton.icon(
                   onPressed: _isDownloading
                       ? null

@@ -1,5 +1,6 @@
 import '../models/app_source_type.dart';
 import '../models/release_info.dart';
+import 'accrescent/accrescent_service.dart';
 import 'codeberg_service.dart';
 import 'fdroid_service.dart';
 import 'github_service.dart';
@@ -14,16 +15,19 @@ class ReleaseResolver {
   final GitlabService _gitlab;
   final CodebergService _codeberg;
   final FdroidService _fdroid;
+  final AccrescentService _accrescent;
 
   ReleaseResolver({
     GithubService? github,
     GitlabService? gitlab,
     CodebergService? codeberg,
     FdroidService? fdroid,
+    AccrescentService? accrescent,
   }) : _github = github ?? GithubService(),
        _gitlab = gitlab ?? GitlabService(),
        _codeberg = codeberg ?? CodebergService(),
-       _fdroid = fdroid ?? FdroidService();
+       _fdroid = fdroid ?? FdroidService(),
+       _accrescent = accrescent ?? AccrescentService();
 
   Future<ReleaseResult> resolve(AppSourceType type, String sourceIdentifier) {
     switch (type) {
@@ -37,6 +41,8 @@ class ReleaseResolver {
         return _fdroid.fetchLatestRelease(sourceIdentifier);
       case AppSourceType.direct:
         return resolveDirect(sourceIdentifier);
+      case AppSourceType.accrescent:
+        return _accrescent.fetchLatestRelease(sourceIdentifier);
     }
   }
 

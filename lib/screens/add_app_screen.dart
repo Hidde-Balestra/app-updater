@@ -226,6 +226,7 @@ class _AddAppScreenState extends State<AddAppScreen>
       AppSourceType.codeberg => parseCodebergSource(rawInput),
       AppSourceType.fdroid => parseFdroidSource(rawInput),
       AppSourceType.direct => rawInput.trim(),
+      AppSourceType.accrescent => parseAccrescentSource(rawInput),
     };
     if (identifier == null || identifier.isEmpty) {
       setState(() {
@@ -344,6 +345,10 @@ class _AddAppScreenState extends State<AddAppScreen>
               ButtonSegment(
                 value: AppSourceType.direct,
                 label: Text(l10n.sourceTypeDirect),
+              ),
+              ButtonSegment(
+                value: AppSourceType.accrescent,
+                label: Text(l10n.sourceTypeAccrescent),
               ),
             ],
             selected: {_sourceType},
@@ -477,6 +482,7 @@ class _AddAppScreenState extends State<AddAppScreen>
     AppSourceType.codeberg => l10n.sourceTypeCodeberg,
     AppSourceType.fdroid => l10n.sourceTypeFdroid,
     AppSourceType.direct => l10n.sourceTypeDirect,
+    AppSourceType.accrescent => l10n.sourceTypeAccrescent,
   };
 
   String _previewInitials() {

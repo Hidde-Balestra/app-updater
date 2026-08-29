@@ -314,8 +314,16 @@ class AppLibrary extends ChangeNotifier {
   /// can't sensibly handle overlapping install intents). Apps that fail
   /// don't stop the rest of the batch.
   Future<({int succeeded, int failed})> downloadAndInstallAll() async {
+    // Accrescent apps have no downloadable file (see AccrescentService) —
+    // they're updated by opening Accrescent itself, one at a time, from the
+    // detail screen, so they're left out of the batch entirely rather than
+    // counted as a failure.
     final updatableIds = entries
-        .where((e) => e.status == AppCheckStatus.updateAvailable)
+        .where(
+          (e) =>
+              e.status == AppCheckStatus.updateAvailable &&
+              e.app.sourceType != AppSourceType.accrescent,
+        )
         .map((e) => e.app.id)
         .toList();
 

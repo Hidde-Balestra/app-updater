@@ -1,0 +1,37 @@
+// Minimal, hand-trimmed re-declaration of the subset of Accrescent's public
+// appstore API (https://github.com/accrescent/appstore-api) this app
+// actually uses: just GetAppPackageInfo, for checking the latest version of
+// an Accrescent-distributed app.
+//
+// The real upstream schema pulls in buf.validate field-constraint options,
+// google.api client options, and (for the download/update RPCs) Google's
+// Android App Bundle "bundletool" DeviceSpec message. None of those affect
+// wire compatibility — protobuf/gRPC only cares about package name, service
+// name, method name, and field numbers matching, all of which are copied
+// exactly from the upstream .proto files. Keeping this trimmed down avoids
+// vendoring ~20 files and two extra external schemas for one RPC.
+//
+// Regenerate with (from the repo root):
+//   protoc --dart_out=grpc:lib/services/accrescent/generated \
+//     -I tool/proto tool/proto/accrescent_appstore.proto
+
+syntax = "proto3";
+
+package accrescent.appstore.v1;
+
+message GetAppPackageInfoRequest {
+  string app_id = 1;
+}
+
+message PackageInfo {
+  uint64 version_code = 1;
+  string version_name = 2;
+}
+
+message GetAppPackageInfoResponse {
+  PackageInfo package_info = 1;
+}
+
+service AppService {
+  rpc GetAppPackageInfo(GetAppPackageInfoRequest) returns (GetAppPackageInfoResponse);
+}

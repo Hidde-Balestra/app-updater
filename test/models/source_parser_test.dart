@@ -124,6 +124,27 @@ void main() {
     });
   });
 
+  group('parseAccrescentSource', () {
+    test('accepts a bare application id', () {
+      expect(parseAccrescentSource('app.organicmaps'), 'app.organicmaps');
+    });
+
+    test('accepts an accrescent.app/app/<id> deep link', () {
+      expect(
+        parseAccrescentSource('https://accrescent.app/app/app.organicmaps'),
+        'app.organicmaps',
+      );
+    });
+
+    test('rejects a URL without an app segment', () {
+      expect(parseAccrescentSource('https://accrescent.app/'), isNull);
+    });
+
+    test('rejects empty input', () {
+      expect(parseAccrescentSource('   '), isNull);
+    });
+  });
+
   group('defaultNameFor', () {
     test('github uses the repo name', () {
       expect(
@@ -159,6 +180,16 @@ void main() {
           identifier: 'https://f-droid.org/F-Droid.apk',
         ),
         'F-Droid',
+      );
+    });
+
+    test('accrescent uses the application id as-is', () {
+      expect(
+        defaultNameFor(
+          identifierKind: 'accrescent',
+          identifier: 'app.organicmaps',
+        ),
+        'app.organicmaps',
       );
     });
   });

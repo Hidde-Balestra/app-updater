@@ -115,6 +115,8 @@ class TrackedApp {
         return sourceIdentifier;
       case AppSourceType.direct:
         return sourceIdentifier;
+      case AppSourceType.accrescent:
+        return 'accrescent.app/app/$sourceIdentifier';
     }
   }
 }

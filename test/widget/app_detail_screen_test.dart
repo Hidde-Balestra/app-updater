@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:app_updater/l10n/app_localizations.dart';
 import 'package:app_updater/models/app_source_type.dart';
 import 'package:app_updater/screens/app_detail_screen.dart';
+import 'package:app_updater/services/accrescent/accrescent_service.dart';
+import 'package:app_updater/services/accrescent/generated/accrescent_appstore.pbgrpc.dart';
 import 'package:app_updater/services/fdroid_service.dart';
 import 'package:app_updater/services/github_service.dart';
 import 'package:app_updater/services/release_resolver.dart';
@@ -14,6 +16,17 @@ import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/fake_curated_apps.dart';
+
+class _FakeAccrescentService extends AccrescentService {
+  final String versionName;
+  _FakeAccrescentService(this.versionName);
+
+  @override
+  Future<GetAppPackageInfoResponse> getPackageInfo(String appId) async =>
+      GetAppPackageInfoResponse(
+        packageInfo: PackageInfo(versionName: versionName),
+      );
+}
 
 /// A library whose GitHub source always resolves to version 2.0.0.
 AppLibrary _githubLibrary() {
@@ -113,4 +126,33 @@ void main() {
       expect(library.entries.single.app.skippedVersion, isNull);
     },
   );
+
+  testWidgets('shows "open in Accrescent" instead of a download button for an '
+      'Accrescent-sourced app', (tester) async {
+    final library = AppLibrary(
+      resolver: ReleaseResolver(
+        github: GithubService(
+          client: MockClient((r) async => http.Response('', 503)),
+        ),
+        fdroid: FdroidService(
+          client: MockClient((r) async => http.Response('', 503)),
+        ),
+        accrescent: _FakeAccrescentService('2026.07.23-6-Google'),
+      ),
+    );
+    await library.load(curatedAppsOverride: testCuratedApps);
+    final app = await library.addCustomApp(
+      name: 'Organic Maps',
+      type: AppSourceType.accrescent,
+      source: 'app.organicmaps',
+    );
+
+    await tester.pumpWidget(
+      _wrap(AppDetailScreen(library: library, appId: app.id)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Openen in Accrescent'), findsOneWidget);
+    expect(find.text('Download & installeer APK'), findsNothing);
+  });
 }

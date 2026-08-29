@@ -97,6 +97,26 @@ String? parseFdroidSource(String input) {
   }
 }
 
+/// Accrescent: accepts a bare Android application id or an
+/// `accrescent.app/app/{id}` deep link and returns the application id, or
+/// null if it can't be parsed.
+String? parseAccrescentSource(String input) {
+  final trimmed = input.trim();
+  if (trimmed.isEmpty) return null;
+
+  if (!trimmed.contains('://')) return trimmed;
+
+  try {
+    final uri = Uri.parse(trimmed);
+    final segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
+    final idx = segments.indexOf('app');
+    if (idx != -1 && idx + 1 < segments.length) return segments[idx + 1];
+    return null;
+  } catch (_) {
+    return null;
+  }
+}
+
 /// Derives a reasonable default display name from a resolved identifier
 /// when the user leaves the optional display-name field empty.
 String defaultNameFor({
@@ -114,6 +134,7 @@ String defaultNameFor({
       final parts = identifier.split('/');
       return parts.length == 2 ? parts[1] : identifier;
     case 'fdroid':
+    case 'accrescent':
       return identifier;
     default:
       final fileName = identifier.split('/').last;

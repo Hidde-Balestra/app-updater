@@ -1,4 +1,6 @@
 import 'package:app_updater/models/app_source_type.dart';
+import 'package:app_updater/services/accrescent/accrescent_service.dart';
+import 'package:app_updater/services/accrescent/generated/accrescent_appstore.pbgrpc.dart';
 import 'package:app_updater/services/apk_installer_service.dart';
 import 'package:app_updater/services/device_apps_service.dart';
 import 'package:app_updater/services/fdroid_service.dart';
@@ -12,6 +14,17 @@ import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/fake_curated_apps.dart';
+
+class _FakeAccrescentService extends AccrescentService {
+  final String versionName;
+  _FakeAccrescentService(this.versionName);
+
+  @override
+  Future<GetAppPackageInfoResponse> getPackageInfo(String appId) async =>
+      GetAppPackageInfoResponse(
+        packageInfo: PackageInfo(versionName: versionName),
+      );
+}
 
 class _FakeApkInstallerService extends ApkInstallerService {
   final List<String> installedPaths = [];
@@ -69,6 +82,15 @@ ReleaseResolver _offlineResolver() {
   return ReleaseResolver(
     github: GithubService(client: client),
     fdroid: FdroidService(client: client),
+  );
+}
+
+ReleaseResolver _offlineResolverWithAccrescent(String versionName) {
+  final client = MockClient((request) async => http.Response('', 503));
+  return ReleaseResolver(
+    github: GithubService(client: client),
+    fdroid: FdroidService(client: client),
+    accrescent: _FakeAccrescentService(versionName),
   );
 }
 
@@ -214,6 +236,38 @@ void main() {
       );
     },
   );
+
+  test('downloadAndInstallAll leaves Accrescent apps out of the batch — there '
+      'is nothing to download for them', () async {
+    final installer = _FakeApkInstallerService();
+    final library = AppLibrary(
+      resolver: _offlineResolverWithAccrescent('2026.07.23-6-Google'),
+      installer: installer,
+      deviceApps: _FakeDeviceAppsService([<String>{}]),
+    );
+    await library.load(curatedAppsOverride: testCuratedApps);
+    final accrescentApp = await library.addCustomApp(
+      name: 'Organic Maps',
+      type: AppSourceType.accrescent,
+      source: 'app.organicmaps',
+    );
+    await library.addCustomApp(
+      name: 'DirectApp',
+      type: AppSourceType.direct,
+      source: 'https://example.com/direct.apk',
+      packageName: 'com.example.direct',
+    );
+
+    final result = await library.downloadAndInstallAll();
+
+    expect(result.succeeded, 1);
+    expect(result.failed, 0);
+    expect(installer.installedPaths, hasLength(1));
+    final accrescentEntry = library.entries.firstWhere(
+      (e) => e.app.id == accrescentApp.id,
+    );
+    expect(accrescentEntry.status, AppCheckStatus.updateAvailable);
+  });
 
   test(
     'downloadAndInstallAll counts failures without stopping the batch',
