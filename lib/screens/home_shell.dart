@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../state/app_library.dart';
+import '../state/library_entry.dart';
 import '../state/settings_controller.dart';
 import 'add_app_screen.dart';
 import 'home_screen.dart';
@@ -31,26 +32,42 @@ class _HomeShellState extends State<HomeShell> {
 
     return Scaffold(
       body: IndexedStack(index: _index, children: screens),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (index) => setState(() => _index = index),
-        destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.apps_outlined),
-            selectedIcon: const Icon(Icons.apps),
-            label: l10n.navApps,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.add_circle_outline),
-            selectedIcon: const Icon(Icons.add_circle),
-            label: l10n.navAdd,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.settings_outlined),
-            selectedIcon: const Icon(Icons.settings),
-            label: l10n.navSettings,
-          ),
-        ],
+      bottomNavigationBar: ListenableBuilder(
+        listenable: widget.library,
+        builder: (context, _) {
+          final updatableCount = widget.library.entries
+              .where((e) => e.status == AppCheckStatus.updateAvailable)
+              .length;
+          return NavigationBar(
+            selectedIndex: _index,
+            onDestinationSelected: (index) => setState(() => _index = index),
+            destinations: [
+              NavigationDestination(
+                icon: Badge(
+                  isLabelVisible: updatableCount > 0,
+                  label: Text('$updatableCount'),
+                  child: const Icon(Icons.apps_outlined),
+                ),
+                selectedIcon: Badge(
+                  isLabelVisible: updatableCount > 0,
+                  label: Text('$updatableCount'),
+                  child: const Icon(Icons.apps),
+                ),
+                label: l10n.navApps,
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.add_circle_outline),
+                selectedIcon: const Icon(Icons.add_circle),
+                label: l10n.navAdd,
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.settings_outlined),
+                selectedIcon: const Icon(Icons.settings),
+                label: l10n.navSettings,
+              ),
+            ],
+          );
+        },
       ),
     );
   }

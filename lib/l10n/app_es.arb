@@ -14,6 +14,7 @@
   "statusChecking": "Comprobando…",
   "statusError": "Error",
   "statusNoReleases": "Sin versiones",
+  "statusSkipped": "Omitida",
   "emptyLibraryTitle": "Aún no hay apps",
   "emptyLibraryMessage": "Añade tu primera app con el icono +.",
   "scanDeviceTooltip": "Escanear dispositivo",
@@ -118,6 +119,14 @@
       "version": {"type": "String"}
     }
   },
+  "skipVersionButton": "Omitir esta versión",
+  "unskipVersionButton": "Deshacer omisión",
+  "skippedVersionBanner": "La versión {version} se está omitiendo",
+  "@skippedVersionBanner": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
   "sourceLabelDetail": "Origen: {source}",
   "@sourceLabelDetail": {
     "placeholders": {
@@ -174,6 +183,17 @@
   "deviceStatusIgnored": "Ignorada",
   "ignoreButton": "Ignorar",
   "unignoreButton": "Restaurar",
+  "sectionHistory": "HISTORIAL",
+  "updateHistoryMenuTitle": "Historial de actualizaciones",
+  "updateHistoryMenuSubtitle": "Ver actualizaciones instaladas anteriormente",
+  "updateHistoryEmpty": "Aún no se han instalado actualizaciones mediante App Updater.",
+  "updateHistoryEntryVersions": "{fromVersion} → {toVersion}",
+  "@updateHistoryEntryVersions": {
+    "placeholders": {
+      "fromVersion": {"type": "String"},
+      "toVersion": {"type": "String"}
+    }
+  },
   "sectionBackup": "COPIA DE SEGURIDAD",
   "exportButton": "Exportar al portapapeles",
   "exportSuccess": "{count} apps copiadas al portapapeles",

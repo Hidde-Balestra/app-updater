@@ -14,6 +14,7 @@
   "statusChecking": "Checking…",
   "statusError": "Error",
   "statusNoReleases": "No releases",
+  "statusSkipped": "Skipped",
   "emptyLibraryTitle": "No apps yet",
   "emptyLibraryMessage": "Add your first app using the + icon.",
   "scanDeviceTooltip": "Scan device",
@@ -118,6 +119,14 @@
       "version": {"type": "String"}
     }
   },
+  "skipVersionButton": "Skip this version",
+  "unskipVersionButton": "Undo skip",
+  "skippedVersionBanner": "Version {version} is being skipped",
+  "@skippedVersionBanner": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
   "sourceLabelDetail": "Source: {source}",
   "@sourceLabelDetail": {
     "placeholders": {
@@ -174,6 +183,17 @@
   "deviceStatusIgnored": "Ignored",
   "ignoreButton": "Ignore",
   "unignoreButton": "Restore",
+  "sectionHistory": "HISTORY",
+  "updateHistoryMenuTitle": "Update history",
+  "updateHistoryMenuSubtitle": "View previously installed updates",
+  "updateHistoryEmpty": "No updates installed via App Updater yet.",
+  "updateHistoryEntryVersions": "{fromVersion} → {toVersion}",
+  "@updateHistoryEntryVersions": {
+    "placeholders": {
+      "fromVersion": {"type": "String"},
+      "toVersion": {"type": "String"}
+    }
+  },
   "sectionBackup": "BACKUP",
   "exportButton": "Export to clipboard",
   "exportSuccess": "{count} apps copied to clipboard",

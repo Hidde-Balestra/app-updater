@@ -25,6 +25,8 @@ void main() {
         isCurated: true,
         installedVersion: '1.8.0',
         packageName: 'nl.hiddebalestra.taalleer',
+        lastInstalledAt: DateTime.utc(2026, 1, 2, 3, 4, 5),
+        skippedVersion: '1.9.0',
       );
 
       final restored = TrackedApp.fromJson(app.toJson());
@@ -36,6 +38,21 @@ void main() {
       expect(restored.isCurated, app.isCurated);
       expect(restored.installedVersion, app.installedVersion);
       expect(restored.packageName, app.packageName);
+      expect(restored.lastInstalledAt, app.lastInstalledAt);
+      expect(restored.skippedVersion, app.skippedVersion);
+    });
+
+    test('fromJson defaults lastInstalledAt/skippedVersion to null when '
+        'absent', () {
+      final app = TrackedApp.fromJson({
+        'id': '123',
+        'name': 'TaalLeer',
+        'sourceType': 'github',
+        'sourceIdentifier': 'Hidde-Balestra/taalleer',
+      });
+
+      expect(app.lastInstalledAt, isNull);
+      expect(app.skippedVersion, isNull);
     });
 
     test('fromJson defaults packageName to null when absent', () {
@@ -59,6 +76,23 @@ void main() {
       expect(updated.packageName, 'nl.hiddebalestra.taalleer');
       expect(updated.name, app.name);
       expect(updated.installedVersion, app.installedVersion);
+    });
+
+    test('sets skippedVersion without touching other fields', () {
+      final app = _app('TaalLeer');
+
+      final updated = app.copyWith(skippedVersion: '2.0.0');
+
+      expect(updated.skippedVersion, '2.0.0');
+      expect(updated.name, app.name);
+    });
+
+    test('clearSkippedVersion nulls it out even though it was set', () {
+      final app = _app('TaalLeer').copyWith(skippedVersion: '2.0.0');
+
+      final updated = app.copyWith(clearSkippedVersion: true);
+
+      expect(updated.skippedVersion, isNull);
     });
   });
 }

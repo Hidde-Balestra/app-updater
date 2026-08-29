@@ -134,4 +134,26 @@ void main() {
 
     expect(notifications.calls, isEmpty);
   });
+
+  test('does not notify about a version the user chose to skip', () async {
+    final skippedApp = TrackedApp(
+      id: 'a',
+      name: 'TaalLeer',
+      sourceType: AppSourceType.github,
+      sourceIdentifier: 'Hidde-Balestra/taalleer',
+      installedVersion: '1.0.0',
+      // The mocked GitHub response always resolves to 1.1.0 (see
+      // _resolver() above).
+      skippedVersion: '1.1.0',
+    );
+    await _seedTrackedApps([skippedApp]);
+
+    final notifications = _FakeNotificationService();
+    await BackgroundUpdateChecker(
+      resolver: _resolver(),
+      notifications: notifications,
+    ).run();
+
+    expect(notifications.calls, isEmpty);
+  });
 }

@@ -43,6 +43,9 @@ class StatusChip extends StatelessWidget {
       case AppCheckStatus.noReleases:
         label = l10n.statusNoReleases;
         foreground = AppColors.neutralGrey;
+      case AppCheckStatus.skipped:
+        label = l10n.statusSkipped;
+        foreground = AppColors.neutralGrey;
     }
 
     return Container(

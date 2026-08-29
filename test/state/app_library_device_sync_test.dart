@@ -57,6 +57,7 @@ void main() {
       expect(result.eligible, 1);
       expect(result.updated, 1);
       expect(library.entries.single.app.installedVersion, '2.0.0');
+      expect(library.entries.single.app.lastInstalledAt, isNotNull);
     },
   );
 

@@ -81,4 +81,34 @@ void main() {
       );
     });
   });
+
+  group('isVersionSkipped', () {
+    test('true when the latest version exactly matches the skipped one', () {
+      expect(
+        isVersionSkipped(skippedVersion: '1.1.0', latestVersion: '1.1.0'),
+        isTrue,
+      );
+    });
+
+    test('false once a newer release appears', () {
+      expect(
+        isVersionSkipped(skippedVersion: '1.1.0', latestVersion: '1.2.0'),
+        isFalse,
+      );
+    });
+
+    test('false when nothing has been skipped', () {
+      expect(
+        isVersionSkipped(skippedVersion: null, latestVersion: '1.1.0'),
+        isFalse,
+      );
+    });
+
+    test('false when the latest version is unknown', () {
+      expect(
+        isVersionSkipped(skippedVersion: '1.1.0', latestVersion: null),
+        isFalse,
+      );
+    });
+  });
 }

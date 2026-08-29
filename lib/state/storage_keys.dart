@@ -9,4 +9,5 @@ class StorageKeys {
   static const trackedApps = 'library.trackedApps';
   static const notificationsEnabled = 'settings.notifications';
   static const ignoredPackageNames = 'library.ignoredPackageNames';
+  static const updateHistory = 'library.updateHistory';
 }

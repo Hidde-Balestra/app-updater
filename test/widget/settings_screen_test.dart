@@ -138,4 +138,31 @@ void main() {
 
     expect(find.text('1 apps naar klembord gekopieerd'), findsOneWidget);
   });
+
+  testWidgets('tapping "Update geschiedenis" opens the history screen', (
+    tester,
+  ) async {
+    final settings = _settings();
+    await settings.load();
+    final library = _offlineLibrary();
+    await library.load(curatedAppsOverride: testCuratedApps);
+
+    await tester.pumpWidget(
+      _wrap(SettingsScreen(settings: settings, library: library)),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('Update geschiedenis'),
+      300,
+      scrollable: find.byType(Scrollable),
+    );
+    await tester.tap(find.text('Update geschiedenis'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Nog geen updates geïnstalleerd via App Updater.'),
+      findsOneWidget,
+    );
+  });
 }

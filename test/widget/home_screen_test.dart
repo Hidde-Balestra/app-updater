@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:app_updater/l10n/app_localizations.dart';
 import 'package:app_updater/models/app_source_type.dart';
 import 'package:app_updater/screens/home_screen.dart';
@@ -38,6 +40,38 @@ AppLibrary _offlineLibrary({
     ),
     deviceApps: deviceApps ?? _FakeDeviceAppsService(),
     installer: installer,
+  );
+}
+
+/// A library whose GitHub source always resolves to version 2.0.0 with a
+/// fixed changelog, regardless of repo — used for the "updates available"
+/// sort-order and changelog-preview tests, where the exact release content
+/// doesn't matter as long as it's consistent.
+AppLibrary _githubLibrary() {
+  final client = MockClient((request) async {
+    if (request.url.host == 'api.github.com') {
+      return http.Response(
+        jsonEncode({
+          'tag_name': 'v2.0.0',
+          'body': 'Fixed a crash on startup.\nMinor UI tweaks.',
+          'assets': [
+            {
+              'name': 'app.apk',
+              'browser_download_url': 'https://x/app.apk',
+              'size': 1,
+            },
+          ],
+        }),
+        200,
+      );
+    }
+    return http.Response('', 503);
+  });
+  return AppLibrary(
+    resolver: ReleaseResolver(
+      github: GithubService(client: client),
+      fdroid: FdroidService(client: client),
+    ),
   );
 }
 
@@ -217,4 +251,55 @@ void main() {
     expect(needsUpdateTile.dy, lessThan(myAppsSection.dy));
     expect(upToDateTile.dy, greaterThan(myAppsSection.dy));
   });
+
+  testWidgets(
+    'within "Updates beschikbaar", the app installed longest ago is listed '
+    'first',
+    (tester) async {
+      final library = _githubLibrary();
+      await library.load(curatedAppsOverride: testCuratedApps);
+      // Both stay outdated relative to the mocked 2.0.0 release, but
+      // StaleApp's installedVersion (and so lastInstalledAt) was recorded
+      // first, making it the more neglected of the two.
+      final staleApp = await library.addCustomApp(
+        name: 'StaleApp',
+        type: AppSourceType.github,
+        source: 'owner/stale',
+      );
+      await library.markInstalled(staleApp.id, '1.0.0');
+      final recentApp = await library.addCustomApp(
+        name: 'RecentApp',
+        type: AppSourceType.github,
+        source: 'owner/recent',
+      );
+      await library.markInstalled(recentApp.id, '1.0.0');
+      await library.checkAll();
+
+      await tester.pumpWidget(_wrap(HomeScreen(library: library)));
+      await tester.pumpAndSettle();
+
+      final staleTile = tester.getCenter(find.text('StaleApp'));
+      final recentTile = tester.getCenter(find.text('RecentApp'));
+      expect(staleTile.dy, lessThan(recentTile.dy));
+    },
+  );
+
+  testWidgets(
+    'shows a one-line changelog preview under an updatable app in "Updates '
+    'beschikbaar"',
+    (tester) async {
+      final library = _githubLibrary();
+      await library.load(curatedAppsOverride: testCuratedApps);
+      await library.addCustomApp(
+        name: 'MijnApp',
+        type: AppSourceType.github,
+        source: 'owner/repo',
+      );
+
+      await tester.pumpWidget(_wrap(HomeScreen(library: library)));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Fixed a crash on startup.'), findsOneWidget);
+    },
+  );
 }

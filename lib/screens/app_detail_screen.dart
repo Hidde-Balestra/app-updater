@@ -73,6 +73,16 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
     }
   }
 
+  Future<void> _skipVersion(LibraryEntry entry) async {
+    final release = entry.latestRelease;
+    if (release == null) return;
+    await widget.library.skipVersion(entry.app.id, release.version);
+  }
+
+  Future<void> _unskipVersion(LibraryEntry entry) async {
+    await widget.library.unskipVersion(entry.app.id);
+  }
+
   Future<void> _confirmRemove(LibraryEntry entry) async {
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
@@ -116,6 +126,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
 
         final release = entry.latestRelease;
         final hasUpdate = entry.status == AppCheckStatus.updateAvailable;
+        final isSkipped = entry.status == AppCheckStatus.skipped;
         final changelogLines = (release?.changelog ?? '')
             .split('\n')
             .map((l) => l.trim())
@@ -182,6 +193,31 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                     ),
                   ),
                 ),
+              if (isSkipped && release != null)
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.visibility_off_outlined,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            l10n.skippedVersionBanner(release.version),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => _unskipVersion(entry),
+                          child: Text(l10n.unskipVersionButton),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               const SizedBox(height: 16),
               if (release != null)
                 FilledButton.icon(
@@ -204,6 +240,15 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                         : l10n.downloadInstallButton,
                   ),
                 ),
+              if (hasUpdate && release != null) ...[
+                const SizedBox(height: 8),
+                Center(
+                  child: TextButton(
+                    onPressed: () => _skipVersion(entry),
+                    child: Text(l10n.skipVersionButton),
+                  ),
+                ),
+              ],
               if (entry.lastDownloadSha256 != null) ...[
                 const SizedBox(height: 12),
                 InkWell(

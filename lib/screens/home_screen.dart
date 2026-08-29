@@ -76,9 +76,20 @@ class HomeScreen extends StatelessWidget {
           // Apps with an update available get their own section up top so
           // they're never buried below whatever else is tracked — the rest
           // of the sections below only show apps that are already current.
-          final updatableApps = library.entries
-              .where((e) => e.status == AppCheckStatus.updateAvailable)
-              .toList();
+          // Within that section, the most neglected apps (installed longest
+          // ago, or never installed at all) lead, so they get noticed first.
+          final updatableApps =
+              library.entries
+                  .where((e) => e.status == AppCheckStatus.updateAvailable)
+                  .toList()
+                ..sort((a, b) {
+                  final aTime = a.app.lastInstalledAt;
+                  final bTime = b.app.lastInstalledAt;
+                  if (aTime == null && bTime == null) return 0;
+                  if (aTime == null) return -1;
+                  if (bTime == null) return 1;
+                  return aTime.compareTo(bTime);
+                });
           final myApps = library.entries
               .where(
                 (e) =>

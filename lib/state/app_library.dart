@@ -12,6 +12,7 @@ import '../models/device_app_entry.dart';
 import '../models/installed_app.dart';
 import '../models/release_info.dart';
 import '../models/tracked_app.dart';
+import '../models/update_history_entry.dart';
 import '../models/version_compare.dart';
 import '../services/apk_installer_service.dart';
 import '../services/device_apps_service.dart';
@@ -41,6 +42,13 @@ class AppLibrary extends ChangeNotifier {
   List<LibraryEntry> entries = [];
   List<CuratedApp> curatedApps = [];
   Set<String> ignoredPackageNames = {};
+
+  /// Every download-and-install performed through this app, most recent
+  /// first. Capped at [_maxHistoryEntries] so it can't grow unbounded on a
+  /// device that's been updating apps for years.
+  List<UpdateHistoryEntry> updateHistory = [];
+  static const _maxHistoryEntries = 200;
+
   bool isLoaded = false;
 
   List<CuratedApp> get availableFavorites => curatedApps
@@ -62,6 +70,7 @@ class AppLibrary extends ChangeNotifier {
     curatedApps = curatedAppsOverride ?? await _loadCuratedApps();
     entries = await _loadTrackedApps();
     ignoredPackageNames = await _loadIgnoredPackageNames();
+    updateHistory = await _loadUpdateHistory();
     isLoaded = true;
     notifyListeners();
     await _backfillCuratedPackageNames();
@@ -138,6 +147,23 @@ class AppLibrary extends ChangeNotifier {
     );
   }
 
+  Future<List<UpdateHistoryEntry>> _loadUpdateHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(StorageKeys.updateHistory);
+    if (raw == null || raw.isEmpty) return [];
+    final list = jsonDecode(raw) as List;
+    return list
+        .cast<Map<String, dynamic>>()
+        .map(UpdateHistoryEntry.fromJson)
+        .toList();
+  }
+
+  Future<void> _persistUpdateHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = jsonEncode(updateHistory.map((e) => e.toJson()).toList());
+    await prefs.setString(StorageKeys.updateHistory, raw);
+  }
+
   Future<ReleaseResult> previewSource(AppSourceType type, String source) {
     return _resolver.resolve(type, source);
   }
@@ -198,7 +224,10 @@ class AppLibrary extends ChangeNotifier {
       for (final e in entries)
         if (e.app.id == id)
           e.copyWith(
-            app: e.app.copyWith(installedVersion: version),
+            app: e.app.copyWith(
+              installedVersion: version,
+              lastInstalledAt: DateTime.now(),
+            ),
             status: AppCheckStatus.upToDate,
           )
         else
@@ -239,15 +268,40 @@ class AppLibrary extends ChangeNotifier {
 
     await _installer.installApk(path);
 
+    final previousVersion = entry.app.installedVersion;
     final installedVersion = release.version.isEmpty
         ? DateFormat('yyyy-MM-dd').format(DateTime.now())
         : release.version;
     await markInstalled(id, installedVersion);
+    await _recordHistory(
+      appId: id,
+      appName: entry.app.name,
+      fromVersion: previousVersion,
+      toVersion: installedVersion,
+    );
 
     // Best-effort and slow (polls for a few seconds), so it must not hold
     // up the caller — neither the single-app "installing…" spinner nor a
     // downloadAndInstallAll() batch waiting on this app before moving on.
     unawaited(detectPackageNameAfterInstall(id));
+  }
+
+  Future<void> _recordHistory({
+    required String appId,
+    required String appName,
+    required String? fromVersion,
+    required String toVersion,
+  }) async {
+    final entry = UpdateHistoryEntry(
+      appId: appId,
+      appName: appName,
+      fromVersion: fromVersion,
+      toVersion: toVersion,
+      installedAt: DateTime.now(),
+    );
+    updateHistory = [entry, ...updateHistory].take(_maxHistoryEntries).toList();
+    notifyListeners();
+    await _persistUpdateHistory();
   }
 
   /// Downloads and installs every app currently flagged as
@@ -446,7 +500,12 @@ class AppLibrary extends ChangeNotifier {
 
     _updateEntry(
       id,
-      (e) => e.copyWith(app: e.app.copyWith(installedVersion: detected)),
+      (e) => e.copyWith(
+        app: e.app.copyWith(
+          installedVersion: detected,
+          lastInstalledAt: DateTime.now(),
+        ),
+      ),
     );
     await _persist();
     return true;
@@ -492,7 +551,36 @@ class AppLibrary extends ChangeNotifier {
       installedVersion: app.installedVersion,
       latestVersion: info.version,
     );
-    return hasUpdate ? AppCheckStatus.updateAvailable : AppCheckStatus.upToDate;
+    if (!hasUpdate) return AppCheckStatus.upToDate;
+    if (isVersionSkipped(
+      skippedVersion: app.skippedVersion,
+      latestVersion: info.version,
+    )) {
+      return AppCheckStatus.skipped;
+    }
+    return AppCheckStatus.updateAvailable;
+  }
+
+  /// Silences the currently-available update for [id] until a newer release
+  /// appears — for a release the user has decided not to install (a known
+  /// regression, a feature they don't want) without fully un-tracking the
+  /// app.
+  Future<void> skipVersion(String id, String version) async {
+    _updateEntry(
+      id,
+      (e) => e.copyWith(app: e.app.copyWith(skippedVersion: version)),
+    );
+    await _persist();
+    await checkOne(id);
+  }
+
+  Future<void> unskipVersion(String id) async {
+    _updateEntry(
+      id,
+      (e) => e.copyWith(app: e.app.copyWith(clearSkippedVersion: true)),
+    );
+    await _persist();
+    await checkOne(id);
   }
 
   void _updateEntry(String id, LibraryEntry Function(LibraryEntry) update) {

@@ -1,7 +1,14 @@
 import '../models/release_info.dart';
 import '../models/tracked_app.dart';
 
-enum AppCheckStatus { checking, upToDate, updateAvailable, error, noReleases }
+enum AppCheckStatus {
+  checking,
+  upToDate,
+  updateAvailable,
+  error,
+  noReleases,
+  skipped,
+}
 
 /// A tracked app combined with its last-fetched release status. The status
 /// itself is never persisted — it's re-derived from the network on every

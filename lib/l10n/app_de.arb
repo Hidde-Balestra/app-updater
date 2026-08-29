@@ -14,6 +14,7 @@
   "statusChecking": "Wird geprüft…",
   "statusError": "Fehler",
   "statusNoReleases": "Keine Releases",
+  "statusSkipped": "Übersprungen",
   "emptyLibraryTitle": "Noch keine Apps",
   "emptyLibraryMessage": "Füge deine erste App über das +-Symbol hinzu.",
   "scanDeviceTooltip": "Gerät scannen",
@@ -118,6 +119,14 @@
       "version": {"type": "String"}
     }
   },
+  "skipVersionButton": "Diese Version überspringen",
+  "unskipVersionButton": "Überspringen rückgängig machen",
+  "skippedVersionBanner": "Version {version} wird übersprungen",
+  "@skippedVersionBanner": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
   "sourceLabelDetail": "Quelle: {source}",
   "@sourceLabelDetail": {
     "placeholders": {
@@ -174,6 +183,17 @@
   "deviceStatusIgnored": "Ignoriert",
   "ignoreButton": "Ignorieren",
   "unignoreButton": "Wiederherstellen",
+  "sectionHistory": "VERLAUF",
+  "updateHistoryMenuTitle": "Update-Verlauf",
+  "updateHistoryMenuSubtitle": "Zuvor installierte Updates ansehen",
+  "updateHistoryEmpty": "Noch keine Updates über App Updater installiert.",
+  "updateHistoryEntryVersions": "{fromVersion} → {toVersion}",
+  "@updateHistoryEntryVersions": {
+    "placeholders": {
+      "fromVersion": {"type": "String"},
+      "toVersion": {"type": "String"}
+    }
+  },
   "sectionBackup": "SICHERUNG",
   "exportButton": "In Zwischenablage exportieren",
   "exportSuccess": "{count} Apps in Zwischenablage kopiert",

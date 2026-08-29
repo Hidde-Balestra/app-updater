@@ -15,6 +15,18 @@ class TrackedApp {
   /// flow that already runs after a download-and-install.
   final String? packageName;
 
+  /// When [installedVersion] was last set — either by a download-and-install
+  /// through this app, or by a device scan detecting it changed. Used to
+  /// sort the "updates available" list by how long an app has gone without
+  /// being updated, oldest first.
+  final DateTime? lastInstalledAt;
+
+  /// The version the user chose to skip via "skip this version" — while the
+  /// source's newest release still matches it, this app is reported as
+  /// up to date rather than updateAvailable. A newer release no longer
+  /// matches, so skipping never silences updates forever.
+  final String? skippedVersion;
+
   const TrackedApp({
     required this.id,
     required this.name,
@@ -23,12 +35,17 @@ class TrackedApp {
     this.isCurated = false,
     this.installedVersion,
     this.packageName,
+    this.lastInstalledAt,
+    this.skippedVersion,
   });
 
   TrackedApp copyWith({
     String? name,
     String? installedVersion,
     String? packageName,
+    DateTime? lastInstalledAt,
+    String? skippedVersion,
+    bool clearSkippedVersion = false,
   }) => TrackedApp(
     id: id,
     name: name ?? this.name,
@@ -37,6 +54,10 @@ class TrackedApp {
     isCurated: isCurated,
     installedVersion: installedVersion ?? this.installedVersion,
     packageName: packageName ?? this.packageName,
+    lastInstalledAt: lastInstalledAt ?? this.lastInstalledAt,
+    skippedVersion: clearSkippedVersion
+        ? null
+        : (skippedVersion ?? this.skippedVersion),
   );
 
   Map<String, dynamic> toJson() => {
@@ -47,6 +68,8 @@ class TrackedApp {
     'isCurated': isCurated,
     'installedVersion': installedVersion,
     'packageName': packageName,
+    'lastInstalledAt': lastInstalledAt?.toIso8601String(),
+    'skippedVersion': skippedVersion,
   };
 
   factory TrackedApp.fromJson(Map<String, dynamic> json) => TrackedApp(
@@ -57,6 +80,10 @@ class TrackedApp {
     isCurated: json['isCurated'] as bool? ?? false,
     installedVersion: json['installedVersion'] as String?,
     packageName: json['packageName'] as String?,
+    lastInstalledAt: json['lastInstalledAt'] != null
+        ? DateTime.parse(json['lastInstalledAt'] as String)
+        : null,
+    skippedVersion: json['skippedVersion'] as String?,
   );
 
   /// Two initials used for the avatar, e.g. "MijnBudget" -> "MB".

@@ -14,6 +14,7 @@
   "statusChecking": "Controleren…",
   "statusError": "Fout",
   "statusNoReleases": "Geen releases",
+  "statusSkipped": "Overgeslagen",
   "emptyLibraryTitle": "Nog geen apps",
   "emptyLibraryMessage": "Voeg je eerste app toe via het + icoon.",
   "scanDeviceTooltip": "Apparaat scannen",
@@ -118,6 +119,14 @@
       "version": {"type": "String"}
     }
   },
+  "skipVersionButton": "Deze versie overslaan",
+  "unskipVersionButton": "Overslaan ongedaan maken",
+  "skippedVersionBanner": "Versie {version} wordt overgeslagen",
+  "@skippedVersionBanner": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
   "sourceLabelDetail": "Bron: {source}",
   "@sourceLabelDetail": {
     "placeholders": {
@@ -174,6 +183,17 @@
   "deviceStatusIgnored": "Genegeerd",
   "ignoreButton": "Negeren",
   "unignoreButton": "Terugzetten",
+  "sectionHistory": "GESCHIEDENIS",
+  "updateHistoryMenuTitle": "Update geschiedenis",
+  "updateHistoryMenuSubtitle": "Bekijk eerder geïnstalleerde updates",
+  "updateHistoryEmpty": "Nog geen updates geïnstalleerd via App Updater.",
+  "updateHistoryEntryVersions": "{fromVersion} → {toVersion}",
+  "@updateHistoryEntryVersions": {
+    "placeholders": {
+      "fromVersion": {"type": "String"},
+      "toVersion": {"type": "String"}
+    }
+  },
   "sectionBackup": "BACK-UP",
   "exportButton": "Exporteren naar klembord",
   "exportSuccess": "{count} apps naar klembord gekopieerd",

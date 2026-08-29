@@ -21,8 +21,21 @@ class AppListTile extends StatelessWidget {
     return '$installed → $latest';
   }
 
+  /// The first non-empty changelog line, for a one-line preview under an
+  /// updatable app's version label — the full changelog stays a tap away on
+  /// the detail screen.
+  String? _changelogPreview() {
+    if (entry.status != AppCheckStatus.updateAvailable) return null;
+    final lines = (entry.latestRelease?.changelog ?? '')
+        .split('\n')
+        .map((l) => l.trim())
+        .where((l) => l.isNotEmpty);
+    return lines.isEmpty ? null : lines.first;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final changelogPreview = _changelogPreview();
     return Card(
       child: InkWell(
         onTap: onTap,
@@ -50,6 +63,20 @@ class AppListTile extends StatelessWidget {
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
+                    if (changelogPreview != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        changelogPreview,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

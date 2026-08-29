@@ -54,7 +54,11 @@ class BackgroundUpdateChecker {
           installedVersion: app.installedVersion,
           latestVersion: info.version,
         );
-        if (hasUpdate) updatableNames.add(app.name);
+        final skipped = isVersionSkipped(
+          skippedVersion: app.skippedVersion,
+          latestVersion: info.version,
+        );
+        if (hasUpdate && !skipped) updatableNames.add(app.name);
       }
     }
 

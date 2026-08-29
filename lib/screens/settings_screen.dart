@@ -8,6 +8,7 @@ import '../state/app_library.dart';
 import '../state/settings_controller.dart';
 import '../widgets/section_header.dart';
 import 'device_apps_screen.dart';
+import 'update_history_screen.dart';
 
 const _repoUrl = 'https://github.com/Hidde-Balestra/app-updater';
 
@@ -175,6 +176,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => DeviceAppsScreen(library: widget.library),
+                  ),
+                ),
+              ),
+              SectionHeader(title: l10n.sectionHistory),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.history),
+                title: Text(l10n.updateHistoryMenuTitle),
+                subtitle: Text(l10n.updateHistoryMenuSubtitle),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        UpdateHistoryScreen(library: widget.library),
                   ),
                 ),
               ),

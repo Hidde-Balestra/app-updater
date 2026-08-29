@@ -36,3 +36,17 @@ bool appHasUpdate({
     latestVersion: latestVersion,
   );
 }
+
+/// Whether [latestVersion] is exactly the version a user previously chose
+/// to skip. Shared between [AppLibrary]'s live status and the headless
+/// background checker (see [appHasUpdate]'s doc) so a skipped version never
+/// shows as "update available" in one but still triggers a notification in
+/// the other.
+bool isVersionSkipped({
+  required String? skippedVersion,
+  required String? latestVersion,
+}) {
+  final skipped = skippedVersion?.trim() ?? '';
+  final latest = latestVersion?.trim() ?? '';
+  return skipped.isNotEmpty && skipped == latest;
+}

@@ -14,6 +14,7 @@
   "statusChecking": "Verifica in corso…",
   "statusError": "Errore",
   "statusNoReleases": "Nessuna release",
+  "statusSkipped": "Ignorata",
   "emptyLibraryTitle": "Ancora nessuna app",
   "emptyLibraryMessage": "Aggiungi la tua prima app con l'icona +.",
   "scanDeviceTooltip": "Scansiona dispositivo",
@@ -118,6 +119,14 @@
       "version": {"type": "String"}
     }
   },
+  "skipVersionButton": "Ignora questa versione",
+  "unskipVersionButton": "Annulla ignora",
+  "skippedVersionBanner": "La versione {version} viene ignorata",
+  "@skippedVersionBanner": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
   "sourceLabelDetail": "Origine: {source}",
   "@sourceLabelDetail": {
     "placeholders": {
@@ -174,6 +183,17 @@
   "deviceStatusIgnored": "Ignorata",
   "ignoreButton": "Ignora",
   "unignoreButton": "Ripristina",
+  "sectionHistory": "CRONOLOGIA",
+  "updateHistoryMenuTitle": "Cronologia aggiornamenti",
+  "updateHistoryMenuSubtitle": "Visualizza gli aggiornamenti installati in precedenza",
+  "updateHistoryEmpty": "Nessun aggiornamento ancora installato tramite App Updater.",
+  "updateHistoryEntryVersions": "{fromVersion} → {toVersion}",
+  "@updateHistoryEntryVersions": {
+    "placeholders": {
+      "fromVersion": {"type": "String"},
+      "toVersion": {"type": "String"}
+    }
+  },
   "sectionBackup": "BACKUP",
   "exportButton": "Esporta negli appunti",
   "exportSuccess": "{count} app copiate negli appunti",

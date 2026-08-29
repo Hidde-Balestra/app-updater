@@ -104,8 +104,62 @@ void main() {
     final entry = library.entries.single;
     expect(entry.status, AppCheckStatus.upToDate);
     expect(entry.app.installedVersion, isNotNull);
+    expect(entry.app.lastInstalledAt, isNotNull);
     expect(entry.lastDownloadSha256, 'deadbeef');
     expect(installer.installedPaths, hasLength(1));
+  });
+
+  test('downloadAndInstall records the install in updateHistory, with the '
+      'previously-installed version as fromVersion', () async {
+    final installer = _FakeApkInstallerService();
+    final library = AppLibrary(
+      resolver: _offlineResolver(),
+      installer: installer,
+      deviceApps: _FakeDeviceAppsService([<String>{}]),
+    );
+    await library.load(curatedAppsOverride: testCuratedApps);
+    final app = await library.addCustomApp(
+      name: 'MijnApp',
+      type: AppSourceType.direct,
+      source: 'https://example.com/mijnapp.apk',
+      packageName: 'com.example.mijnapp',
+    );
+    await library.markInstalled(app.id, '1.0.0');
+
+    await library.downloadAndInstall(app.id);
+
+    expect(library.updateHistory, hasLength(1));
+    final historyEntry = library.updateHistory.single;
+    expect(historyEntry.appId, app.id);
+    expect(historyEntry.appName, 'MijnApp');
+    expect(historyEntry.fromVersion, '1.0.0');
+    expect(historyEntry.toVersion, library.entries.single.app.installedVersion);
+  });
+
+  test('updateHistory persists across a reload', () async {
+    final installer = _FakeApkInstallerService();
+    final library = AppLibrary(
+      resolver: _offlineResolver(),
+      installer: installer,
+      deviceApps: _FakeDeviceAppsService([<String>{}]),
+    );
+    await library.load(curatedAppsOverride: testCuratedApps);
+    final app = await library.addCustomApp(
+      name: 'MijnApp',
+      type: AppSourceType.direct,
+      source: 'https://example.com/mijnapp.apk',
+      packageName: 'com.example.mijnapp',
+    );
+    await library.downloadAndInstall(app.id);
+
+    final reloaded = AppLibrary(
+      resolver: _offlineResolver(),
+      deviceApps: _FakeDeviceAppsService([<String>{}]),
+    );
+    await reloaded.load(curatedAppsOverride: testCuratedApps);
+
+    expect(reloaded.updateHistory, hasLength(1));
+    expect(reloaded.updateHistory.single.appName, 'MijnApp');
   });
 
   test('downloadAndInstall does nothing without a resolved release', () async {
