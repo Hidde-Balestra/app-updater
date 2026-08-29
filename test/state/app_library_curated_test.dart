@@ -53,6 +53,7 @@ void main() {
           'musicplayer',
           'fdroid',
           'aurora_store',
+          'molly',
         }),
       );
 
@@ -83,6 +84,11 @@ void main() {
       expect(auroraStore.sourceType, AppSourceType.gitlab);
       expect(auroraStore.sourceIdentifier, 'AuroraOSS/AuroraStore');
       expect(auroraStore.packageName, 'com.aurora.store');
+
+      final molly = library.curatedApps.firstWhere((c) => c.id == 'molly');
+      expect(molly.sourceType, AppSourceType.github);
+      expect(molly.sourceIdentifier, 'mollyim/mollyim-android');
+      expect(molly.packageName, 'im.molly.app');
     },
   );
 

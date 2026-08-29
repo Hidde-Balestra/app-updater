@@ -35,5 +35,13 @@
     "sourceIdentifier": "AuroraOSS/AuroraStore",
     "infoUrl": "https://gitlab.com/AuroraOSS/AuroraStore",
     "packageName": "com.aurora.store"
+  },
+  {
+    "id": "molly",
+    "name": "Molly",
+    "sourceType": "github",
+    "sourceIdentifier": "mollyim/mollyim-android",
+    "infoUrl": "https://github.com/mollyim/mollyim-android/releases",
+    "packageName": "im.molly.app"
   }
 ]

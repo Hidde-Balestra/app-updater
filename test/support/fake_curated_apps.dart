@@ -42,4 +42,12 @@ const testCuratedApps = [
     infoUrl: 'https://gitlab.com/AuroraOSS/AuroraStore',
     packageName: 'com.aurora.store',
   ),
+  CuratedApp(
+    id: 'molly',
+    name: 'Molly',
+    sourceType: AppSourceType.github,
+    sourceIdentifier: 'mollyim/mollyim-android',
+    infoUrl: 'https://github.com/mollyim/mollyim-android/releases',
+    packageName: 'im.molly.app',
+  ),
 ];
