@@ -8,6 +8,7 @@ import 'package:app_updater/services/github_service.dart';
 import 'package:app_updater/services/notification_service.dart';
 import 'package:app_updater/services/release_resolver.dart';
 import 'package:app_updater/state/storage_keys.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -83,6 +84,7 @@ Future<void> _seedTrackedApps(List<TrackedApp> apps) async {
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+    FlutterSecureStorage.setMockInitialValues({});
   });
 
   test('does nothing when there are no tracked apps', () async {

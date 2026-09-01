@@ -42,6 +42,7 @@ class _AppUpdaterAppState extends State<AppUpdaterApp> {
     return ListenableBuilder(
       listenable: _settings,
       builder: (context, _) {
+        _library.githubToken = _settings.githubToken;
         return MaterialApp(
           title: 'App Updater',
           debugShowCheckedModeBanner: false,

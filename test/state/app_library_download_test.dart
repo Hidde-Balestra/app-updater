@@ -14,6 +14,7 @@ import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/fake_curated_apps.dart';
+import '../support/fake_signing_service.dart';
 
 class _FakeAccrescentService extends AccrescentService {
   final String versionName;
@@ -108,6 +109,7 @@ void main() {
       resolver: _offlineResolver(),
       installer: installer,
       deviceApps: _FakeDeviceAppsService([<String>{}]),
+      signing: FakeSigningService(),
     );
     await library.load(curatedAppsOverride: testCuratedApps);
     // A package name is set up front so the fire-and-forget
@@ -138,6 +140,7 @@ void main() {
       resolver: _offlineResolver(),
       installer: installer,
       deviceApps: _FakeDeviceAppsService([<String>{}]),
+      signing: FakeSigningService(),
     );
     await library.load(curatedAppsOverride: testCuratedApps);
     final app = await library.addCustomApp(
@@ -164,6 +167,7 @@ void main() {
       resolver: _offlineResolver(),
       installer: installer,
       deviceApps: _FakeDeviceAppsService([<String>{}]),
+      signing: FakeSigningService(),
     );
     await library.load(curatedAppsOverride: testCuratedApps);
     final app = await library.addCustomApp(
@@ -210,6 +214,7 @@ void main() {
         resolver: _offlineResolver(),
         installer: installer,
         deviceApps: _FakeDeviceAppsService([<String>{}]),
+        signing: FakeSigningService(),
       );
       await library.load(curatedAppsOverride: testCuratedApps);
       await library.addCustomApp(
@@ -244,6 +249,7 @@ void main() {
       resolver: _offlineResolverWithAccrescent('2026.07.23-6-Google'),
       installer: installer,
       deviceApps: _FakeDeviceAppsService([<String>{}]),
+      signing: FakeSigningService(),
     );
     await library.load(curatedAppsOverride: testCuratedApps);
     final accrescentApp = await library.addCustomApp(
@@ -277,6 +283,7 @@ void main() {
         resolver: _offlineResolver(),
         installer: installer,
         deviceApps: _FakeDeviceAppsService([<String>{}]),
+        signing: FakeSigningService(),
       );
       await library.load(curatedAppsOverride: testCuratedApps);
       final bad = await library.addCustomApp(
@@ -302,6 +309,118 @@ void main() {
       expect(goodEntry.status, AppCheckStatus.upToDate);
     },
   );
+
+  group('signing mismatch', () {
+    test('proceeds normally when the signing hashes match', () async {
+      final installer = _FakeApkInstallerService();
+      final library = AppLibrary(
+        resolver: _offlineResolver(),
+        installer: installer,
+        deviceApps: _FakeDeviceAppsService([<String>{}]),
+        signing: FakeSigningService(
+          installedHashes: {'aaa'},
+          apkHashes: {'aaa'},
+        ),
+      );
+      await library.load(curatedAppsOverride: testCuratedApps);
+      final app = await library.addCustomApp(
+        name: 'MijnApp',
+        type: AppSourceType.direct,
+        source: 'https://example.com/mijnapp.apk',
+        packageName: 'com.example.mijnapp',
+      );
+
+      await library.downloadAndInstall(app.id);
+
+      expect(installer.installedPaths, hasLength(1));
+    });
+
+    test('throws and does not install when the hashes differ and there is no '
+        'confirmation callback', () async {
+      final installer = _FakeApkInstallerService();
+      final library = AppLibrary(
+        resolver: _offlineResolver(),
+        installer: installer,
+        deviceApps: _FakeDeviceAppsService([<String>{}]),
+        signing: FakeSigningService(
+          installedHashes: {'aaa'},
+          apkHashes: {'bbb'},
+        ),
+      );
+      await library.load(curatedAppsOverride: testCuratedApps);
+      final app = await library.addCustomApp(
+        name: 'MijnApp',
+        type: AppSourceType.direct,
+        source: 'https://example.com/mijnapp.apk',
+        packageName: 'com.example.mijnapp',
+      );
+
+      await expectLater(
+        () => library.downloadAndInstall(app.id),
+        throwsA(isA<SigningMismatchException>()),
+      );
+      expect(installer.installedPaths, isEmpty);
+    });
+
+    test(
+      'throws and does not install when the confirmation callback declines',
+      () async {
+        final installer = _FakeApkInstallerService();
+        final library = AppLibrary(
+          resolver: _offlineResolver(),
+          installer: installer,
+          deviceApps: _FakeDeviceAppsService([<String>{}]),
+          signing: FakeSigningService(
+            installedHashes: {'aaa'},
+            apkHashes: {'bbb'},
+          ),
+        );
+        await library.load(curatedAppsOverride: testCuratedApps);
+        final app = await library.addCustomApp(
+          name: 'MijnApp',
+          type: AppSourceType.direct,
+          source: 'https://example.com/mijnapp.apk',
+          packageName: 'com.example.mijnapp',
+        );
+
+        await expectLater(
+          () => library.downloadAndInstall(
+            app.id,
+            confirmSigningMismatch: () async => false,
+          ),
+          throwsA(isA<SigningMismatchException>()),
+        );
+        expect(installer.installedPaths, isEmpty);
+      },
+    );
+
+    test('installs anyway when the confirmation callback approves', () async {
+      final installer = _FakeApkInstallerService();
+      final library = AppLibrary(
+        resolver: _offlineResolver(),
+        installer: installer,
+        deviceApps: _FakeDeviceAppsService([<String>{}]),
+        signing: FakeSigningService(
+          installedHashes: {'aaa'},
+          apkHashes: {'bbb'},
+        ),
+      );
+      await library.load(curatedAppsOverride: testCuratedApps);
+      final app = await library.addCustomApp(
+        name: 'MijnApp',
+        type: AppSourceType.direct,
+        source: 'https://example.com/mijnapp.apk',
+        packageName: 'com.example.mijnapp',
+      );
+
+      await library.downloadAndInstall(
+        app.id,
+        confirmSigningMismatch: () async => true,
+      );
+
+      expect(installer.installedPaths, hasLength(1));
+    });
+  });
 
   group('detectPackageNameAfterInstall', () {
     test('does nothing when the app already has a package name', () async {

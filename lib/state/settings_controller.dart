@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/background_scheduler.dart';
@@ -27,6 +28,8 @@ class SettingsController extends ChangeNotifier {
   static const _kWifiOnly = 'settings.wifiOnly';
   static const _kNotifications = StorageKeys.notificationsEnabled;
 
+  static const _secureStorage = FlutterSecureStorage();
+
   final BackgroundScheduler _scheduler;
 
   SettingsController({BackgroundScheduler? scheduler})
@@ -38,6 +41,12 @@ class SettingsController extends ChangeNotifier {
   int autoCheckIntervalHours = 12;
   bool wifiOnly = true;
   bool notificationsEnabled = true;
+
+  /// Optional GitHub personal access token, used to raise the unauthenticated
+  /// API rate limit (60 requests/hour) when many GitHub-tracked apps are
+  /// checked. Kept in secure storage rather than SharedPreferences since it's
+  /// a credential, unlike every other setting here.
+  String? githubToken;
 
   bool _loaded = false;
   bool get isLoaded => _loaded;
@@ -57,6 +66,7 @@ class SettingsController extends ChangeNotifier {
     autoCheckIntervalHours = prefs.getInt(_kAutoCheckIntervalHours) ?? 12;
     wifiOnly = prefs.getBool(_kWifiOnly) ?? true;
     notificationsEnabled = prefs.getBool(_kNotifications) ?? true;
+    githubToken = await _secureStorage.read(key: StorageKeys.githubToken);
     _loaded = true;
     notifyListeners();
     if (autoCheckEnabled) {
@@ -112,5 +122,19 @@ class SettingsController extends ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_kNotifications, value);
+  }
+
+  Future<void> setGithubToken(String? value) async {
+    final trimmed = value?.trim();
+    githubToken = (trimmed == null || trimmed.isEmpty) ? null : trimmed;
+    notifyListeners();
+    if (githubToken == null) {
+      await _secureStorage.delete(key: StorageKeys.githubToken);
+    } else {
+      await _secureStorage.write(
+        key: StorageKeys.githubToken,
+        value: githubToken,
+      );
+    }
   }
 }

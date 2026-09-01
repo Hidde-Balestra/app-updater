@@ -19,8 +19,24 @@ import '../services/apk_installer_service.dart';
 import '../services/device_apps_service.dart';
 import '../services/fdroid_search_service.dart';
 import '../services/release_resolver.dart';
+import '../services/signing_service.dart';
 import 'library_entry.dart';
 import 'storage_keys.dart';
+
+/// Result of a single app's device-install-state check, used by
+/// [AppLibrary._syncInstalledVersion]/[AppLibrary.syncInstalledVersions].
+enum _SyncOutcome { unchanged, updated, removed }
+
+/// Thrown by [AppLibrary.downloadAndInstall] when the downloaded APK's
+/// signing certificate doesn't match the installed app's, and the caller
+/// either didn't confirm proceeding or has no way to ask (e.g. a batch
+/// update via [AppLibrary.downloadAndInstallAll]).
+class SigningMismatchException implements Exception {
+  final String message;
+  const SigningMismatchException(this.message);
+  @override
+  String toString() => message;
+}
 
 /// Owns the list of tracked apps (user-added + curated apps the user opted
 /// into), the bundled list of curated suggestions, and drives release
@@ -33,20 +49,29 @@ class AppLibrary extends ChangeNotifier {
   final DeviceAppsService _deviceApps;
   final ApkInstallerService _installer;
   final FdroidSearchService _fdroidSearch;
+  final SigningService _signing;
 
   AppLibrary({
     ReleaseResolver? resolver,
     DeviceAppsService? deviceApps,
     ApkInstallerService? installer,
     FdroidSearchService? fdroidSearch,
+    SigningService? signing,
   }) : _resolver = resolver ?? ReleaseResolver(),
        _deviceApps = deviceApps ?? DeviceAppsService(),
        _installer = installer ?? ApkInstallerService(),
-       _fdroidSearch = fdroidSearch ?? FdroidSearchService();
+       _fdroidSearch = fdroidSearch ?? FdroidSearchService(),
+       _signing = signing ?? SigningService();
 
   List<LibraryEntry> entries = [];
   List<CuratedApp> curatedApps = [];
   Set<String> ignoredPackageNames = {};
+
+  /// Optional GitHub personal access token, mirrored in from
+  /// [SettingsController.githubToken] by the widget that owns both — kept
+  /// here rather than persisted by [AppLibrary] itself since
+  /// [SettingsController] already owns reading/writing it.
+  String? githubToken;
 
   /// Every download-and-install performed through this app, most recent
   /// first. Capped at [_maxHistoryEntries] so it can't grow unbounded on a
@@ -170,7 +195,7 @@ class AppLibrary extends ChangeNotifier {
   }
 
   Future<ReleaseResult> previewSource(AppSourceType type, String source) {
-    return _resolver.resolve(type, source);
+    return _resolver.resolve(type, source, githubToken: githubToken);
   }
 
   Future<TrackedApp> addCustomApp({
@@ -281,9 +306,17 @@ class AppLibrary extends ChangeNotifier {
   /// resulting version as installed. Shared by the per-app "download &
   /// install" button and [downloadAndInstallAll], so both go through the
   /// same SHA-256 recording and package-name detection.
+  /// [confirmSigningMismatch] is asked to confirm the install when the
+  /// downloaded APK's signing certificate doesn't match the certificate of
+  /// the app currently installed under the same package name — see
+  /// [SigningService]. When it's omitted (e.g. from [downloadAndInstallAll],
+  /// which can't sensibly show a dialog per app) or returns `false`, a
+  /// detected mismatch throws [SigningMismatchException] instead of
+  /// installing.
   Future<void> downloadAndInstall(
     String id, {
     void Function(int received, int? total)? onProgress,
+    Future<bool> Function()? confirmSigningMismatch,
   }) async {
     final index = entries.indexWhere((e) => e.app.id == id);
     if (index == -1) return;
@@ -301,6 +334,29 @@ class AppLibrary extends ChangeNotifier {
 
     final sha256 = await _installer.sha256Of(path);
     _updateEntry(id, (e) => e.copyWith(lastDownloadSha256: sha256));
+
+    final packageName = entry.app.packageName;
+    if (packageName != null && packageName.trim().isNotEmpty) {
+      final installedHashes = await _signing.installedCertificateHashes(
+        packageName,
+      );
+      final apkHashes = await _signing.apkCertificateHashes(path);
+      final mismatch =
+          installedHashes.isNotEmpty &&
+          apkHashes.isNotEmpty &&
+          installedHashes.intersection(apkHashes).isEmpty;
+      if (mismatch) {
+        final proceed = confirmSigningMismatch == null
+            ? false
+            : await confirmSigningMismatch();
+        if (!proceed) {
+          throw const SigningMismatchException(
+            'De signing-key van deze download komt niet overeen met de '
+            'geïnstalleerde app.',
+          );
+        }
+      }
+    }
 
     await _installer.installApk(path);
 
@@ -440,23 +496,28 @@ class AppLibrary extends ChangeNotifier {
 
   /// Scans the device for every tracked app that has a [TrackedApp.packageName]
   /// set, re-reading its installed version from the device's package
-  /// manager and re-checking for updates when that version changed.
+  /// manager and re-checking for updates when that version changed, or
+  /// resetting it when the app was removed from the device outside App
+  /// Updater — see [_syncInstalledVersion].
   ///
   /// Returns the number of apps eligible for the scan (i.e. with a package
-  /// name set) and how many of those had their installed version updated.
-  Future<({int eligible, int updated})> syncInstalledVersions() async {
+  /// name set), how many had their installed version updated, and how many
+  /// were found to no longer be on the device.
+  Future<({int eligible, int updated, int removed})>
+  syncInstalledVersions() async {
     final eligible = entries
         .where((e) => (e.app.packageName ?? '').trim().isNotEmpty)
         .toList();
 
-    final changedFlags = await Future.wait(
+    final outcomes = await Future.wait(
       eligible.map((e) => _syncInstalledVersion(e.app.id)),
     );
-    final updated = changedFlags.where((changed) => changed).length;
-    if (updated > 0) {
+    final updated = outcomes.where((o) => o == _SyncOutcome.updated).length;
+    final removed = outcomes.where((o) => o == _SyncOutcome.removed).length;
+    if (updated > 0 || removed > 0) {
       await checkAll();
     }
-    return (eligible: eligible.length, updated: updated);
+    return (eligible: eligible.length, updated: updated, removed: removed);
   }
 
   /// Every app installed on the device that isn't already tracked (matched
@@ -540,15 +601,38 @@ class AppLibrary extends ChangeNotifier {
     await _persistIgnoredPackageNames();
   }
 
-  Future<bool> _syncInstalledVersion(String id) async {
+  /// Re-reads [id]'s installed version from the device's package manager.
+  /// When the app is no longer found there but this app still remembers an
+  /// [TrackedApp.installedVersion] for it, that's treated as "removed
+  /// outside App Updater" rather than silently ignored — the recorded
+  /// version (and [TrackedApp.lastInstalledAt]) is cleared so the app
+  /// naturally reappears under "needs installing" on the next status check,
+  /// the same way a freshly-added, never-installed app does.
+  Future<_SyncOutcome> _syncInstalledVersion(String id) async {
     final index = entries.indexWhere((e) => e.app.id == id);
-    if (index == -1) return false;
+    if (index == -1) return _SyncOutcome.unchanged;
     final app = entries[index].app;
     final packageName = app.packageName;
-    if (packageName == null || packageName.trim().isEmpty) return false;
+    if (packageName == null || packageName.trim().isEmpty) {
+      return _SyncOutcome.unchanged;
+    }
 
     final detected = await _deviceApps.installedVersion(packageName);
-    if (detected == null || detected == app.installedVersion) return false;
+    if (detected == null) {
+      if (app.installedVersion == null) return _SyncOutcome.unchanged;
+      _updateEntry(
+        id,
+        (e) => e.copyWith(
+          app: e.app.copyWith(
+            clearInstalledVersion: true,
+            clearLastInstalledAt: true,
+          ),
+        ),
+      );
+      await _persist();
+      return _SyncOutcome.removed;
+    }
+    if (detected == app.installedVersion) return _SyncOutcome.unchanged;
 
     _updateEntry(
       id,
@@ -560,7 +644,7 @@ class AppLibrary extends ChangeNotifier {
       ),
     );
     await _persist();
-    return true;
+    return _SyncOutcome.updated;
   }
 
   Future<void> checkOne(String id) async {
@@ -573,6 +657,7 @@ class AppLibrary extends ChangeNotifier {
     final result = await _resolver.resolve(
       entry.app.sourceType,
       entry.app.sourceIdentifier,
+      githubToken: githubToken,
     );
 
     switch (result) {

@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/app_source_type.dart';
+import '../models/changelog_line.dart';
 import '../state/app_library.dart';
 import '../state/library_entry.dart';
 import '../widgets/app_avatar.dart';
@@ -48,7 +49,11 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
             setState(() => _progress = received / total);
           }
         },
+        confirmSigningMismatch: _confirmSigningMismatch,
       );
+    } on SigningMismatchException {
+      // The user already saw and declined the warning in
+      // _confirmSigningMismatch — nothing more to show.
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -58,6 +63,34 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
     } finally {
       if (mounted) setState(() => _isDownloading = false);
     }
+  }
+
+  Future<bool> _confirmSigningMismatch() async {
+    if (!mounted) return false;
+    final l10n = AppLocalizations.of(context)!;
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.signingMismatchTitle),
+        content: Text(l10n.signingMismatchMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(
+              l10n.installAnywayButton,
+              style: TextStyle(
+                color: Theme.of(dialogContext).colorScheme.error,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    return proceed ?? false;
   }
 
   Future<void> _copySha256(String hash) async {
@@ -129,11 +162,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
         final hasUpdate = entry.status == AppCheckStatus.updateAvailable;
         final isSkipped = entry.status == AppCheckStatus.skipped;
         final isAccrescent = entry.app.sourceType == AppSourceType.accrescent;
-        final changelogLines = (release?.changelog ?? '')
-            .split('\n')
-            .map((l) => l.trim())
-            .where((l) => l.isNotEmpty)
-            .toList();
+        final changelogLines = parseChangelog(release?.changelog);
 
         return Scaffold(
           appBar: AppBar(
@@ -310,8 +339,20 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                 const SizedBox(height: 8),
                 ...changelogLines.map(
                   (line) => Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Text('•  $line'),
+                    padding: EdgeInsets.only(
+                      top: line.startsNewBlock ? 10 : 0,
+                      bottom: 4,
+                    ),
+                    child: switch (line.kind) {
+                      ChangelogLineKind.header => Text(
+                        line.text,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      ChangelogLineKind.bullet => Text('•  ${line.text}'),
+                      ChangelogLineKind.paragraph => Text(line.text),
+                    },
                   ),
                 ),
               ],

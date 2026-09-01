@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/changelog_line.dart';
 import '../state/library_entry.dart';
 import 'app_avatar.dart';
 import 'status_chip.dart';
@@ -21,16 +22,17 @@ class AppListTile extends StatelessWidget {
     return '$installed → $latest';
   }
 
-  /// The first non-empty changelog line, for a one-line preview under an
+  /// The first non-header changelog line, for a one-line preview under an
   /// updatable app's version label — the full changelog stays a tap away on
-  /// the detail screen.
+  /// the detail screen. Header lines (e.g. a "## v2.0.0" repeating the
+  /// version already shown above it) are skipped so the preview always
+  /// shows actual content.
   String? _changelogPreview() {
     if (entry.status != AppCheckStatus.updateAvailable) return null;
-    final lines = (entry.latestRelease?.changelog ?? '')
-        .split('\n')
-        .map((l) => l.trim())
-        .where((l) => l.isNotEmpty);
-    return lines.isEmpty ? null : lines.first;
+    final contentLines = parseChangelog(
+      entry.latestRelease?.changelog,
+    ).where((l) => l.kind != ChangelogLineKind.header);
+    return contentLines.isEmpty ? null : contentLines.first.text;
   }
 
   @override

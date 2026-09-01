@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/release_info.dart';
@@ -18,6 +19,8 @@ import 'release_resolver.dart';
 /// live [AppLibrary] instance re-checks and reconciles state itself the
 /// next time the app is opened, so this only needs read access.
 class BackgroundUpdateChecker {
+  static const _secureStorage = FlutterSecureStorage();
+
   final ReleaseResolver _resolver;
   final NotificationService _notifications;
 
@@ -42,11 +45,14 @@ class BackgroundUpdateChecker {
         .toList();
     if (apps.isEmpty) return;
 
+    final githubToken = await _secureStorage.read(key: StorageKeys.githubToken);
+
     final updatableNames = <String>[];
     for (final app in apps) {
       final result = await _resolver.resolve(
         app.sourceType,
         app.sourceIdentifier,
+        githubToken: githubToken,
       );
       if (result case ReleaseSuccess(:final info)) {
         final hasUpdate = appHasUpdate(

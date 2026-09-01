@@ -1,5 +1,6 @@
 import 'package:app_updater/services/background_scheduler.dart';
 import 'package:app_updater/state/settings_controller.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -27,6 +28,7 @@ class _FakeBackgroundScheduler extends BackgroundScheduler {
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+    FlutterSecureStorage.setMockInitialValues({});
   });
 
   test(
@@ -108,5 +110,37 @@ void main() {
     await settings.setWifiOnly(false);
 
     expect(scheduler.scheduleCalls, isEmpty);
+  });
+
+  test('githubToken is null by default', () async {
+    final settings = SettingsController(scheduler: _FakeBackgroundScheduler());
+    await settings.load();
+
+    expect(settings.githubToken, isNull);
+  });
+
+  test('setGithubToken persists the token across a reload', () async {
+    final settings = SettingsController(scheduler: _FakeBackgroundScheduler());
+    await settings.load();
+
+    await settings.setGithubToken('ghp_example123');
+
+    expect(settings.githubToken, 'ghp_example123');
+    final reloaded = SettingsController(scheduler: _FakeBackgroundScheduler());
+    await reloaded.load();
+    expect(reloaded.githubToken, 'ghp_example123');
+  });
+
+  test('setGithubToken clears the token when set to an empty value', () async {
+    final settings = SettingsController(scheduler: _FakeBackgroundScheduler());
+    await settings.load();
+    await settings.setGithubToken('ghp_example123');
+
+    await settings.setGithubToken('');
+
+    expect(settings.githubToken, isNull);
+    final reloaded = SettingsController(scheduler: _FakeBackgroundScheduler());
+    await reloaded.load();
+    expect(reloaded.githubToken, isNull);
   });
 }

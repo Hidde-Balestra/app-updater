@@ -29,10 +29,14 @@ class ReleaseResolver {
        _fdroid = fdroid ?? FdroidService(),
        _accrescent = accrescent ?? AccrescentService();
 
-  Future<ReleaseResult> resolve(AppSourceType type, String sourceIdentifier) {
+  Future<ReleaseResult> resolve(
+    AppSourceType type,
+    String sourceIdentifier, {
+    String? githubToken,
+  }) {
     switch (type) {
       case AppSourceType.github:
-        return _github.fetchLatestRelease(sourceIdentifier);
+        return _github.fetchLatestRelease(sourceIdentifier, token: githubToken);
       case AppSourceType.gitlab:
         return _gitlab.fetchLatestRelease(sourceIdentifier);
       case AppSourceType.codeberg:

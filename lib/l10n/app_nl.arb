@@ -26,6 +26,14 @@
     }
   },
   "scanDeviceNoneEligible": "Geen van je apps heeft een package naam ingesteld. Voeg er een toe bij ‘Eigen app’ voor automatische synchronisatie.",
+  "scanDeviceResultWithRemoved": "{updated} van {eligible} apps gesynchroniseerd, {removed} niet meer gevonden op je toestel",
+  "@scanDeviceResultWithRemoved": {
+    "placeholders": {
+      "updated": {"type": "int"},
+      "eligible": {"type": "int"},
+      "removed": {"type": "int"}
+    }
+  },
   "updateAllButton": "Alles updaten",
   "updateAllBannerTitle": "{count} updates beschikbaar",
   "@updateAllBannerTitle": {
@@ -133,6 +141,9 @@
       "version": {"type": "String"}
     }
   },
+  "signingMismatchTitle": "Andere ondertekening gedetecteerd",
+  "signingMismatchMessage": "Deze download is ondertekend met een andere sleutel dan de app die nu op je toestel staat. Dit kan wijzen op een gecompromitteerde release. Toch doorgaan?",
+  "installAnywayButton": "Toch installeren",
   "skipVersionButton": "Deze versie overslaan",
   "unskipVersionButton": "Overslaan ongedaan maken",
   "skippedVersionBanner": "Versie {version} wordt overgeslagen",
@@ -157,6 +168,7 @@
     }
   },
   "cancel": "Annuleren",
+  "save": "Opslaan",
   "remove": "Verwijderen",
   "retry": "Opnieuw proberen",
   "noApkAssetFound": "Geen .apk-bestand gevonden in de laatste release.",
@@ -185,6 +197,11 @@
   "wifiOnlySubtitle": "Bespaart mobiele data",
   "notifications": "Meldingen",
   "notificationsSubtitle": "Bij beschikbare update",
+  "githubTokenTitle": "GitHub-token",
+  "githubTokenNotSet": "Niet ingesteld — checks kunnen tegen de limiet van GitHub aanlopen",
+  "githubTokenSet": "Ingesteld",
+  "githubTokenDialogTitle": "GitHub personal access token",
+  "githubTokenFieldHint": "ghp_...",
   "sectionPrivacy": "PRIVACY",
   "privacyTitle": "Geen Google Play Services",
   "privacyMessage": "Deze app installeert en werkt volledig buiten de Play Store om. Geen tracking, geen analytics, geen accounts nodig.",

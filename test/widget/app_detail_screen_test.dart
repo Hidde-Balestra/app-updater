@@ -5,9 +5,11 @@ import 'package:app_updater/models/app_source_type.dart';
 import 'package:app_updater/screens/app_detail_screen.dart';
 import 'package:app_updater/services/accrescent/accrescent_service.dart';
 import 'package:app_updater/services/accrescent/generated/accrescent_appstore.pbgrpc.dart';
+import 'package:app_updater/services/apk_installer_service.dart';
 import 'package:app_updater/services/fdroid_service.dart';
 import 'package:app_updater/services/github_service.dart';
 import 'package:app_updater/services/release_resolver.dart';
+import 'package:app_updater/services/signing_service.dart';
 import 'package:app_updater/state/app_library.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,7 +17,9 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../support/fake_apk_installer_service.dart';
 import '../support/fake_curated_apps.dart';
+import '../support/fake_signing_service.dart';
 
 class _FakeAccrescentService extends AccrescentService {
   final String versionName;
@@ -29,7 +33,10 @@ class _FakeAccrescentService extends AccrescentService {
 }
 
 /// A library whose GitHub source always resolves to version 2.0.0.
-AppLibrary _githubLibrary() {
+AppLibrary _githubLibrary({
+  ApkInstallerService? installer,
+  SigningService? signing,
+}) {
   final client = MockClient((request) async {
     if (request.url.host == 'api.github.com') {
       return http.Response(
@@ -53,6 +60,8 @@ AppLibrary _githubLibrary() {
       github: GithubService(client: client),
       fdroid: FdroidService(client: client),
     ),
+    installer: installer,
+    signing: signing,
   );
 }
 
@@ -155,4 +164,46 @@ void main() {
     expect(find.text('Openen in Accrescent'), findsOneWidget);
     expect(find.text('Download & installeer APK'), findsNothing);
   });
+
+  testWidgets(
+    'tapping "download & install" with a signing mismatch shows a warning '
+    'dialog, and confirming installs anyway',
+    (tester) async {
+      final installer = FakeApkInstallerService();
+      final library = _githubLibrary(
+        installer: installer,
+        signing: FakeSigningService(
+          installedHashes: {'aaa'},
+          apkHashes: {'bbb'},
+        ),
+      );
+      await library.load(curatedAppsOverride: testCuratedApps);
+      final app = await library.addCustomApp(
+        name: 'MijnApp',
+        type: AppSourceType.github,
+        source: 'owner/repo',
+        packageName: 'com.example.mijnapp',
+      );
+
+      await tester.pumpWidget(
+        _wrap(AppDetailScreen(library: library, appId: app.id)),
+      );
+      await tester.pumpAndSettle();
+
+      // Not pumpAndSettle(): the "installing…" button keeps an indeterminate
+      // CircularProgressIndicator animating for as long as the confirmation
+      // dialog (awaited inside downloadAndInstall) is up, which
+      // pumpAndSettle can never consider "settled".
+      await tester.tap(find.text('Download & installeer APK'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Andere ondertekening gedetecteerd'), findsOneWidget);
+
+      await tester.tap(find.text('Toch installeren'));
+      await tester.pumpAndSettle();
+
+      expect(installer.installedPaths, hasLength(1));
+    },
+  );
 }

@@ -26,6 +26,14 @@
     }
   },
   "scanDeviceNoneEligible": "None of your apps have a package name set. Add one under 'Custom app' to enable automatic syncing.",
+  "scanDeviceResultWithRemoved": "{updated} of {eligible} apps synced, {removed} no longer found on your device",
+  "@scanDeviceResultWithRemoved": {
+    "placeholders": {
+      "updated": {"type": "int"},
+      "eligible": {"type": "int"},
+      "removed": {"type": "int"}
+    }
+  },
   "updateAllButton": "Update all",
   "updateAllBannerTitle": "{count} updates available",
   "@updateAllBannerTitle": {
@@ -133,6 +141,9 @@
       "version": {"type": "String"}
     }
   },
+  "signingMismatchTitle": "Different signature detected",
+  "signingMismatchMessage": "This download is signed with a different key than the app currently on your device. This could indicate a compromised release. Continue anyway?",
+  "installAnywayButton": "Install anyway",
   "skipVersionButton": "Skip this version",
   "unskipVersionButton": "Undo skip",
   "skippedVersionBanner": "Version {version} is being skipped",
@@ -157,6 +168,7 @@
     }
   },
   "cancel": "Cancel",
+  "save": "Save",
   "remove": "Remove",
   "retry": "Retry",
   "noApkAssetFound": "No .apk file found in the latest release.",
@@ -185,6 +197,11 @@
   "wifiOnlySubtitle": "Saves mobile data",
   "notifications": "Notifications",
   "notificationsSubtitle": "When an update is available",
+  "githubTokenTitle": "GitHub token",
+  "githubTokenNotSet": "Not set — checks may hit GitHub's rate limit",
+  "githubTokenSet": "Set",
+  "githubTokenDialogTitle": "GitHub personal access token",
+  "githubTokenFieldHint": "ghp_...",
   "sectionPrivacy": "PRIVACY",
   "privacyTitle": "No Google Play Services",
   "privacyMessage": "This app installs and works entirely outside of the Play Store. No tracking, no analytics, no accounts required.",

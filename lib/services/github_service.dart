@@ -12,7 +12,13 @@ class GithubService {
 
   GithubService({http.Client? client}) : _client = client ?? http.Client();
 
-  Future<ReleaseResult> fetchLatestRelease(String ownerRepo) async {
+  /// [token] is an optional GitHub personal access token — when set, it's
+  /// sent as a Bearer token to raise the request from GitHub's unauthenticated
+  /// rate limit (60/hour) to the authenticated one.
+  Future<ReleaseResult> fetchLatestRelease(
+    String ownerRepo, {
+    String? token,
+  }) async {
     final repo = ownerRepo.trim();
     if (repo.isEmpty || !repo.contains('/')) {
       return const ReleaseError('invalid_source');
@@ -21,7 +27,11 @@ class GithubService {
     try {
       final response = await _client.get(
         uri,
-        headers: const {'Accept': 'application/vnd.github+json'},
+        headers: {
+          'Accept': 'application/vnd.github+json',
+          if (token != null && token.trim().isNotEmpty)
+            'Authorization': 'Bearer ${token.trim()}',
+        },
       );
       if (response.statusCode == 404) {
         return const ReleaseNotFound();

@@ -14,6 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/fake_apk_installer_service.dart';
 import '../support/fake_curated_apps.dart';
+import '../support/fake_signing_service.dart';
 
 AppLibrary _offlineLibrary({ApkInstallerService? installer}) {
   final client = MockClient((request) async => http.Response('', 503));
@@ -23,6 +24,7 @@ AppLibrary _offlineLibrary({ApkInstallerService? installer}) {
       fdroid: FdroidService(client: client),
     ),
     installer: installer,
+    signing: FakeSigningService(),
   );
 }
 
