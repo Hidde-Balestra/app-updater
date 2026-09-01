@@ -241,9 +241,7 @@ class AppLibrary extends ChangeNotifier {
     final packageName = entries[index].app.packageName?.trim();
     if (packageName == null || packageName.isEmpty) return;
     try {
-      final installedVersion = await _deviceApps.installedVersion(
-        packageName,
-      );
+      final installedVersion = await _deviceApps.installedVersion(packageName);
       if (installedVersion != null) return;
       await downloadAndInstall(id);
     } catch (_) {
