@@ -20,10 +20,15 @@ import '../support/fake_curated_apps.dart';
 
 class _FakeDeviceAppsService extends DeviceAppsService {
   final List<InstalledApp> apps;
-  _FakeDeviceAppsService(this.apps);
+  final Map<String, String> versionsByPackage;
+  _FakeDeviceAppsService(this.apps, {this.versionsByPackage = const {}});
 
   @override
   Future<List<InstalledApp>> installedApps() async => apps;
+
+  @override
+  Future<String?> installedVersion(String packageName) async =>
+      versionsByPackage[packageName];
 }
 
 AppLibrary _offlineLibrary({List<InstalledApp> installed = const []}) {
@@ -266,6 +271,14 @@ void main() {
             client: MockClient((r) async => http.Response('', 503)),
           ),
           fdroid: FdroidService(client: fdroidClient),
+        ),
+        // Reported as already installed, so tapping "add" doesn't also
+        // trigger a real download-and-install attempt through the add-app
+        // screen's install-if-missing behavior — this test only cares
+        // about tracking the app via F-Droid.
+        deviceApps: _FakeDeviceAppsService(
+          const [],
+          versionsByPackage: const {'im.molly.app': '7.0.0'},
         ),
         fdroidSearch: FdroidSearchService(
           client: MockClient((request) async {

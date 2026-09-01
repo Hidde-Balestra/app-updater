@@ -218,6 +218,39 @@ class AppLibrary extends ChangeNotifier {
     await checkOne(app.id);
   }
 
+  /// Downloads and installs the app tracked at [id] if it isn't already on
+  /// the device — called from the add-app screen right after a user adds a
+  /// custom source or a favorite, so "add" also gets the app installed
+  /// without a separate manual tap. Deliberately not wired into
+  /// [addCustomApp]/[addFavorite] themselves: those are also used by
+  /// paths that must stay side-effect-free (curated-package-name backfill,
+  /// JSON import, the device-apps "add all via F-Droid" bulk action, whose
+  /// apps are already installed by definition), and a live device-package
+  /// query plus a real download is too heavy a side effect to attach to
+  /// every caller of a plain "track this app" operation.
+  ///
+  /// Only runs when a package name is known — without one there's no
+  /// reliable way to ask the device's package manager whether it's already
+  /// installed, and installing blind risks prompting for an app the user
+  /// already has under a different source. Best-effort: a failure here (no
+  /// network, no release found, install cancelled) is swallowed so the app
+  /// stays tracked and the user can retry manually.
+  Future<void> installIfMissingFromDevice(String id) async {
+    final index = entries.indexWhere((e) => e.app.id == id);
+    if (index == -1) return;
+    final packageName = entries[index].app.packageName?.trim();
+    if (packageName == null || packageName.isEmpty) return;
+    try {
+      final installedVersion = await _deviceApps.installedVersion(
+        packageName,
+      );
+      if (installedVersion != null) return;
+      await downloadAndInstall(id);
+    } catch (_) {
+      // Best-effort — leave it tracked so the user can retry manually.
+    }
+  }
+
   Future<void> removeApp(String id) async {
     entries = entries.where((e) => e.app.id != id).toList();
     notifyListeners();

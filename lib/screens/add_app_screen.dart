@@ -193,7 +193,7 @@ class _AddAppScreenState extends State<AddAppScreen>
   }
 
   Future<void> _addFdroidResult(FdroidSearchResult result) async {
-    await widget.library.addCustomApp(
+    final app = await widget.library.addCustomApp(
       name: result.name,
       type: AppSourceType.fdroid,
       source: result.packageId,
@@ -201,6 +201,7 @@ class _AddAppScreenState extends State<AddAppScreen>
     );
     if (!mounted) return;
     setState(() => _addedFdroidPackageIds.add(result.packageId));
+    await widget.library.installIfMissingFromDevice(app.id);
   }
 
   void _onSourceChanged() {
@@ -258,7 +259,7 @@ class _AddAppScreenState extends State<AddAppScreen>
             identifier: identifier,
           );
 
-    await widget.library.addCustomApp(
+    final app = await widget.library.addCustomApp(
       name: displayName,
       type: _sourceType,
       source: identifier,
@@ -266,6 +267,7 @@ class _AddAppScreenState extends State<AddAppScreen>
           ? _packageNameController.text.trim()
           : null,
     );
+    await widget.library.installIfMissingFromDevice(app.id);
     if (!mounted) return;
     setState(() => _isSaving = false);
     _sourceController.clear();
@@ -671,6 +673,11 @@ class _FavoriteTile extends StatelessWidget {
 
   const _FavoriteTile({required this.app, required this.library});
 
+  Future<void> _addAndInstall() async {
+    await library.addFavorite(app);
+    await library.installIfMissingFromDevice(app.id);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -704,7 +711,7 @@ class _FavoriteTile extends StatelessWidget {
               ),
             ),
             FilledButton.tonal(
-              onPressed: () => library.addFavorite(app),
+              onPressed: _addAndInstall,
               child: Text(l10n.addFavoriteButton),
             ),
           ],
