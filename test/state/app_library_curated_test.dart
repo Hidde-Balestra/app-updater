@@ -105,7 +105,16 @@ void main() {
   test(
     'addFavorite carries the curated package name onto the tracked app',
     () async {
-      final library = AppLibrary(resolver: _offlineResolver());
+      final library = AppLibrary(
+        resolver: _offlineResolver(),
+        // addFavorite() calls installedVersion() right away for a curated
+        // app that already has a package name (see AppLibrary.addFavorite)
+        // — a real DeviceAppsService would fall through to the
+        // installed_apps platform channel, which flutter_test doesn't mock
+        // by default and which hangs rather than failing fast when
+        // unmocked under this file's initialized TestWidgetsFlutterBinding.
+        deviceApps: _FakeDeviceAppsService(const {}),
+      );
       await library.load();
 
       final auroraStore = library.curatedApps.firstWhere(

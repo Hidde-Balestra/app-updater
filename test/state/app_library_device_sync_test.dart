@@ -12,12 +12,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../support/fake_curated_apps.dart';
 
 class _FakeDeviceAppsService extends DeviceAppsService {
-  _FakeDeviceAppsService(this._versions);
-  final Map<String, String?> _versions;
+  _FakeDeviceAppsService(Map<String, String?> versions)
+    : versions = Map<String, String?>.of(versions);
+  final Map<String, String?> versions;
 
   @override
   Future<String?> installedVersion(String packageName) async =>
-      _versions[packageName];
+      versions[packageName];
 }
 
 // Network calls always fail fast so these tests only exercise the
@@ -40,9 +41,10 @@ void main() {
   test(
     'syncInstalledVersions updates installedVersion for apps with a matching package name',
     () async {
+      final deviceApps = _FakeDeviceAppsService({'com.example.app': null});
       final library = AppLibrary(
         resolver: _offlineResolver(),
-        deviceApps: _FakeDeviceAppsService({'com.example.app': '2.0.0'}),
+        deviceApps: deviceApps,
       );
       await library.load(curatedAppsOverride: testCuratedApps);
       await library.addCustomApp(
@@ -51,6 +53,11 @@ void main() {
         source: 'https://example.com/mijnapp.apk',
         packageName: 'com.example.app',
       );
+      // Simulate the app being updated on the device sometime after being
+      // added to App Updater (addCustomApp() already syncs whatever
+      // version is on the device at add time, so the version has to
+      // change afterward for a later scan to have anything to catch).
+      deviceApps.versions['com.example.app'] = '2.0.0';
 
       final result = await library.syncInstalledVersions();
 
@@ -145,10 +152,51 @@ void main() {
     );
     await library.syncInstalledVersions();
 
-    final reloaded = AppLibrary(resolver: _offlineResolver());
+    final reloaded = AppLibrary(
+      resolver: _offlineResolver(),
+      // load() now syncs every already-tracked app's installed version on
+      // every open (see AppLibrary.load), so this needs a fake here too —
+      // a real DeviceAppsService falls through to the installed_apps
+      // platform channel, which flutter_test doesn't mock by default and
+      // which hangs rather than failing fast when unmocked.
+      deviceApps: _FakeDeviceAppsService({'com.example.app': '3.1.0'}),
+    );
     await reloaded.load(curatedAppsOverride: testCuratedApps);
 
     final restored = reloaded.entries.firstWhere((e) => e.app.id == app.id);
     expect(restored.app.installedVersion, '3.1.0');
+  });
+
+  test('load() re-syncs the installed version of an already-tracked app on '
+      'every open, not just apps whose package name was just backfilled — '
+      'otherwise an app updated outside App Updater (Play Store, an F-Droid '
+      'client, Accrescent, ...) would keep showing whatever version was last '
+      'recorded until the user remembered to tap "scan device"', () async {
+    final deviceApps = _FakeDeviceAppsService({'com.example.app': '1.0.0'});
+    final library = AppLibrary(
+      resolver: _offlineResolver(),
+      deviceApps: deviceApps,
+    );
+    await library.load(curatedAppsOverride: testCuratedApps);
+    await library.addCustomApp(
+      name: 'MijnApp',
+      type: AppSourceType.direct,
+      source: 'https://example.com/mijnapp.apk',
+      packageName: 'com.example.app',
+    );
+    expect(library.entries.single.app.installedVersion, '1.0.0');
+
+    // The app gets updated on the device by something other than App
+    // Updater (e.g. the user updated it via Play Store/F-Droid/
+    // Accrescent directly) sometime before the app is next opened.
+    deviceApps.versions['com.example.app'] = '2.0.0';
+
+    final reopened = AppLibrary(
+      resolver: _offlineResolver(),
+      deviceApps: deviceApps,
+    );
+    await reopened.load(curatedAppsOverride: testCuratedApps);
+
+    expect(reopened.entries.single.app.installedVersion, '2.0.0');
   });
 }

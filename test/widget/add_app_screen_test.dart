@@ -24,6 +24,14 @@ class _FakeDeviceAppsService extends DeviceAppsService {
 
   @override
   Future<List<InstalledApp>> installedApps() async => apps;
+
+  // addCustomApp() also calls installedVersion() for every app with a
+  // package name (e.g. the F-Droid bulk-add flow) — override it so that
+  // never falls through to the real installed_apps platform channel, which
+  // flutter_test doesn't mock by default and which hangs rather than
+  // failing fast when unmocked under testWidgets.
+  @override
+  Future<String?> installedVersion(String packageName) async => null;
 }
 
 AppLibrary _offlineLibrary({List<InstalledApp> installed = const []}) {
@@ -267,6 +275,12 @@ void main() {
           ),
           fdroid: FdroidService(client: fdroidClient),
         ),
+        // Tapping "Toevoegen" below calls addCustomApp() with a package
+        // name, which also calls installedVersion() right away — a real
+        // DeviceAppsService falls through to the installed_apps platform
+        // channel, which flutter_test doesn't mock by default and which
+        // hangs rather than failing fast when unmocked under testWidgets.
+        deviceApps: _FakeDeviceAppsService(const []),
         fdroidSearch: FdroidSearchService(
           client: MockClient((request) async {
             expect(request.url.queryParameters['q'], 'molly');

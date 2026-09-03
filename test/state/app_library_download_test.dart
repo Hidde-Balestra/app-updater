@@ -73,6 +73,16 @@ class _FakeDeviceAppsService extends DeviceAppsService {
     calls++;
     return snapshot;
   }
+
+  // Not used by these tests (they only exercise installedPackageNames() /
+  // detectPackageNameAfterInstall()), but addCustomApp() now also calls
+  // installedVersion() for every app with a package name — override it so
+  // that never falls through to the real installed_apps platform channel,
+  // which flutter_test doesn't mock by default and which hangs rather
+  // than failing fast when unmocked under testWidgets/an initialized
+  // TestWidgetsFlutterBinding (confirmed by hand).
+  @override
+  Future<String?> installedVersion(String packageName) async => null;
 }
 
 // Network calls always fail fast, since these tests only exercise apps
@@ -374,6 +384,34 @@ void main() {
       await library.detectPackageNameAfterInstall(
         app.id,
         attempts: 3,
+        interval: Duration.zero,
+      );
+
+      expect(library.entries.single.app.packageName, isNull);
+    });
+
+    test('leaves the package name unset when more than one new package '
+        'appears — an unrelated app installing/updating at the same moment '
+        'must never be mistaken for this one', () async {
+      final deviceApps = _FakeDeviceAppsService([
+        <String>{},
+        {'com.example.new', 'com.example.unrelated'},
+        {'com.example.new', 'com.example.unrelated'},
+      ]);
+      final library = AppLibrary(
+        resolver: _offlineResolver(),
+        deviceApps: deviceApps,
+      );
+      await library.load(curatedAppsOverride: testCuratedApps);
+      final app = await library.addCustomApp(
+        name: 'MijnApp',
+        type: AppSourceType.direct,
+        source: 'https://example.com/mijnapp.apk',
+      );
+
+      await library.detectPackageNameAfterInstall(
+        app.id,
+        attempts: 2,
         interval: Duration.zero,
       );
 

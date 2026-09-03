@@ -79,6 +79,15 @@ class AppLibrary extends ChangeNotifier {
     isLoaded = true;
     notifyListeners();
     await _backfillCuratedPackageNames();
+    // Re-read every tracked app's real installed version from the device on
+    // every open, not just apps whose package name was just backfilled by
+    // the call above. Without this, an app updated outside App Updater
+    // (Play Store, an F-Droid client, Accrescent, ...) keeps showing
+    // whatever version was last recorded — including "not installed at
+    // all" for one freshly added — until the user remembers to tap "scan
+    // device" by hand. Awaited so the checkAll() right after compares
+    // against a fresh installed version, not a stale one.
+    await _syncAllInstalledVersions();
     unawaited(checkAll());
   }
 
@@ -195,6 +204,11 @@ class AppLibrary extends ChangeNotifier {
     ];
     notifyListeners();
     await _persist();
+    // If this app is already installed (a package name was supplied and
+    // matches something on the device), pick up its real version right
+    // away — otherwise it would show a false "update available" until the
+    // next app open or manual "scan device".
+    await _syncInstalledVersion(app.id);
     await checkOne(app.id);
     return app;
   }
@@ -215,6 +229,7 @@ class AppLibrary extends ChangeNotifier {
     ];
     notifyListeners();
     await _persist();
+    await _syncInstalledVersion(app.id);
     await checkOne(app.id);
   }
 
@@ -347,6 +362,15 @@ class AppLibrary extends ChangeNotifier {
   /// find it. Used right after handing an APK to the system installer,
   /// since neither Android nor open_filex reports which package the user
   /// actually confirmed installing.
+  ///
+  /// Only commits when exactly one new package appeared. If something else
+  /// happens to install or update in the same window (e.g. an unrelated
+  /// Play Store auto-update landing at the same moment), guessing which of
+  /// several new packages is the right one risks silently attaching this
+  /// app's tracking to a completely unrelated package — permanently wrong
+  /// version info is worse than no package name at all, so this keeps
+  /// polling instead and simply gives up if it never resolves to exactly
+  /// one.
   Future<void> detectPackageNameAfterInstall(
     String id, {
     int attempts = 5,
@@ -361,7 +385,7 @@ class AppLibrary extends ChangeNotifier {
       await Future.delayed(interval);
       final after = await _deviceApps.installedPackageNames();
       final newPackages = after.difference(before);
-      if (newPackages.isNotEmpty) {
+      if (newPackages.length == 1) {
         final detected = newPackages.first;
         _updateEntry(
           id,
@@ -414,18 +438,26 @@ class AppLibrary extends ChangeNotifier {
   /// Returns the number of apps eligible for the scan (i.e. with a package
   /// name set) and how many of those had their installed version updated.
   Future<({int eligible, int updated})> syncInstalledVersions() async {
-    final eligible = entries
+    final eligibleCount = entries
         .where((e) => (e.app.packageName ?? '').trim().isNotEmpty)
-        .toList();
+        .length;
 
-    final changedFlags = await Future.wait(
-      eligible.map((e) => _syncInstalledVersion(e.app.id)),
-    );
+    final changedFlags = await _syncAllInstalledVersions();
     final updated = changedFlags.where((changed) => changed).length;
     if (updated > 0) {
       await checkAll();
     }
-    return (eligible: eligible.length, updated: updated);
+    return (eligible: eligibleCount, updated: updated);
+  }
+
+  /// The actual per-app work behind [syncInstalledVersions] and the
+  /// unconditional sync [load] does on every app open — pulled out so both
+  /// call sites share one implementation.
+  Future<List<bool>> _syncAllInstalledVersions() {
+    final eligible = entries.where(
+      (e) => (e.app.packageName ?? '').trim().isNotEmpty,
+    );
+    return Future.wait(eligible.map((e) => _syncInstalledVersion(e.app.id)));
   }
 
   /// Every app installed on the device that isn't already tracked (matched
@@ -516,7 +548,17 @@ class AppLibrary extends ChangeNotifier {
     final packageName = app.packageName;
     if (packageName == null || packageName.trim().isEmpty) return false;
 
-    final detected = await _deviceApps.installedVersion(packageName);
+    // Now called on every load()/add, not just the manual "scan device"
+    // button, so a plugin hiccup here (a stray platform-channel error, a
+    // device that rejects the query) must not be allowed to blow up the
+    // add/load flow — treat it the same as "couldn't determine", i.e. no
+    // change, and leave the previously-known version as-is.
+    String? detected;
+    try {
+      detected = await _deviceApps.installedVersion(packageName);
+    } catch (_) {
+      return false;
+    }
     if (detected == null || detected == app.installedVersion) return false;
 
     _updateEntry(

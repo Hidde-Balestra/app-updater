@@ -21,6 +21,14 @@ class _FakeDeviceAppsService extends DeviceAppsService {
 
   @override
   Future<List<InstalledApp>> installedApps() async => apps;
+
+  // addCustomApp() also calls installedVersion() for every app with a
+  // package name — override it so that never falls through to the real
+  // installed_apps platform channel, which flutter_test doesn't mock by
+  // default and which hangs rather than failing fast when unmocked under
+  // testWidgets.
+  @override
+  Future<String?> installedVersion(String packageName) async => null;
 }
 
 ReleaseResolver _offlineResolver() {

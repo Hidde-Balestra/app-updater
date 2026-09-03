@@ -2,6 +2,7 @@ import 'package:app_updater/l10n/app_localizations.dart';
 import 'package:app_updater/models/app_source_type.dart';
 import 'package:app_updater/screens/update_history_screen.dart';
 import 'package:app_updater/services/apk_installer_service.dart';
+import 'package:app_updater/services/device_apps_service.dart';
 import 'package:app_updater/services/fdroid_service.dart';
 import 'package:app_updater/services/github_service.dart';
 import 'package:app_updater/services/release_resolver.dart';
@@ -15,6 +16,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../support/fake_apk_installer_service.dart';
 import '../support/fake_curated_apps.dart';
 
+// addCustomApp() calls installedVersion() for every app with a package
+// name — a real DeviceAppsService falls through to the installed_apps
+// platform channel, which flutter_test doesn't mock by default and which
+// hangs rather than failing fast when unmocked under testWidgets.
+class _FakeDeviceAppsService extends DeviceAppsService {
+  @override
+  Future<String?> installedVersion(String packageName) async => null;
+}
+
 AppLibrary _offlineLibrary({ApkInstallerService? installer}) {
   final client = MockClient((request) async => http.Response('', 503));
   return AppLibrary(
@@ -22,6 +32,7 @@ AppLibrary _offlineLibrary({ApkInstallerService? installer}) {
       github: GithubService(client: client),
       fdroid: FdroidService(client: client),
     ),
+    deviceApps: _FakeDeviceAppsService(),
     installer: installer,
   );
 }

@@ -20,12 +20,13 @@ import '../support/fake_apk_installer_service.dart';
 import '../support/fake_curated_apps.dart';
 
 class _FakeDeviceAppsService extends DeviceAppsService {
-  _FakeDeviceAppsService([this._versions = const {}]);
-  final Map<String, String?> _versions;
+  _FakeDeviceAppsService([Map<String, String?> versions = const {}])
+    : versions = Map<String, String?>.of(versions);
+  final Map<String, String?> versions;
 
   @override
   Future<String?> installedVersion(String packageName) async =>
-      _versions[packageName];
+      versions[packageName];
 }
 
 AppLibrary _offlineLibrary({
@@ -159,9 +160,8 @@ void main() {
   testWidgets(
     'tapping "scan device" syncs the installed version of eligible apps and reports the result',
     (tester) async {
-      final library = _offlineLibrary(
-        deviceApps: _FakeDeviceAppsService({'com.example.app': '9.9.9'}),
-      );
+      final deviceApps = _FakeDeviceAppsService({'com.example.app': null});
+      final library = _offlineLibrary(deviceApps: deviceApps);
       await library.load(curatedAppsOverride: testCuratedApps);
       await library.addCustomApp(
         name: 'MijnBudget',
@@ -169,6 +169,11 @@ void main() {
         source: 'https://example.com/mijnbudget.apk',
         packageName: 'com.example.app',
       );
+      // Simulate the app being updated on the device sometime after being
+      // added to App Updater (addCustomApp() already syncs whatever
+      // version is on the device at add time, so the version has to
+      // change afterward for a manual scan to have anything to catch).
+      deviceApps.versions['com.example.app'] = '9.9.9';
 
       await tester.pumpWidget(_wrap(HomeScreen(library: library)));
       await tester.pumpAndSettle();
