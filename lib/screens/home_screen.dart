@@ -19,6 +19,12 @@ class HomeScreen extends StatelessWidget {
     final result = await library.syncInstalledVersions();
     final message = result.eligible == 0
         ? l10n.scanDeviceNoneEligible
+        : result.removed > 0
+        ? l10n.scanDeviceResultWithRemoved(
+            result.updated,
+            result.eligible,
+            result.removed,
+          )
         : l10n.scanDeviceResult(result.updated, result.eligible);
     messenger.showSnackBar(SnackBar(content: Text(message)));
   }

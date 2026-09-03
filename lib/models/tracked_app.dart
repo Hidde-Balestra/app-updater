@@ -46,15 +46,21 @@ class TrackedApp {
     DateTime? lastInstalledAt,
     String? skippedVersion,
     bool clearSkippedVersion = false,
+    bool clearInstalledVersion = false,
+    bool clearLastInstalledAt = false,
   }) => TrackedApp(
     id: id,
     name: name ?? this.name,
     sourceType: sourceType,
     sourceIdentifier: sourceIdentifier,
     isCurated: isCurated,
-    installedVersion: installedVersion ?? this.installedVersion,
+    installedVersion: clearInstalledVersion
+        ? null
+        : (installedVersion ?? this.installedVersion),
     packageName: packageName ?? this.packageName,
-    lastInstalledAt: lastInstalledAt ?? this.lastInstalledAt,
+    lastInstalledAt: clearLastInstalledAt
+        ? null
+        : (lastInstalledAt ?? this.lastInstalledAt),
     skippedVersion: clearSkippedVersion
         ? null
         : (skippedVersion ?? this.skippedVersion),

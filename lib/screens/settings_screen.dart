@@ -83,6 +83,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _editGithubToken() async {
+    final l10n = AppLocalizations.of(context)!;
+    var draft = widget.settings.githubToken ?? '';
+    final result = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.githubTokenDialogTitle),
+        content: TextFormField(
+          initialValue: draft,
+          obscureText: true,
+          decoration: InputDecoration(hintText: l10n.githubTokenFieldHint),
+          onChanged: (value) => draft = value,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(draft),
+            child: Text(l10n.save),
+          ),
+        ],
+      ),
+    );
+    if (result != null) {
+      await widget.settings.setGithubToken(result);
+    }
+  }
+
   Future<void> _pickLanguage() async {
     final l10n = AppLocalizations.of(context)!;
     final options = <Locale?>[null, ...supportedLocales];
@@ -165,6 +195,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 subtitle: Text(l10n.notificationsSubtitle),
                 value: settings.notificationsEnabled,
                 onChanged: settings.setNotificationsEnabled,
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.vpn_key_outlined),
+                title: Text(l10n.githubTokenTitle),
+                subtitle: Text(
+                  settings.githubToken == null
+                      ? l10n.githubTokenNotSet
+                      : l10n.githubTokenSet,
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: _editGithubToken,
               ),
               SectionHeader(title: l10n.sectionDevice),
               ListTile(

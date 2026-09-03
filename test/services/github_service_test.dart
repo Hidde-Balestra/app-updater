@@ -117,4 +117,42 @@ void main() {
     );
     expect(result, isA<ReleaseError>());
   });
+
+  test('sends an Authorization header when a token is given', () async {
+    String? authHeader;
+    final client = MockClient((request) async {
+      authHeader = request.headers['Authorization'];
+      return http.Response(
+        jsonEncode({
+          'tag_name': 'v1.0.0',
+          'assets': [
+            {
+              'name': 'app.apk',
+              'browser_download_url': 'https://x/app.apk',
+              'size': 1,
+            },
+          ],
+        }),
+        200,
+      );
+    });
+
+    await GithubService(
+      client: client,
+    ).fetchLatestRelease('owner/repo', token: 'ghp_secret');
+
+    expect(authHeader, 'Bearer ghp_secret');
+  });
+
+  test('omits the Authorization header when no token is given', () async {
+    String? authHeader;
+    final client = MockClient((request) async {
+      authHeader = request.headers['Authorization'];
+      return http.Response('', 404);
+    });
+
+    await GithubService(client: client).fetchLatestRelease('owner/repo');
+
+    expect(authHeader, isNull);
+  });
 }

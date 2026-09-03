@@ -10,4 +10,9 @@ class StorageKeys {
   static const notificationsEnabled = 'settings.notifications';
   static const ignoredPackageNames = 'library.ignoredPackageNames';
   static const updateHistory = 'library.updateHistory';
+
+  /// Secure-storage key (not SharedPreferences) for the optional GitHub
+  /// personal access token — kept here anyway so the key name stays in one
+  /// place between [SettingsController] and [BackgroundUpdateChecker].
+  static const githubToken = 'settings.githubToken';
 }

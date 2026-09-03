@@ -6,6 +6,7 @@ import 'package:app_updater/services/release_resolver.dart';
 import 'package:app_updater/state/app_library.dart';
 import 'package:app_updater/state/settings_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -19,6 +20,7 @@ void main() {
     WidgetTester tester,
   ) async {
     SharedPreferences.setMockInitialValues({});
+    FlutterSecureStorage.setMockInitialValues({});
 
     final client = MockClient((request) async => http.Response('', 503));
     final library = AppLibrary(

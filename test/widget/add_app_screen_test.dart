@@ -20,18 +20,15 @@ import '../support/fake_curated_apps.dart';
 
 class _FakeDeviceAppsService extends DeviceAppsService {
   final List<InstalledApp> apps;
-  _FakeDeviceAppsService(this.apps);
+  final Map<String, String> versionsByPackage;
+  _FakeDeviceAppsService(this.apps, {this.versionsByPackage = const {}});
 
   @override
   Future<List<InstalledApp>> installedApps() async => apps;
 
-  // addCustomApp() also calls installedVersion() for every app with a
-  // package name (e.g. the F-Droid bulk-add flow) — override it so that
-  // never falls through to the real installed_apps platform channel, which
-  // flutter_test doesn't mock by default and which hangs rather than
-  // failing fast when unmocked under testWidgets.
   @override
-  Future<String?> installedVersion(String packageName) async => null;
+  Future<String?> installedVersion(String packageName) async =>
+      versionsByPackage[packageName];
 }
 
 AppLibrary _offlineLibrary({List<InstalledApp> installed = const []}) {
@@ -275,12 +272,14 @@ void main() {
           ),
           fdroid: FdroidService(client: fdroidClient),
         ),
-        // Tapping "Toevoegen" below calls addCustomApp() with a package
-        // name, which also calls installedVersion() right away — a real
-        // DeviceAppsService falls through to the installed_apps platform
-        // channel, which flutter_test doesn't mock by default and which
-        // hangs rather than failing fast when unmocked under testWidgets.
-        deviceApps: _FakeDeviceAppsService(const []),
+        // Reported as already installed, so tapping "add" doesn't also
+        // trigger a real download-and-install attempt through the add-app
+        // screen's install-if-missing behavior — this test only cares
+        // about tracking the app via F-Droid.
+        deviceApps: _FakeDeviceAppsService(
+          const [],
+          versionsByPackage: const {'im.molly.app': '7.0.0'},
+        ),
         fdroidSearch: FdroidSearchService(
           client: MockClient((request) async {
             expect(request.url.queryParameters['q'], 'molly');

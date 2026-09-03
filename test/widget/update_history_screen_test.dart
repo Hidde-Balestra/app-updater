@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/fake_apk_installer_service.dart';
 import '../support/fake_curated_apps.dart';
+import '../support/fake_signing_service.dart';
 
 // addCustomApp() calls installedVersion() for every app with a package
 // name — a real DeviceAppsService falls through to the installed_apps
@@ -34,6 +35,7 @@ AppLibrary _offlineLibrary({ApkInstallerService? installer}) {
     ),
     deviceApps: _FakeDeviceAppsService(),
     installer: installer,
+    signing: FakeSigningService(),
   );
 }
 

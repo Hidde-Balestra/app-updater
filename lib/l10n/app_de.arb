@@ -26,6 +26,14 @@
     }
   },
   "scanDeviceNoneEligible": "Keine deiner Apps hat einen Paketnamen festgelegt. Füge einen unter „Eigene App“ hinzu, um die automatische Synchronisierung zu aktivieren.",
+  "scanDeviceResultWithRemoved": "{updated} von {eligible} Apps synchronisiert, {removed} nicht mehr auf deinem Gerät gefunden",
+  "@scanDeviceResultWithRemoved": {
+    "placeholders": {
+      "updated": {"type": "int"},
+      "eligible": {"type": "int"},
+      "removed": {"type": "int"}
+    }
+  },
   "updateAllButton": "Alle aktualisieren",
   "updateAllBannerTitle": "{count} Updates verfügbar",
   "@updateAllBannerTitle": {
@@ -133,6 +141,9 @@
       "version": {"type": "String"}
     }
   },
+  "signingMismatchTitle": "Andere Signatur erkannt",
+  "signingMismatchMessage": "Dieser Download ist mit einem anderen Schlüssel signiert als die aktuell installierte App. Das kann auf eine kompromittierte Version hindeuten. Trotzdem fortfahren?",
+  "installAnywayButton": "Trotzdem installieren",
   "skipVersionButton": "Diese Version überspringen",
   "unskipVersionButton": "Überspringen rückgängig machen",
   "skippedVersionBanner": "Version {version} wird übersprungen",
@@ -157,6 +168,7 @@
     }
   },
   "cancel": "Abbrechen",
+  "save": "Speichern",
   "remove": "Entfernen",
   "retry": "Erneut versuchen",
   "noApkAssetFound": "Im neuesten Release wurde keine .apk-Datei gefunden.",
@@ -185,6 +197,11 @@
   "wifiOnlySubtitle": "Spart mobile Daten",
   "notifications": "Benachrichtigungen",
   "notificationsSubtitle": "Bei verfügbarem Update",
+  "githubTokenTitle": "GitHub-Token",
+  "githubTokenNotSet": "Nicht festgelegt — Prüfungen können an GitHubs Limit stoßen",
+  "githubTokenSet": "Festgelegt",
+  "githubTokenDialogTitle": "GitHub Personal Access Token",
+  "githubTokenFieldHint": "ghp_...",
   "sectionPrivacy": "DATENSCHUTZ",
   "privacyTitle": "Keine Google Play Services",
   "privacyMessage": "Diese App wird vollständig außerhalb des Play Store installiert und ausgeführt. Kein Tracking, keine Analyse, keine Konten erforderlich.",

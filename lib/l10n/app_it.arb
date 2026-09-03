@@ -26,6 +26,14 @@
     }
   },
   "scanDeviceNoneEligible": "Nessuna delle tue app ha un nome pacchetto impostato. Aggiungine uno in 'App personalizzata' per abilitare la sincronizzazione automatica.",
+  "scanDeviceResultWithRemoved": "{updated} di {eligible} app sincronizzate, {removed} non più trovate sul tuo dispositivo",
+  "@scanDeviceResultWithRemoved": {
+    "placeholders": {
+      "updated": {"type": "int"},
+      "eligible": {"type": "int"},
+      "removed": {"type": "int"}
+    }
+  },
   "updateAllButton": "Aggiorna tutto",
   "updateAllBannerTitle": "{count} aggiornamenti disponibili",
   "@updateAllBannerTitle": {
@@ -133,6 +141,9 @@
       "version": {"type": "String"}
     }
   },
+  "signingMismatchTitle": "Firma diversa rilevata",
+  "signingMismatchMessage": "Questo download è firmato con una chiave diversa da quella dell'app attualmente installata. Ciò potrebbe indicare una versione compromessa. Continuare comunque?",
+  "installAnywayButton": "Installa comunque",
   "skipVersionButton": "Ignora questa versione",
   "unskipVersionButton": "Annulla ignora",
   "skippedVersionBanner": "La versione {version} viene ignorata",
@@ -157,6 +168,7 @@
     }
   },
   "cancel": "Annulla",
+  "save": "Salva",
   "remove": "Rimuovi",
   "retry": "Riprova",
   "noApkAssetFound": "Nessun file .apk trovato nell'ultima release.",
@@ -185,6 +197,11 @@
   "wifiOnlySubtitle": "Risparmia dati mobili",
   "notifications": "Notifiche",
   "notificationsSubtitle": "Quando è disponibile un aggiornamento",
+  "githubTokenTitle": "Token GitHub",
+  "githubTokenNotSet": "Non impostato — i controlli potrebbero raggiungere il limite di GitHub",
+  "githubTokenSet": "Impostato",
+  "githubTokenDialogTitle": "Token di accesso personale GitHub",
+  "githubTokenFieldHint": "ghp_...",
   "sectionPrivacy": "PRIVACY",
   "privacyTitle": "Nessun Google Play Services",
   "privacyMessage": "Questa app si installa e funziona interamente al di fuori del Play Store. Nessun tracciamento, nessuna analisi, nessun account richiesto.",

@@ -7,6 +7,7 @@ import 'package:app_updater/services/release_resolver.dart';
 import 'package:app_updater/state/app_library.dart';
 import 'package:app_updater/state/settings_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -39,6 +40,7 @@ Widget _wrap(Widget child) => MaterialApp(
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+    FlutterSecureStorage.setMockInitialValues({});
     MockClipboard().install();
   });
 
@@ -130,7 +132,7 @@ void main() {
     // only mounts elements near the viewport, `find` alone won't see it.
     await tester.scrollUntilVisible(
       find.text('Exporteren naar klembord'),
-      300,
+      100,
       scrollable: find.byType(Scrollable),
     );
     await tester.tap(find.text('Exporteren naar klembord'));
@@ -164,5 +166,34 @@ void main() {
       find.text('Nog geen updates geïnstalleerd via App Updater.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('entering a GitHub token in the dialog saves it', (tester) async {
+    final settings = _settings();
+    await settings.load();
+    final library = _offlineLibrary();
+    await library.load(curatedAppsOverride: testCuratedApps);
+
+    await tester.pumpWidget(
+      _wrap(SettingsScreen(settings: settings, library: library)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'Niet ingesteld — checks kunnen tegen de limiet van GitHub aanlopen',
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('GitHub-token'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField), 'ghp_abc123');
+    await tester.tap(find.text('Opslaan'));
+    await tester.pumpAndSettle();
+
+    expect(settings.githubToken, 'ghp_abc123');
+    expect(find.text('Ingesteld'), findsOneWidget);
   });
 }

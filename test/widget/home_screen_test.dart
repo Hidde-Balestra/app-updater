@@ -18,6 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/fake_apk_installer_service.dart';
 import '../support/fake_curated_apps.dart';
+import '../support/fake_signing_service.dart';
 
 class _FakeDeviceAppsService extends DeviceAppsService {
   _FakeDeviceAppsService([Map<String, String?> versions = const {}])
@@ -41,6 +42,7 @@ AppLibrary _offlineLibrary({
     ),
     deviceApps: deviceApps ?? _FakeDeviceAppsService(),
     installer: installer,
+    signing: FakeSigningService(),
   );
 }
 
@@ -73,6 +75,7 @@ AppLibrary _githubLibrary() {
       github: GithubService(client: client),
       fdroid: FdroidService(client: client),
     ),
+    signing: FakeSigningService(),
   );
 }
 
@@ -183,6 +186,36 @@ void main() {
 
       expect(find.text('1 van 1 apps gesynchroniseerd'), findsOneWidget);
       expect(library.entries.single.app.installedVersion, '9.9.9');
+    },
+  );
+
+  testWidgets(
+    'tapping "scan device" reports an app no longer found on the device',
+    (tester) async {
+      final library = _offlineLibrary(
+        deviceApps: _FakeDeviceAppsService(const {}),
+      );
+      await library.load(curatedAppsOverride: testCuratedApps);
+      final app = await library.addCustomApp(
+        name: 'MijnBudget',
+        type: AppSourceType.direct,
+        source: 'https://example.com/mijnbudget.apk',
+        packageName: 'com.example.app',
+      );
+      await library.markInstalled(app.id, '1.0.0');
+
+      await tester.pumpWidget(_wrap(HomeScreen(library: library)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.sync));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          '0 van 1 apps gesynchroniseerd, 1 niet meer gevonden op je toestel',
+        ),
+        findsOneWidget,
+      );
     },
   );
 

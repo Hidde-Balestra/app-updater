@@ -138,6 +138,31 @@ void main() {
     },
   );
 
+  test('clears installedVersion when a previously-installed app is no longer '
+      'found on the device, and counts it as removed', () async {
+    final library = AppLibrary(
+      resolver: _offlineResolver(),
+      deviceApps: _FakeDeviceAppsService(const {}),
+    );
+    await library.load(curatedAppsOverride: testCuratedApps);
+    final app = await library.addCustomApp(
+      name: 'MijnApp',
+      type: AppSourceType.direct,
+      source: 'https://example.com/mijnapp.apk',
+      packageName: 'com.example.app',
+    );
+    await library.markInstalled(app.id, '1.0.0');
+
+    final result = await library.syncInstalledVersions();
+
+    expect(result.eligible, 1);
+    expect(result.updated, 0);
+    expect(result.removed, 1);
+    final entry = library.entries.single;
+    expect(entry.app.installedVersion, isNull);
+    expect(entry.app.lastInstalledAt, isNull);
+  });
+
   test('persists the synced installed version across a reload', () async {
     final library = AppLibrary(
       resolver: _offlineResolver(),

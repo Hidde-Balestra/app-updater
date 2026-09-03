@@ -26,6 +26,14 @@
     }
   },
   "scanDeviceNoneEligible": "Ninguna de tus apps tiene un nombre de paquete configurado. Añade uno en 'App propia' para habilitar la sincronización automática.",
+  "scanDeviceResultWithRemoved": "{updated} de {eligible} apps sincronizadas, {removed} ya no se encuentran en tu dispositivo",
+  "@scanDeviceResultWithRemoved": {
+    "placeholders": {
+      "updated": {"type": "int"},
+      "eligible": {"type": "int"},
+      "removed": {"type": "int"}
+    }
+  },
   "updateAllButton": "Actualizar todo",
   "updateAllBannerTitle": "{count} actualizaciones disponibles",
   "@updateAllBannerTitle": {
@@ -133,6 +141,9 @@
       "version": {"type": "String"}
     }
   },
+  "signingMismatchTitle": "Firma diferente detectada",
+  "signingMismatchMessage": "Esta descarga está firmada con una clave diferente a la de la app instalada en tu dispositivo. Esto podría indicar una versión comprometida. ¿Continuar de todos modos?",
+  "installAnywayButton": "Instalar de todos modos",
   "skipVersionButton": "Omitir esta versión",
   "unskipVersionButton": "Deshacer omisión",
   "skippedVersionBanner": "La versión {version} se está omitiendo",
@@ -157,6 +168,7 @@
     }
   },
   "cancel": "Cancelar",
+  "save": "Guardar",
   "remove": "Eliminar",
   "retry": "Reintentar",
   "noApkAssetFound": "No se encontró ningún archivo .apk en la última versión.",
@@ -185,6 +197,11 @@
   "wifiOnlySubtitle": "Ahorra datos móviles",
   "notifications": "Notificaciones",
   "notificationsSubtitle": "Cuando haya una actualización disponible",
+  "githubTokenTitle": "Token de GitHub",
+  "githubTokenNotSet": "No configurado — las comprobaciones pueden alcanzar el límite de GitHub",
+  "githubTokenSet": "Configurado",
+  "githubTokenDialogTitle": "Token de acceso personal de GitHub",
+  "githubTokenFieldHint": "ghp_...",
   "sectionPrivacy": "PRIVACIDAD",
   "privacyTitle": "Sin Google Play Services",
   "privacyMessage": "Esta app se instala y funciona completamente fuera de la Play Store. Sin seguimiento, sin análisis, sin cuentas necesarias.",
