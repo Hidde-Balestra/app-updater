@@ -67,11 +67,13 @@ class AppLibrary extends ChangeNotifier {
   List<CuratedApp> curatedApps = [];
   Set<String> ignoredPackageNames = {};
 
-  /// Optional GitHub personal access token, mirrored in from
-  /// [SettingsController.githubToken] by the widget that owns both — kept
+  /// Optional personal access tokens, mirrored in from their
+  /// [SettingsController] counterparts by the widget that owns both — kept
   /// here rather than persisted by [AppLibrary] itself since
-  /// [SettingsController] already owns reading/writing it.
+  /// [SettingsController] already owns reading/writing them.
   String? githubToken;
+  String? gitlabToken;
+  String? codebergToken;
 
   /// Every download-and-install performed through this app, most recent
   /// first. Capped at [_maxHistoryEntries] so it can't grow unbounded on a
@@ -204,7 +206,13 @@ class AppLibrary extends ChangeNotifier {
   }
 
   Future<ReleaseResult> previewSource(AppSourceType type, String source) {
-    return _resolver.resolve(type, source, githubToken: githubToken);
+    return _resolver.resolve(
+      type,
+      source,
+      githubToken: githubToken,
+      gitlabToken: gitlabToken,
+      codebergToken: codebergToken,
+    );
   }
 
   Future<TrackedApp> addCustomApp({
@@ -700,8 +708,11 @@ class AppLibrary extends ChangeNotifier {
       entry.app.sourceType,
       entry.app.sourceIdentifier,
       githubToken: githubToken,
+      gitlabToken: gitlabToken,
+      codebergToken: codebergToken,
     );
 
+    final checkedAt = DateTime.now();
     switch (result) {
       case ReleaseSuccess(:final info):
         final status = _statusFor(entry.app, info);
@@ -711,15 +722,25 @@ class AppLibrary extends ChangeNotifier {
             status: status,
             latestRelease: info,
             errorMessage: null,
+            lastCheckedAt: checkedAt,
           ),
         );
       case ReleaseNotFound():
-        _updateEntry(id, (e) => e.copyWith(status: AppCheckStatus.noReleases));
+        _updateEntry(
+          id,
+          (e) => e.copyWith(
+            status: AppCheckStatus.noReleases,
+            lastCheckedAt: checkedAt,
+          ),
+        );
       case ReleaseError(:final message):
         _updateEntry(
           id,
-          (e) =>
-              e.copyWith(status: AppCheckStatus.error, errorMessage: message),
+          (e) => e.copyWith(
+            status: AppCheckStatus.error,
+            errorMessage: message,
+            lastCheckedAt: checkedAt,
+          ),
         );
     }
   }

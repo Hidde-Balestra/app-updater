@@ -112,4 +112,30 @@ void main() {
     );
     expect(result, isA<ReleaseError>());
   });
+
+  test('sends an Authorization header when a token is given', () async {
+    String? authHeader;
+    final client = MockClient((request) async {
+      authHeader = request.headers['Authorization'];
+      return http.Response('', 404);
+    });
+
+    await CodebergService(
+      client: client,
+    ).fetchLatestRelease('owner/repo', token: 'example-token');
+
+    expect(authHeader, 'token example-token');
+  });
+
+  test('omits the Authorization header when no token is given', () async {
+    String? authHeader;
+    final client = MockClient((request) async {
+      authHeader = request.headers['Authorization'];
+      return http.Response('', 404);
+    });
+
+    await CodebergService(client: client).fetchLatestRelease('owner/repo');
+
+    expect(authHeader, isNull);
+  });
 }

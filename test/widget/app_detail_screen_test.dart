@@ -217,4 +217,21 @@ void main() {
       expect(installer.installedPaths, hasLength(1));
     },
   );
+
+  testWidgets('shows when the app was last checked', (tester) async {
+    final library = _githubLibrary();
+    await library.load(curatedAppsOverride: testCuratedApps);
+    final app = await library.addCustomApp(
+      name: 'MijnApp',
+      type: AppSourceType.github,
+      source: 'owner/repo',
+    );
+
+    await tester.pumpWidget(
+      _wrap(AppDetailScreen(library: library, appId: app.id)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Laatst gecontroleerd:'), findsOneWidget);
+  });
 }

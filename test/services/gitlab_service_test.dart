@@ -137,4 +137,30 @@ void main() {
       client: client,
     ).fetchLatestRelease('group/subgroup/project');
   });
+
+  test('sends a PRIVATE-TOKEN header when a token is given', () async {
+    String? tokenHeader;
+    final client = MockClient((request) async {
+      tokenHeader = request.headers['PRIVATE-TOKEN'];
+      return http.Response('', 404);
+    });
+
+    await GitlabService(
+      client: client,
+    ).fetchLatestRelease('owner/repo', token: 'glpat-example');
+
+    expect(tokenHeader, 'glpat-example');
+  });
+
+  test('omits the PRIVATE-TOKEN header when no token is given', () async {
+    String? tokenHeader;
+    final client = MockClient((request) async {
+      tokenHeader = request.headers['PRIVATE-TOKEN'];
+      return http.Response('', 404);
+    });
+
+    await GitlabService(client: client).fetchLatestRelease('owner/repo');
+
+    expect(tokenHeader, isNull);
+  });
 }

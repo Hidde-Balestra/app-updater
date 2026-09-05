@@ -17,6 +17,20 @@
   "statusSkipped": "Übersprungen",
   "emptyLibraryTitle": "Noch keine Apps",
   "emptyLibraryMessage": "Füge deine erste App über das +-Symbol hinzu.",
+  "searchTooltip": "Suchen",
+  "searchHint": "Durchsuche deine Apps…",
+  "searchNoResults": "Keine Apps gefunden für „{query}“.",
+  "@searchNoResults": {
+    "placeholders": {
+      "query": {"type": "String"}
+    }
+  },
+  "lastCheckedLabel": "Zuletzt geprüft: {time}",
+  "@lastCheckedLabel": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
   "scanDeviceTooltip": "Gerät scannen",
   "scanDeviceResult": "{updated} von {eligible} Apps synchronisiert",
   "@scanDeviceResult": {
@@ -202,6 +216,14 @@
   "githubTokenSet": "Festgelegt",
   "githubTokenDialogTitle": "GitHub Personal Access Token",
   "githubTokenFieldHint": "ghp_...",
+  "gitlabTokenTitle": "GitLab-Token",
+  "gitlabTokenNotSet": "Nicht festgelegt — Prüfungen können an GitLabs Limit stoßen",
+  "gitlabTokenDialogTitle": "GitLab Personal/Project Access Token",
+  "gitlabTokenFieldHint": "glpat-...",
+  "codebergTokenTitle": "Codeberg-Token",
+  "codebergTokenNotSet": "Nicht festgelegt — Prüfungen können an Codebergs Limit stoßen",
+  "codebergTokenDialogTitle": "Codeberg Access Token",
+  "codebergTokenFieldHint": "...",
   "sectionPrivacy": "DATENSCHUTZ",
   "privacyTitle": "Keine Google Play Services",
   "privacyMessage": "Diese App wird vollständig außerhalb des Play Store installiert und ausgeführt. Kein Tracking, keine Analyse, keine Konten erforderlich.",

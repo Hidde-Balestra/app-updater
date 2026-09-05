@@ -19,7 +19,13 @@ class GitlabService {
 
   GitlabService({http.Client? client}) : _client = client ?? http.Client();
 
-  Future<ReleaseResult> fetchLatestRelease(String projectPath) async {
+  /// [token] is an optional GitLab personal/project access token — when
+  /// set, it's sent as `PRIVATE-TOKEN` to raise the request from GitLab's
+  /// unauthenticated rate limit.
+  Future<ReleaseResult> fetchLatestRelease(
+    String projectPath, {
+    String? token,
+  }) async {
     final path = projectPath.trim();
     if (path.isEmpty || !path.contains('/')) {
       return const ReleaseError('invalid_source');
@@ -29,7 +35,13 @@ class GitlabService {
       'https://gitlab.com/api/v4/projects/$encodedPath/releases/permalink/latest',
     );
     try {
-      final response = await _client.get(uri);
+      final response = await _client.get(
+        uri,
+        headers: {
+          if (token != null && token.trim().isNotEmpty)
+            'PRIVATE-TOKEN': token.trim(),
+        },
+      );
       if (response.statusCode == 404) {
         return const ReleaseNotFound();
       }

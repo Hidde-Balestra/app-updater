@@ -16,10 +16,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeNotificationService extends NotificationService {
   final List<List<String>> calls = [];
+  final List<String?> payloads = [];
 
   @override
-  Future<void> showUpdatesAvailable(List<String> appNames) async {
+  Future<void> showUpdatesAvailable(
+    List<String> appNames, {
+    String? payload,
+  }) async {
     calls.add(appNames);
+    payloads.add(payload);
   }
 }
 
@@ -111,7 +116,8 @@ void main() {
     expect(notifications.calls, isEmpty);
   });
 
-  test('notifies with the names of apps that have an update', () async {
+  test('notifies with the names of apps that have an update, with the app id '
+      'as the payload since there is only one', () async {
     await _seedTrackedApps([_outdatedApp, _upToDateApp]);
 
     final notifications = _FakeNotificationService();
@@ -123,6 +129,28 @@ void main() {
     expect(notifications.calls, [
       ['TaalLeer'],
     ]);
+    expect(notifications.payloads, ['a']);
+  });
+
+  test('omits the payload when several apps have an update — nothing in '
+      'particular to jump to', () async {
+    final secondOutdatedApp = TrackedApp(
+      id: 'c',
+      name: 'AnotherApp',
+      sourceType: AppSourceType.fdroid,
+      sourceIdentifier: 'org.fdroid.fdroid',
+      installedVersion: '1.0',
+    );
+    await _seedTrackedApps([_outdatedApp, secondOutdatedApp]);
+
+    final notifications = _FakeNotificationService();
+    await BackgroundUpdateChecker(
+      resolver: _resolver(),
+      notifications: notifications,
+    ).run();
+
+    expect(notifications.calls.single, hasLength(2));
+    expect(notifications.payloads, [null]);
   });
 
   test('does not notify when no tracked app has an update', () async {

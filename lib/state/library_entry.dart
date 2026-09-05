@@ -24,12 +24,19 @@ class LibraryEntry {
   /// only relevant for the download that just happened this session.
   final String? lastDownloadSha256;
 
+  /// When this app's source was last queried for a release, success or
+  /// not — lets the detail screen show how fresh (or stale, if checks keep
+  /// failing) the shown status actually is. Never persisted, like [status]:
+  /// re-derived every time [AppLibrary.checkOne] runs this session.
+  final DateTime? lastCheckedAt;
+
   const LibraryEntry({
     required this.app,
     required this.status,
     this.latestRelease,
     this.errorMessage,
     this.lastDownloadSha256,
+    this.lastCheckedAt,
   });
 
   LibraryEntry copyWith({
@@ -38,11 +45,13 @@ class LibraryEntry {
     ReleaseInfo? latestRelease,
     String? errorMessage,
     String? lastDownloadSha256,
+    DateTime? lastCheckedAt,
   }) => LibraryEntry(
     app: app ?? this.app,
     status: status ?? this.status,
     latestRelease: latestRelease ?? this.latestRelease,
     errorMessage: errorMessage ?? this.errorMessage,
     lastDownloadSha256: lastDownloadSha256 ?? this.lastDownloadSha256,
+    lastCheckedAt: lastCheckedAt ?? this.lastCheckedAt,
   );
 }

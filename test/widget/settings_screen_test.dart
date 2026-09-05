@@ -196,4 +196,31 @@ void main() {
     expect(settings.githubToken, 'ghp_abc123');
     expect(find.text('Ingesteld'), findsOneWidget);
   });
+
+  testWidgets('entering a GitLab token in the dialog saves it', (tester) async {
+    final settings = _settings();
+    await settings.load();
+    final library = _offlineLibrary();
+    await library.load(curatedAppsOverride: testCuratedApps);
+
+    await tester.pumpWidget(
+      _wrap(SettingsScreen(settings: settings, library: library)),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('GitLab-token'),
+      100,
+      scrollable: find.byType(Scrollable),
+    );
+    await tester.tap(find.text('GitLab-token'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField), 'glpat-abc123');
+    await tester.tap(find.text('Opslaan'));
+    await tester.pumpAndSettle();
+
+    expect(settings.gitlabToken, 'glpat-abc123');
+    expect(find.text('Ingesteld'), findsOneWidget);
+  });
 }

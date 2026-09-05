@@ -17,6 +17,20 @@
   "statusSkipped": "Overgeslagen",
   "emptyLibraryTitle": "Nog geen apps",
   "emptyLibraryMessage": "Voeg je eerste app toe via het + icoon.",
+  "searchTooltip": "Zoeken",
+  "searchHint": "Zoek in je apps…",
+  "searchNoResults": "Geen apps gevonden voor \"{query}\".",
+  "@searchNoResults": {
+    "placeholders": {
+      "query": {"type": "String"}
+    }
+  },
+  "lastCheckedLabel": "Laatst gecontroleerd: {time}",
+  "@lastCheckedLabel": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
   "scanDeviceTooltip": "Apparaat scannen",
   "scanDeviceResult": "{updated} van {eligible} apps gesynchroniseerd",
   "@scanDeviceResult": {
@@ -202,6 +216,14 @@
   "githubTokenSet": "Ingesteld",
   "githubTokenDialogTitle": "GitHub personal access token",
   "githubTokenFieldHint": "ghp_...",
+  "gitlabTokenTitle": "GitLab-token",
+  "gitlabTokenNotSet": "Niet ingesteld — checks kunnen tegen de limiet van GitLab aanlopen",
+  "gitlabTokenDialogTitle": "GitLab personal/project access token",
+  "gitlabTokenFieldHint": "glpat-...",
+  "codebergTokenTitle": "Codeberg-token",
+  "codebergTokenNotSet": "Niet ingesteld — checks kunnen tegen de limiet van Codeberg aanlopen",
+  "codebergTokenDialogTitle": "Codeberg access token",
+  "codebergTokenFieldHint": "...",
   "sectionPrivacy": "PRIVACY",
   "privacyTitle": "Geen Google Play Services",
   "privacyMessage": "Deze app installeert en werkt volledig buiten de Play Store om. Geen tracking, geen analytics, geen accounts nodig.",

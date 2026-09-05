@@ -13,7 +13,13 @@ class CodebergService {
 
   CodebergService({http.Client? client}) : _client = client ?? http.Client();
 
-  Future<ReleaseResult> fetchLatestRelease(String ownerRepo) async {
+  /// [token] is an optional Codeberg (Gitea/Forgejo) access token — when
+  /// set, it's sent as an `Authorization: token <token>` header to raise
+  /// the request from the unauthenticated rate limit.
+  Future<ReleaseResult> fetchLatestRelease(
+    String ownerRepo, {
+    String? token,
+  }) async {
     final repo = ownerRepo.trim();
     if (repo.isEmpty || !repo.contains('/')) {
       return const ReleaseError('invalid_source');
@@ -22,7 +28,13 @@ class CodebergService {
       'https://codeberg.org/api/v1/repos/$repo/releases/latest',
     );
     try {
-      final response = await _client.get(uri);
+      final response = await _client.get(
+        uri,
+        headers: {
+          if (token != null && token.trim().isNotEmpty)
+            'Authorization': 'token ${token.trim()}',
+        },
+      );
       if (response.statusCode == 404) {
         return const ReleaseNotFound();
       }

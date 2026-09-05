@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/app_localizations.dart';
@@ -381,6 +382,19 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                   ],
                 ),
               ),
+              if (entry.lastCheckedAt != null) ...[
+                const SizedBox(height: 6),
+                Text(
+                  l10n.lastCheckedLabel(
+                    DateFormat(
+                      'd MMM yyyy, HH:mm',
+                    ).format(entry.lastCheckedAt!),
+                  ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
               const SizedBox(height: 32),
               OutlinedButton(
                 onPressed: () => _confirmRemove(entry),

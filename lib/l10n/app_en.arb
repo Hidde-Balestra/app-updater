@@ -17,6 +17,20 @@
   "statusSkipped": "Skipped",
   "emptyLibraryTitle": "No apps yet",
   "emptyLibraryMessage": "Add your first app using the + icon.",
+  "searchTooltip": "Search",
+  "searchHint": "Search your apps…",
+  "searchNoResults": "No apps found for \"{query}\".",
+  "@searchNoResults": {
+    "placeholders": {
+      "query": {"type": "String"}
+    }
+  },
+  "lastCheckedLabel": "Last checked: {time}",
+  "@lastCheckedLabel": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
   "scanDeviceTooltip": "Scan device",
   "scanDeviceResult": "{updated} of {eligible} apps synced",
   "@scanDeviceResult": {
@@ -202,6 +216,14 @@
   "githubTokenSet": "Set",
   "githubTokenDialogTitle": "GitHub personal access token",
   "githubTokenFieldHint": "ghp_...",
+  "gitlabTokenTitle": "GitLab token",
+  "gitlabTokenNotSet": "Not set — checks may hit GitLab's rate limit",
+  "gitlabTokenDialogTitle": "GitLab personal/project access token",
+  "gitlabTokenFieldHint": "glpat-...",
+  "codebergTokenTitle": "Codeberg token",
+  "codebergTokenNotSet": "Not set — checks may hit Codeberg's rate limit",
+  "codebergTokenDialogTitle": "Codeberg access token",
+  "codebergTokenFieldHint": "...",
   "sectionPrivacy": "PRIVACY",
   "privacyTitle": "No Google Play Services",
   "privacyMessage": "This app installs and works entirely outside of the Play Store. No tracking, no analytics, no accounts required.",

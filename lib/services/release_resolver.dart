@@ -33,14 +33,19 @@ class ReleaseResolver {
     AppSourceType type,
     String sourceIdentifier, {
     String? githubToken,
+    String? gitlabToken,
+    String? codebergToken,
   }) {
     switch (type) {
       case AppSourceType.github:
         return _github.fetchLatestRelease(sourceIdentifier, token: githubToken);
       case AppSourceType.gitlab:
-        return _gitlab.fetchLatestRelease(sourceIdentifier);
+        return _gitlab.fetchLatestRelease(sourceIdentifier, token: gitlabToken);
       case AppSourceType.codeberg:
-        return _codeberg.fetchLatestRelease(sourceIdentifier);
+        return _codeberg.fetchLatestRelease(
+          sourceIdentifier,
+          token: codebergToken,
+        );
       case AppSourceType.fdroid:
         return _fdroid.fetchLatestRelease(sourceIdentifier);
       case AppSourceType.direct:

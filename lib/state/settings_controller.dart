@@ -42,11 +42,13 @@ class SettingsController extends ChangeNotifier {
   bool wifiOnly = true;
   bool notificationsEnabled = true;
 
-  /// Optional GitHub personal access token, used to raise the unauthenticated
-  /// API rate limit (60 requests/hour) when many GitHub-tracked apps are
-  /// checked. Kept in secure storage rather than SharedPreferences since it's
-  /// a credential, unlike every other setting here.
+  /// Optional personal access tokens, used to raise each host's
+  /// unauthenticated API rate limit when many apps from that source are
+  /// checked. Kept in secure storage rather than SharedPreferences since
+  /// they're credentials, unlike every other setting here.
   String? githubToken;
+  String? gitlabToken;
+  String? codebergToken;
 
   bool _loaded = false;
   bool get isLoaded => _loaded;
@@ -67,6 +69,8 @@ class SettingsController extends ChangeNotifier {
     wifiOnly = prefs.getBool(_kWifiOnly) ?? true;
     notificationsEnabled = prefs.getBool(_kNotifications) ?? true;
     githubToken = await _secureStorage.read(key: StorageKeys.githubToken);
+    gitlabToken = await _secureStorage.read(key: StorageKeys.gitlabToken);
+    codebergToken = await _secureStorage.read(key: StorageKeys.codebergToken);
     _loaded = true;
     notifyListeners();
     if (autoCheckEnabled) {
@@ -125,16 +129,28 @@ class SettingsController extends ChangeNotifier {
   }
 
   Future<void> setGithubToken(String? value) async {
-    final trimmed = value?.trim();
-    githubToken = (trimmed == null || trimmed.isEmpty) ? null : trimmed;
+    githubToken = await _setToken(StorageKeys.githubToken, value);
     notifyListeners();
-    if (githubToken == null) {
-      await _secureStorage.delete(key: StorageKeys.githubToken);
+  }
+
+  Future<void> setGitlabToken(String? value) async {
+    gitlabToken = await _setToken(StorageKeys.gitlabToken, value);
+    notifyListeners();
+  }
+
+  Future<void> setCodebergToken(String? value) async {
+    codebergToken = await _setToken(StorageKeys.codebergToken, value);
+    notifyListeners();
+  }
+
+  Future<String?> _setToken(String key, String? value) async {
+    final trimmed = value?.trim();
+    final token = (trimmed == null || trimmed.isEmpty) ? null : trimmed;
+    if (token == null) {
+      await _secureStorage.delete(key: key);
     } else {
-      await _secureStorage.write(
-        key: StorageKeys.githubToken,
-        value: githubToken,
-      );
+      await _secureStorage.write(key: key, value: token);
     }
+    return token;
   }
 }

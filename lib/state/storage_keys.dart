@@ -11,8 +11,10 @@ class StorageKeys {
   static const ignoredPackageNames = 'library.ignoredPackageNames';
   static const updateHistory = 'library.updateHistory';
 
-  /// Secure-storage key (not SharedPreferences) for the optional GitHub
-  /// personal access token — kept here anyway so the key name stays in one
-  /// place between [SettingsController] and [BackgroundUpdateChecker].
+  /// Secure-storage keys (not SharedPreferences) for the optional personal
+  /// access tokens — kept here anyway so the key names stay in one place
+  /// between [SettingsController] and [BackgroundUpdateChecker].
   static const githubToken = 'settings.githubToken';
+  static const gitlabToken = 'settings.gitlabToken';
+  static const codebergToken = 'settings.codebergToken';
 }

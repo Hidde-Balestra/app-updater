@@ -143,4 +143,50 @@ void main() {
     await reloaded.load();
     expect(reloaded.githubToken, isNull);
   });
+
+  test('gitlabToken and codebergToken are null by default', () async {
+    final settings = SettingsController(scheduler: _FakeBackgroundScheduler());
+    await settings.load();
+
+    expect(settings.gitlabToken, isNull);
+    expect(settings.codebergToken, isNull);
+  });
+
+  test('setGitlabToken persists the token across a reload', () async {
+    final settings = SettingsController(scheduler: _FakeBackgroundScheduler());
+    await settings.load();
+
+    await settings.setGitlabToken('glpat-example123');
+
+    expect(settings.gitlabToken, 'glpat-example123');
+    final reloaded = SettingsController(scheduler: _FakeBackgroundScheduler());
+    await reloaded.load();
+    expect(reloaded.gitlabToken, 'glpat-example123');
+  });
+
+  test('setCodebergToken persists the token across a reload', () async {
+    final settings = SettingsController(scheduler: _FakeBackgroundScheduler());
+    await settings.load();
+
+    await settings.setCodebergToken('codeberg-example123');
+
+    expect(settings.codebergToken, 'codeberg-example123');
+    final reloaded = SettingsController(scheduler: _FakeBackgroundScheduler());
+    await reloaded.load();
+    expect(reloaded.codebergToken, 'codeberg-example123');
+  });
+
+  test('setGitlabToken and setCodebergToken clear the token when set to an '
+      'empty value', () async {
+    final settings = SettingsController(scheduler: _FakeBackgroundScheduler());
+    await settings.load();
+    await settings.setGitlabToken('glpat-example123');
+    await settings.setCodebergToken('codeberg-example123');
+
+    await settings.setGitlabToken('');
+    await settings.setCodebergToken('');
+
+    expect(settings.gitlabToken, isNull);
+    expect(settings.codebergToken, isNull);
+  });
 }

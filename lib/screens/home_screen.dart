@@ -8,10 +8,37 @@ import '../widgets/section_header.dart';
 import 'add_app_screen.dart';
 import 'app_detail_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final AppLibrary library;
 
   const HomeScreen({super.key, required this.library});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  AppLibrary get library => widget.library;
+
+  bool _isSearching = false;
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _startSearch() {
+    setState(() => _isSearching = true);
+  }
+
+  void _stopSearch() {
+    setState(() {
+      _isSearching = false;
+      _searchController.clear();
+    });
+  }
 
   Future<void> _scanDevice(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
@@ -59,17 +86,34 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.appTitle),
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: l10n.searchHint,
+                  border: InputBorder.none,
+                ),
+                onChanged: (_) => setState(() {}),
+              )
+            : Text(l10n.appTitle),
         actions: [
           IconButton(
-            icon: const Icon(Icons.sync),
-            tooltip: l10n.scanDeviceTooltip,
-            onPressed: () => _scanDevice(context),
+            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            tooltip: l10n.searchTooltip,
+            onPressed: _isSearching ? _stopSearch : _startSearch,
           ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _openAdd(context),
-          ),
+          if (!_isSearching) ...[
+            IconButton(
+              icon: const Icon(Icons.sync),
+              tooltip: l10n.scanDeviceTooltip,
+              onPressed: () => _scanDevice(context),
+            ),
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () => _openAdd(context),
+            ),
+          ],
         ],
       ),
       body: ListenableBuilder(
@@ -78,6 +122,10 @@ class HomeScreen extends StatelessWidget {
           if (!library.isLoaded) {
             return const Center(child: CircularProgressIndicator());
           }
+
+          final query = _searchController.text.trim().toLowerCase();
+          bool matchesQuery(LibraryEntry e) =>
+              query.isEmpty || e.app.name.toLowerCase().contains(query);
 
           // Apps with an update available get their own section up top so
           // they're never buried below whatever else is tracked — the rest
@@ -111,7 +159,20 @@ class HomeScreen extends StatelessWidget {
               )
               .toList();
           final isEmpty = library.entries.isEmpty;
+          // The "update all" banner always reflects every pending update,
+          // not just the ones the current search matches — its own action
+          // (update everything) would otherwise disagree with its label.
           final updatableCount = updatableApps.length;
+
+          final visibleUpdatable = updatableApps.where(matchesQuery).toList();
+          final visibleMyApps = myApps.where(matchesQuery).toList();
+          final visibleFavorites = favoriteApps.where(matchesQuery).toList();
+          final noSearchResults =
+              query.isNotEmpty &&
+              !isEmpty &&
+              visibleUpdatable.isEmpty &&
+              visibleMyApps.isEmpty &&
+              visibleFavorites.isEmpty;
 
           return RefreshIndicator(
             onRefresh: library.checkAll,
@@ -128,10 +189,12 @@ class HomeScreen extends StatelessWidget {
                   ),
                 if (isEmpty)
                   _EmptyState(onAdd: () => _openAdd(context))
+                else if (noSearchResults)
+                  _NoSearchResults(query: query)
                 else ...[
-                  if (updatableApps.isNotEmpty) ...[
+                  if (visibleUpdatable.isNotEmpty) ...[
                     SectionHeader(title: l10n.sectionUpdatesAvailable),
-                    for (final entry in updatableApps)
+                    for (final entry in visibleUpdatable)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: AppListTile(
@@ -140,9 +203,9 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
                   ],
-                  if (myApps.isNotEmpty) ...[
+                  if (visibleMyApps.isNotEmpty) ...[
                     SectionHeader(title: l10n.sectionMyApps),
-                    for (final entry in myApps)
+                    for (final entry in visibleMyApps)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: AppListTile(
@@ -151,9 +214,9 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
                   ],
-                  if (favoriteApps.isNotEmpty) ...[
+                  if (visibleFavorites.isNotEmpty) ...[
                     SectionHeader(title: l10n.sectionFavoriteApps),
-                    for (final entry in favoriteApps)
+                    for (final entry in visibleFavorites)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: AppListTile(
@@ -203,6 +266,37 @@ class _UpdateAllBanner extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _NoSearchResults extends StatelessWidget {
+  final String query;
+
+  const _NoSearchResults({required this.query});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.only(top: 64),
+      child: Column(
+        children: [
+          Icon(
+            Icons.search_off,
+            size: 48,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            l10n.searchNoResults(query),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     );
   }

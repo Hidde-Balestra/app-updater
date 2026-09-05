@@ -340,4 +340,71 @@ void main() {
       expect(find.text('Fixed a crash on startup.'), findsOneWidget);
     },
   );
+
+  testWidgets('search filters the visible apps by name', (tester) async {
+    final library = _offlineLibrary(
+      deviceApps: _FakeDeviceAppsService({
+        'com.example.budget': '1.0.0',
+        'com.example.notes': '1.0.0',
+      }),
+    );
+    await library.load(curatedAppsOverride: testCuratedApps);
+    await library.addCustomApp(
+      name: 'MijnBudget',
+      type: AppSourceType.direct,
+      source: 'https://example.com/budget.apk',
+      packageName: 'com.example.budget',
+    );
+    await library.addCustomApp(
+      name: 'NotesApp',
+      type: AppSourceType.direct,
+      source: 'https://example.com/notes.apk',
+      packageName: 'com.example.notes',
+    );
+
+    await tester.pumpWidget(_wrap(HomeScreen(library: library)));
+    await tester.pumpAndSettle();
+
+    expect(find.text('MijnBudget'), findsOneWidget);
+    expect(find.text('NotesApp'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'budget');
+    await tester.pumpAndSettle();
+
+    expect(find.text('MijnBudget'), findsOneWidget);
+    expect(find.text('NotesApp'), findsNothing);
+
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+
+    expect(find.text('MijnBudget'), findsOneWidget);
+    expect(find.text('NotesApp'), findsOneWidget);
+  });
+
+  testWidgets('shows a no-results message when the search matches nothing', (
+    tester,
+  ) async {
+    final library = _offlineLibrary();
+    await library.load(curatedAppsOverride: testCuratedApps);
+    await library.addCustomApp(
+      name: 'MijnBudget',
+      type: AppSourceType.direct,
+      source: 'https://example.com/budget.apk',
+    );
+
+    await tester.pumpWidget(_wrap(HomeScreen(library: library)));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'nonexistentapp');
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Geen apps gevonden voor "nonexistentapp".'),
+      findsOneWidget,
+    );
+  });
 }

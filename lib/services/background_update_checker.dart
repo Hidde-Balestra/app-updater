@@ -46,13 +46,19 @@ class BackgroundUpdateChecker {
     if (apps.isEmpty) return;
 
     final githubToken = await _secureStorage.read(key: StorageKeys.githubToken);
+    final gitlabToken = await _secureStorage.read(key: StorageKeys.gitlabToken);
+    final codebergToken = await _secureStorage.read(
+      key: StorageKeys.codebergToken,
+    );
 
-    final updatableNames = <String>[];
+    final updatableApps = <TrackedApp>[];
     for (final app in apps) {
       final result = await _resolver.resolve(
         app.sourceType,
         app.sourceIdentifier,
         githubToken: githubToken,
+        gitlabToken: gitlabToken,
+        codebergToken: codebergToken,
       );
       if (result case ReleaseSuccess(:final info)) {
         final hasUpdate = appHasUpdate(
@@ -64,12 +70,18 @@ class BackgroundUpdateChecker {
           skippedVersion: app.skippedVersion,
           latestVersion: info.version,
         );
-        if (hasUpdate && !skipped) updatableNames.add(app.name);
+        if (hasUpdate && !skipped) updatableApps.add(app);
       }
     }
 
-    if (updatableNames.isNotEmpty) {
-      await _notifications.showUpdatesAvailable(updatableNames);
+    if (updatableApps.isNotEmpty) {
+      await _notifications.showUpdatesAvailable(
+        updatableApps.map((a) => a.name).toList(),
+        // Only meaningful when there's exactly one — with several, there's
+        // nothing in particular to jump to, so tapping just opens the app
+        // as usual (see NotificationService.showUpdatesAvailable).
+        payload: updatableApps.length == 1 ? updatableApps.single.id : null,
+      );
     }
   }
 }

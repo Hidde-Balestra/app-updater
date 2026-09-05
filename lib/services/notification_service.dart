@@ -17,13 +17,18 @@ class NotificationService {
   NotificationService({FlutterLocalNotificationsPlugin? plugin})
     : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
 
-  Future<void> _ensureInitialized() async {
+  Future<void> _ensureInitialized({
+    void Function(String? payload)? onTap,
+  }) async {
     if (_initialized) return;
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
     await _plugin.initialize(
       settings: const InitializationSettings(android: androidSettings),
+      onDidReceiveNotificationResponse: onTap == null
+          ? null
+          : (response) => onTap(response.payload),
     );
     await _plugin
         .resolvePlatformSpecificImplementation<
@@ -33,9 +38,34 @@ class NotificationService {
     _initialized = true;
   }
 
+  /// Registers [onTap] to fire whenever the user taps a notification while
+  /// the app is already running. Called once at app startup — see
+  /// [getLaunchPayload] for the case where tapping the notification is what
+  /// launches the app in the first place, which this callback never fires
+  /// for.
+  Future<void> initialize({void Function(String? payload)? onTap}) {
+    return _ensureInitialized(onTap: onTap);
+  }
+
+  /// The payload of the notification that launched the app from a cold
+  /// start (tapping a notification while the app wasn't already running),
+  /// or null if the app wasn't launched that way.
+  Future<String?> getLaunchPayload() async {
+    final details = await _plugin.getNotificationAppLaunchDetails();
+    if (details == null || !details.didNotificationLaunchApp) return null;
+    return details.notificationResponse?.payload;
+  }
+
   /// Shows a single notification summarizing that [appNames] have updates
-  /// available. No-op for an empty list.
-  Future<void> showUpdatesAvailable(List<String> appNames) async {
+  /// available. No-op for an empty list. [payload] is handed back to
+  /// [initialize]'s `onTap` (or [getLaunchPayload]) when tapped — the sole
+  /// updatable app's id when there's exactly one, so the tap can jump
+  /// straight to it, or null when there are several (nothing to jump to in
+  /// particular, so tapping just opens the app as usual).
+  Future<void> showUpdatesAvailable(
+    List<String> appNames, {
+    String? payload,
+  }) async {
     if (appNames.isEmpty) return;
     await _ensureInitialized();
 
@@ -55,6 +85,7 @@ class NotificationService {
       title: title,
       body: appNames.join(', '),
       notificationDetails: const NotificationDetails(android: androidDetails),
+      payload: payload,
     );
   }
 }
