@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:app_updater/l10n/app_localizations.dart';
 import 'package:app_updater/models/app_source_type.dart';
@@ -12,6 +13,7 @@ import 'package:app_updater/services/github_service.dart';
 import 'package:app_updater/services/release_resolver.dart';
 import 'package:app_updater/services/signing_service.dart';
 import 'package:app_updater/state/app_library.dart';
+import 'package:app_updater/widgets/app_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -38,14 +40,21 @@ class _FakeAccrescentService extends AccrescentService {
 // platform channel, which flutter_test doesn't mock by default and which
 // hangs rather than failing fast when unmocked under testWidgets.
 class _FakeDeviceAppsService extends DeviceAppsService {
+  final Uint8List? icon;
+  _FakeDeviceAppsService({this.icon});
+
   @override
   Future<String?> installedVersion(String packageName) async => null;
+
+  @override
+  Future<Uint8List?> installedIcon(String packageName) async => icon;
 }
 
 /// A library whose GitHub source always resolves to version 2.0.0.
 AppLibrary _githubLibrary({
   ApkInstallerService? installer,
   SigningService? signing,
+  DeviceAppsService? deviceApps,
 }) {
   final client = MockClient((request) async {
     if (request.url.host == 'api.github.com') {
@@ -70,7 +79,7 @@ AppLibrary _githubLibrary({
       github: GithubService(client: client),
       fdroid: FdroidService(client: client),
     ),
-    deviceApps: _FakeDeviceAppsService(),
+    deviceApps: deviceApps ?? _FakeDeviceAppsService(),
     installer: installer,
     signing: signing,
   );
@@ -234,4 +243,102 @@ void main() {
 
     expect(find.textContaining('Laatst gecontroleerd:'), findsOneWidget);
   });
+
+  testWidgets('tapping the check-now button re-checks the app', (tester) async {
+    var requestCount = 0;
+    final client = MockClient((request) async {
+      requestCount++;
+      return http.Response(
+        jsonEncode({
+          'tag_name': 'v2.0.0',
+          'assets': [
+            {
+              'name': 'app.apk',
+              'browser_download_url': 'https://x/app.apk',
+              'size': 1,
+            },
+          ],
+        }),
+        200,
+      );
+    });
+    final library = AppLibrary(
+      resolver: ReleaseResolver(
+        github: GithubService(client: client),
+        fdroid: FdroidService(
+          client: MockClient((r) async => http.Response('', 503)),
+        ),
+      ),
+      deviceApps: _FakeDeviceAppsService(),
+    );
+    await library.load(curatedAppsOverride: testCuratedApps);
+    final app = await library.addCustomApp(
+      name: 'MijnApp',
+      type: AppSourceType.github,
+      source: 'owner/repo',
+    );
+
+    await tester.pumpWidget(
+      _wrap(AppDetailScreen(library: library, appId: app.id)),
+    );
+    await tester.pumpAndSettle();
+
+    final requestsBeforeTap = requestCount;
+    await tester.tap(find.byTooltip('Nu controleren'));
+    await tester.pumpAndSettle();
+
+    expect(requestCount, requestsBeforeTap + 1);
+  });
+
+  testWidgets('shows the app\'s real icon when it is installed on the '
+      'device', (tester) async {
+    // A minimal valid 1x1 transparent PNG, so Image.memory can actually
+    // decode it instead of erroring out on garbage bytes.
+    final iconBytes = Uint8List.fromList(
+      base64Decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42'
+        'YAAAAASUVORK5CYII=',
+      ),
+    );
+    final library = _githubLibrary(
+      deviceApps: _FakeDeviceAppsService(icon: iconBytes),
+    );
+    await library.load(curatedAppsOverride: testCuratedApps);
+    final app = await library.addCustomApp(
+      name: 'MijnApp',
+      type: AppSourceType.github,
+      source: 'owner/repo',
+      packageName: 'com.example.mijnapp',
+    );
+
+    await tester.pumpWidget(
+      _wrap(AppDetailScreen(library: library, appId: app.id)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(Image), findsOneWidget);
+    expect(find.byType(AppAvatar), findsNothing);
+  });
+
+  testWidgets(
+    'falls back to the colored-initials avatar when there is no package '
+    'name to look up an icon for',
+    (tester) async {
+      final library = _githubLibrary();
+      await library.load(curatedAppsOverride: testCuratedApps);
+      final app = await library.addCustomApp(
+        name: 'MijnApp',
+        type: AppSourceType.github,
+        source: 'owner/repo',
+      );
+
+      await tester.pumpWidget(
+        _wrap(AppDetailScreen(library: library, appId: app.id)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AppAvatar), findsWidgets);
+      expect(find.byType(Image), findsNothing);
+    },
+  );
 }

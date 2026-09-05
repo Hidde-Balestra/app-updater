@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:intl/intl.dart';
@@ -28,6 +30,16 @@ class AppDetailScreen extends StatefulWidget {
 class _AppDetailScreenState extends State<AppDetailScreen> {
   bool _isDownloading = false;
   double _progress = 0;
+  bool _isCheckingNow = false;
+
+  Future<void> _checkNow(String appId) async {
+    setState(() => _isCheckingNow = true);
+    try {
+      await widget.library.checkOne(appId);
+    } finally {
+      if (mounted) setState(() => _isCheckingNow = false);
+    }
+  }
 
   String _humanSize(int? bytes) {
     if (bytes == null) return '';
@@ -178,7 +190,9 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
             children: [
               Row(
                 children: [
-                  AppAvatar(
+                  _AppIconAvatar(
+                    library: widget.library,
+                    packageName: entry.app.packageName,
                     name: entry.app.name,
                     initials: entry.app.initials,
                     size: 56,
@@ -382,20 +396,40 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                   ],
                 ),
               ),
-              if (entry.lastCheckedAt != null) ...[
-                const SizedBox(height: 6),
-                Text(
-                  l10n.lastCheckedLabel(
-                    DateFormat(
-                      'd MMM yyyy, HH:mm',
-                    ).format(entry.lastCheckedAt!),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  if (entry.lastCheckedAt != null)
+                    Expanded(
+                      child: Text(
+                        l10n.lastCheckedLabel(
+                          DateFormat(
+                            'd MMM yyyy, HH:mm',
+                          ).format(entry.lastCheckedAt!),
+                        ),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    )
+                  else
+                    const Spacer(),
+                  IconButton(
+                    icon: _isCheckingNow
+                        ? const SizedBox(
+                            height: 16,
+                            width: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.refresh, size: 20),
+                    tooltip: l10n.checkNowTooltip,
+                    onPressed: _isCheckingNow
+                        ? null
+                        : () => _checkNow(entry.app.id),
                   ),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 32),
+                ],
+              ),
+              const SizedBox(height: 26),
               OutlinedButton(
                 onPressed: () => _confirmRemove(entry),
                 style: OutlinedButton.styleFrom(
@@ -414,4 +448,75 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
 
 extension _FirstOrNull<T> on Iterable<T> {
   T? get firstOrNull => isEmpty ? null : first;
+}
+
+/// Shows the app's real launcher icon when it's actually installed on the
+/// device (fetched once via [AppLibrary.installedIcon]), falling back to
+/// the generic colored-initials [AppAvatar] while that's loading, if it
+/// comes back empty, or if there's no package name to look up at all —
+/// deliberately scoped to this one avatar per screen visit rather than
+/// every list tile across the app, to avoid a device query per row.
+class _AppIconAvatar extends StatefulWidget {
+  final AppLibrary library;
+  final String? packageName;
+  final String name;
+  final String initials;
+  final double size;
+
+  const _AppIconAvatar({
+    required this.library,
+    required this.packageName,
+    required this.name,
+    required this.initials,
+    required this.size,
+  });
+
+  @override
+  State<_AppIconAvatar> createState() => _AppIconAvatarState();
+}
+
+class _AppIconAvatarState extends State<_AppIconAvatar> {
+  Future<Uint8List?>? _iconFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    final packageName = widget.packageName;
+    if (packageName != null && packageName.trim().isNotEmpty) {
+      _iconFuture = widget.library.installedIcon(packageName);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final future = _iconFuture;
+    if (future == null) {
+      return AppAvatar(
+        name: widget.name,
+        initials: widget.initials,
+        size: widget.size,
+      );
+    }
+    return FutureBuilder<Uint8List?>(
+      future: future,
+      builder: (context, snapshot) {
+        final bytes = snapshot.data;
+        if (bytes == null || bytes.isEmpty) {
+          return AppAvatar(
+            name: widget.name,
+            initials: widget.initials,
+            size: widget.size,
+          );
+        }
+        return ClipOval(
+          child: Image.memory(
+            bytes,
+            width: widget.size,
+            height: widget.size,
+            fit: BoxFit.cover,
+          ),
+        );
+      },
+    );
+  }
 }

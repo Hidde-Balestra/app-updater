@@ -31,6 +31,7 @@
       "time": {"type": "String"}
     }
   },
+  "checkNowTooltip": "Nu controleren",
   "scanDeviceTooltip": "Apparaat scannen",
   "scanDeviceResult": "{updated} van {eligible} apps gesynchroniseerd",
   "@scanDeviceResult": {

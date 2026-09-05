@@ -133,4 +133,77 @@ void main() {
 
     expect(reloaded.entries.single.app.name, 'MijnBudget');
   });
+
+  group('exportBackupData/importBackupData', () {
+    test(
+      'round-trips tracked apps and ignored packages into a fresh library',
+      () async {
+        final source = AppLibrary(resolver: _offlineResolver());
+        await source.load(curatedAppsOverride: testCuratedApps);
+        await source.addCustomApp(
+          name: 'MijnBudget',
+          type: AppSourceType.direct,
+          source: 'https://example.com/mijnbudget.apk',
+        );
+        await source.ignorePackage('com.example.ignored');
+        final backup = source.exportBackupData();
+
+        SharedPreferences.setMockInitialValues({});
+        final target = AppLibrary(resolver: _offlineResolver());
+        await target.load(curatedAppsOverride: testCuratedApps);
+        final added = await target.importBackupData(backup);
+
+        expect(added, 1);
+        expect(target.entries.single.app.name, 'MijnBudget');
+        expect(target.ignoredPackageNames, {'com.example.ignored'});
+      },
+    );
+
+    test(
+      'merges newly-ignored packages without dropping existing ones',
+      () async {
+        final library = AppLibrary(resolver: _offlineResolver());
+        await library.load(curatedAppsOverride: testCuratedApps);
+        await library.ignorePackage('com.example.already');
+
+        await library.importBackupData({
+          'trackedApps': <dynamic>[],
+          'ignoredPackageNames': ['com.example.new'],
+        });
+
+        expect(library.ignoredPackageNames, {
+          'com.example.already',
+          'com.example.new',
+        });
+      },
+    );
+
+    test('tolerates a backup with no ignoredPackageNames key', () async {
+      final library = AppLibrary(resolver: _offlineResolver());
+      await library.load(curatedAppsOverride: testCuratedApps);
+
+      final added = await library.importBackupData({
+        'trackedApps': <dynamic>[],
+      });
+
+      expect(added, 0);
+      expect(library.ignoredPackageNames, isEmpty);
+    });
+
+    test('persists the ignored packages restored via a backup', () async {
+      final source = AppLibrary(resolver: _offlineResolver());
+      await source.load(curatedAppsOverride: testCuratedApps);
+      await source.ignorePackage('com.example.ignored');
+      final backup = source.exportBackupData();
+
+      SharedPreferences.setMockInitialValues({});
+      final target = AppLibrary(resolver: _offlineResolver());
+      await target.load(curatedAppsOverride: testCuratedApps);
+      await target.importBackupData(backup);
+
+      final reloaded = AppLibrary(resolver: _offlineResolver());
+      await reloaded.load(curatedAppsOverride: testCuratedApps);
+      expect(reloaded.ignoredPackageNames, {'com.example.ignored'});
+    });
+  });
 }

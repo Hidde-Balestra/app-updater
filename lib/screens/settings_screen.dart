@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:package_info_plus/package_info_plus.dart';
@@ -52,11 +54,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     };
   }
 
+  /// Exports tracked apps, ignored packages and non-credential settings
+  /// (theme, language, update-check behaviour) as one backup — deliberately
+  /// excludes GitHub/GitLab/Codeberg tokens, since those are credentials
+  /// and this ends up wherever the user pastes it.
   Future<void> _exportToClipboard() async {
     final l10n = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
     final count = widget.library.entries.length;
-    await Clipboard.setData(ClipboardData(text: widget.library.exportJson()));
+    final backup = {
+      'library': widget.library.exportBackupData(),
+      'settings': widget.settings.exportSettingsData(),
+    };
+    await Clipboard.setData(ClipboardData(text: jsonEncode(backup)));
     messenger.showSnackBar(SnackBar(content: Text(l10n.exportSuccess(count))));
   }
 
@@ -70,7 +80,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return;
     }
     try {
-      final added = await widget.library.importJson(raw);
+      final decoded = jsonDecode(raw);
+      int added;
+      if (decoded is Map<String, dynamic> && decoded['library'] is Map) {
+        added = await widget.library.importBackupData(
+          (decoded['library'] as Map).cast<String, dynamic>(),
+        );
+        final settingsData = decoded['settings'];
+        if (settingsData is Map) {
+          await widget.settings.importSettingsData(
+            settingsData.cast<String, dynamic>(),
+          );
+        }
+      } else {
+        // A bare list — a backup made by an older version of this app,
+        // before settings/ignored packages were included.
+        added = await widget.library.importJson(raw);
+      }
       messenger.showSnackBar(
         SnackBar(
           content: Text(

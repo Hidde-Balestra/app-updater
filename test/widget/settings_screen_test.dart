@@ -223,4 +223,72 @@ void main() {
     expect(settings.gitlabToken, 'glpat-abc123');
     expect(find.text('Ingesteld'), findsOneWidget);
   });
+
+  testWidgets(
+    'importing a backup restores tracked apps, ignored packages and settings',
+    (tester) async {
+      final sourceSettings = _settings();
+      await sourceSettings.load();
+      await sourceSettings.setThemeMode(ThemeMode.dark);
+      final sourceLibrary = _offlineLibrary();
+      await sourceLibrary.load(curatedAppsOverride: testCuratedApps);
+      await sourceLibrary.addCustomApp(
+        name: 'MijnBudget',
+        type: AppSourceType.direct,
+        source: 'https://example.com/mijnbudget.apk',
+      );
+      await sourceLibrary.ignorePackage('com.example.ignored');
+
+      await tester.pumpWidget(
+        _wrap(SettingsScreen(settings: sourceSettings, library: sourceLibrary)),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Exporteren naar klembord'),
+        100,
+        scrollable: find.byType(Scrollable),
+      );
+      await tester.tap(find.text('Exporteren naar klembord'));
+      await tester.pumpAndSettle();
+
+      // A fresh install: separate SharedPreferences/secure-storage state,
+      // sharing only the clipboard the export above just filled (MockClipboard
+      // is a single instance installed once in setUp, so its `_text` field
+      // carries over within this one test).
+      SharedPreferences.setMockInitialValues({});
+      FlutterSecureStorage.setMockInitialValues({});
+      final targetSettings = _settings();
+      await targetSettings.load();
+      final targetLibrary = _offlineLibrary();
+      await targetLibrary.load(curatedAppsOverride: testCuratedApps);
+
+      // Pump an unrelated widget first so the target's MaterialApp/Scaffold
+      // is a genuinely new element tree — otherwise Flutter's reconciliation
+      // reuses the source screen's ScaffoldMessenger state (same widget
+      // types, no keys), and its still-showing export snackbar carries over.
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpWidget(
+        _wrap(SettingsScreen(settings: targetSettings, library: targetLibrary)),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Importeren vanaf klembord'),
+        100,
+        scrollable: find.byType(Scrollable),
+      );
+      await tester.tap(find.text('Importeren vanaf klembord'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 nieuwe apps geïmporteerd'), findsOneWidget);
+      expect(
+        targetLibrary.entries.any((e) => e.app.name == 'MijnBudget'),
+        isTrue,
+      );
+      expect(
+        targetLibrary.ignoredPackageNames,
+        contains('com.example.ignored'),
+      );
+      expect(targetSettings.themeMode, ThemeMode.dark);
+    },
+  );
 }

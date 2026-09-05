@@ -1,5 +1,6 @@
 import 'dart:async' show unawaited;
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show ChangeNotifier;
 import 'package:flutter/services.dart' show rootBundle;
@@ -507,7 +508,44 @@ class AppLibrary extends ChangeNotifier {
     if (decoded is! List) {
       throw const FormatException('Expected a JSON list of apps.');
     }
-    final imported = decoded.cast<Map<String, dynamic>>().map(
+    return _importTrackedApps(decoded);
+  }
+
+  /// The fuller backup used by the Settings screen's export/import, on top
+  /// of [exportJson]/[importJson]'s tracked-apps-only format — also covers
+  /// [ignoredPackageNames], which "van toestel" relies on to keep dismissed
+  /// suggestions dismissed after restoring on a new device.
+  Map<String, dynamic> exportBackupData() => {
+    'trackedApps': entries.map((e) => e.app.toJson()).toList(),
+    'ignoredPackageNames': ignoredPackageNames.toList(),
+  };
+
+  /// Restores from [exportBackupData]'s shape. Returns how many new tracked
+  /// apps were added, same as [importJson] — newly-ignored package names
+  /// are merged in silently since there's no equivalent "already exists"
+  /// concept for them worth reporting.
+  Future<int> importBackupData(Map<String, dynamic> data) async {
+    final trackedApps = data['trackedApps'];
+    final added = trackedApps is List
+        ? await _importTrackedApps(trackedApps)
+        : 0;
+
+    final ignored = data['ignoredPackageNames'];
+    if (ignored is List) {
+      final newlyIgnored = ignored.whereType<String>().where(
+        (name) => !ignoredPackageNames.contains(name),
+      );
+      if (newlyIgnored.isNotEmpty) {
+        ignoredPackageNames = {...ignoredPackageNames, ...newlyIgnored};
+        notifyListeners();
+        await _persistIgnoredPackageNames();
+      }
+    }
+    return added;
+  }
+
+  Future<int> _importTrackedApps(List rawList) async {
+    final imported = rawList.cast<Map<String, dynamic>>().map(
       TrackedApp.fromJson,
     );
     final newOnes = imported
@@ -524,6 +562,12 @@ class AppLibrary extends ChangeNotifier {
     await _persist();
     await Future.wait(newOnes.map((app) => checkOne(app.id)));
     return newOnes.length;
+  }
+
+  /// The real launcher icon for an installed app, straight from the
+  /// device's package manager — see [DeviceAppsService.installedIcon].
+  Future<Uint8List?> installedIcon(String packageName) {
+    return _deviceApps.installedIcon(packageName);
   }
 
   /// Scans the device for every tracked app that has a [TrackedApp.packageName]

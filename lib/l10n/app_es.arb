@@ -31,6 +31,7 @@
       "time": {"type": "String"}
     }
   },
+  "checkNowTooltip": "Comprobar ahora",
   "scanDeviceTooltip": "Escanear dispositivo",
   "scanDeviceResult": "{updated} de {eligible} apps sincronizadas",
   "@scanDeviceResult": {

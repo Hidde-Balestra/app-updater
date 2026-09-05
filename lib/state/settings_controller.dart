@@ -153,4 +153,40 @@ class SettingsController extends ChangeNotifier {
     }
     return token;
   }
+
+  /// Preferences worth restoring on a new device, for the Settings screen's
+  /// backup export. Deliberately excludes [githubToken]/[gitlabToken]/
+  /// [codebergToken] — they're credentials, and ending up in a clipboard
+  /// (or wherever the user pastes a backup) is not something to do without
+  /// asking — and [autoCheckIntervalHours], which has no UI to change it
+  /// in the first place.
+  Map<String, dynamic> exportSettingsData() => {
+    'themeMode': themeMode.name,
+    'locale': locale?.languageCode,
+    'autoCheckEnabled': autoCheckEnabled,
+    'wifiOnly': wifiOnly,
+    'notificationsEnabled': notificationsEnabled,
+  };
+
+  /// Restores from [exportSettingsData]'s shape via the normal setters, so
+  /// every side effect they already have (persisting, rescheduling the
+  /// background check, ...) happens exactly as if the user had changed
+  /// each setting by hand.
+  Future<void> importSettingsData(Map<String, dynamic> data) async {
+    final themeName = data['themeMode'];
+    if (themeName is String) {
+      final mode = ThemeMode.values.where((m) => m.name == themeName);
+      if (mode.isNotEmpty) await setThemeMode(mode.first);
+    }
+    final localeCode = data['locale'];
+    await setLocale(
+      localeCode is String && localeCode.isNotEmpty ? Locale(localeCode) : null,
+    );
+    final autoCheck = data['autoCheckEnabled'];
+    if (autoCheck is bool) await setAutoCheckEnabled(autoCheck);
+    final wifi = data['wifiOnly'];
+    if (wifi is bool) await setWifiOnly(wifi);
+    final notifications = data['notificationsEnabled'];
+    if (notifications is bool) await setNotificationsEnabled(notifications);
+  }
 }

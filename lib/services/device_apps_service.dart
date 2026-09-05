@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:installed_apps/installed_apps.dart';
 
 import '../models/installed_app.dart';
@@ -16,6 +18,17 @@ class DeviceAppsService {
     if (trimmed.isEmpty) return null;
     final info = await InstalledApps.getAppInfo(trimmed);
     return info?.versionName;
+  }
+
+  /// Returns the installed app's real launcher icon as PNG bytes, or null
+  /// if the package name is blank or the app isn't installed. Used to show
+  /// a real icon on the detail screen instead of the generic colored-
+  /// initials avatar, for an app that's actually on the device.
+  Future<Uint8List?> installedIcon(String packageName) async {
+    final trimmed = packageName.trim();
+    if (trimmed.isEmpty) return null;
+    final info = await InstalledApps.getAppInfo(trimmed);
+    return info?.icon;
   }
 
   /// Package names of every launchable, non-system app currently installed.
