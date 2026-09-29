@@ -43,5 +43,13 @@
     "sourceIdentifier": "mollyim/mollyim-android",
     "infoUrl": "https://github.com/mollyim/mollyim-android/releases",
     "packageName": "im.molly.app"
+  },
+  {
+    "id": "privacychat",
+    "name": "PrivacyChat",
+    "sourceType": "github",
+    "sourceIdentifier": "Hidde-Balestra/chat-flutter",
+    "infoUrl": "https://github.com/Hidde-Balestra/chat-flutter",
+    "packageName": "nl.hiddebalestra.privacychat"
   }
 ]
