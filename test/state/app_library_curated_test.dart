@@ -162,4 +162,60 @@ void main() {
       expect(entry.app.installedVersion, '4.8.4');
     },
   );
+
+  test('load() backfills includePrereleases for a favorite added before the '
+      'curated entry needed it, and re-checks it against the full releases '
+      'list instead of releases/latest', () async {
+    // Simulates PrivacyChat having been tracked before curated_apps.json
+    // set includePrereleases for it — without the backfill, it would keep
+    // resolving against whatever releases/latest returns (or nothing, for
+    // a project that only ever ships pre-releases) instead of the actual
+    // newest alpha build.
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      'library.trackedApps',
+      jsonEncode([
+        {
+          'id': 'privacychat',
+          'name': 'PrivacyChat',
+          'sourceType': 'github',
+          'sourceIdentifier': 'Hidde-Balestra/chat-flutter',
+          'isCurated': true,
+          'installedVersion': null,
+          'packageName': 'nl.hiddebalestra.privacychat',
+          'includePrereleases': false,
+        },
+      ]),
+    );
+
+    String? requestedPath;
+    final client = MockClient((request) async {
+      requestedPath = request.url.path;
+      return http.Response(
+        jsonEncode([
+          {
+            'tag_name': 'v0.1.0-alpha.25',
+            'prerelease': true,
+            'assets': [
+              {
+                'name': 'app.apk',
+                'browser_download_url': 'https://x/app.apk',
+                'size': 1,
+              },
+            ],
+          },
+        ]),
+        200,
+      );
+    });
+    final library = AppLibrary(
+      resolver: ReleaseResolver(github: GithubService(client: client)),
+      deviceApps: _FakeDeviceAppsService(const {}),
+    );
+    await library.load();
+
+    expect(library.entries.single.app.includePrereleases, isTrue);
+    expect(requestedPath, '/repos/Hidde-Balestra/chat-flutter/releases');
+    expect(library.entries.single.latestRelease?.version, '0.1.0-alpha.25');
+  });
 }

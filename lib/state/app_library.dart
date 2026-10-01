@@ -106,7 +106,7 @@ class AppLibrary extends ChangeNotifier {
     updateHistory = await _loadUpdateHistory();
     isLoaded = true;
     notifyListeners();
-    await _backfillCuratedPackageNames();
+    await _backfillFromCuratedSource();
     // Re-read every tracked app's real installed version from the device on
     // every open, not just apps whose package name was just backfilled by
     // the call above. Without this, an app updated outside App Updater
@@ -119,33 +119,51 @@ class AppLibrary extends ChangeNotifier {
     unawaited(checkAll());
   }
 
-  /// Self-heals tracked favorites added before their [CuratedApp] carried a
-  /// package name (or before this app knew it at all — e.g. Aurora Store):
-  /// without it, device-scan matching and installed-version sync silently
-  /// can't find the app, so it looks perpetually "update available" and
-  /// keeps reappearing in add-app suggestions even though it's tracked.
-  /// Runs once per [load], adopts the package name from the matching
-  /// curated entry wherever one is now known, and immediately syncs the
-  /// real installed version for it too — otherwise the false "update
-  /// available" would only clear itself the next time the user happens to
-  /// tap "scan device".
-  Future<void> _backfillCuratedPackageNames() async {
-    final backfilledIds = <String>[];
+  /// Self-heals tracked favorites added before their [CuratedApp] gained a
+  /// package name or had [CuratedApp.includePrereleases] turned on (e.g.
+  /// PrivacyChat, added to curated_apps.json before it needed that flag):
+  /// without a package name, device-scan matching and installed-version
+  /// sync silently can't find the app; without the pre-releases flag, a
+  /// GitHub source that only ever ships pre-release builds keeps resolving
+  /// against whatever (if anything) GitHub's `/releases/latest` happens to
+  /// return — not the actual newest build — which can flag a false, even
+  /// backwards, "update available" forever. Runs once per [load], adopts
+  /// both fields from the matching curated entry, and immediately re-syncs
+  /// the installed version / re-checks the release for whichever changed —
+  /// otherwise that would only clear itself the next time the user happens
+  /// to tap "scan device" or manually re-check.
+  Future<void> _backfillFromCuratedSource() async {
+    final resyncIds = <String>[];
+    final recheckIds = <String>[];
     for (final entry in entries) {
       if (!entry.app.isCurated) continue;
-      if ((entry.app.packageName ?? '').trim().isNotEmpty) continue;
       final matches = curatedApps.where((c) => c.id == entry.app.id);
-      final packageName = matches.isEmpty ? null : matches.first.packageName;
-      if (packageName == null || packageName.trim().isEmpty) continue;
+      if (matches.isEmpty) continue;
+      final curated = matches.first;
+
+      final needsPackageName =
+          (entry.app.packageName ?? '').trim().isEmpty &&
+          (curated.packageName ?? '').trim().isNotEmpty;
+      final needsPrereleaseFlag =
+          entry.app.includePrereleases != curated.includePrereleases;
+      if (!needsPackageName && !needsPrereleaseFlag) continue;
+
       _updateEntry(
         entry.app.id,
-        (e) => e.copyWith(app: e.app.copyWith(packageName: packageName)),
+        (e) => e.copyWith(
+          app: e.app.copyWith(
+            packageName: needsPackageName ? curated.packageName : null,
+            includePrereleases: curated.includePrereleases,
+          ),
+        ),
       );
-      backfilledIds.add(entry.app.id);
+      if (needsPackageName) resyncIds.add(entry.app.id);
+      if (needsPrereleaseFlag) recheckIds.add(entry.app.id);
     }
-    if (backfilledIds.isEmpty) return;
+    if (resyncIds.isEmpty && recheckIds.isEmpty) return;
     await _persist();
-    await Future.wait(backfilledIds.map(_syncInstalledVersion));
+    await Future.wait(resyncIds.map(_syncInstalledVersion));
+    await Future.wait(recheckIds.map(checkOne));
   }
 
   Future<List<CuratedApp>> _loadCuratedApps() async {
