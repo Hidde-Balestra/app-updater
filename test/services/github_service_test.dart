@@ -155,4 +155,135 @@ void main() {
 
     expect(authHeader, isNull);
   });
+
+  group('includePrereleases', () {
+    test(
+      'queries the full releases list instead of /releases/latest',
+      () async {
+        final client = MockClient((request) async {
+          expect(
+            request.url.toString(),
+            'https://api.github.com/repos/owner/repo/releases',
+          );
+          return http.Response(
+            jsonEncode([
+              {
+                'tag_name': 'v1.0.0-alpha.2',
+                'prerelease': true,
+                'assets': [
+                  {
+                    'name': 'app.apk',
+                    'browser_download_url': 'https://x/alpha2.apk',
+                    'size': 1,
+                  },
+                ],
+              },
+            ]),
+            200,
+          );
+        });
+
+        final result = await GithubService(
+          client: client,
+        ).fetchLatestRelease('owner/repo', includePrereleases: true);
+
+        expect(result, isA<ReleaseSuccess>());
+        expect((result as ReleaseSuccess).info.version, '1.0.0-alpha.2');
+      },
+    );
+
+    test('takes the first (newest) entry in the releases list', () async {
+      final client = MockClient((request) async {
+        return http.Response(
+          jsonEncode([
+            {
+              'tag_name': 'v1.0.0-alpha.2',
+              'prerelease': true,
+              'assets': [
+                {
+                  'name': 'app.apk',
+                  'browser_download_url': 'https://x/alpha2.apk',
+                  'size': 1,
+                },
+              ],
+            },
+            {
+              'tag_name': 'v1.0.0-alpha.1',
+              'prerelease': true,
+              'assets': [
+                {
+                  'name': 'app.apk',
+                  'browser_download_url': 'https://x/alpha1.apk',
+                  'size': 1,
+                },
+              ],
+            },
+          ]),
+          200,
+        );
+      });
+
+      final result = await GithubService(
+        client: client,
+      ).fetchLatestRelease('owner/repo', includePrereleases: true);
+
+      expect(
+        (result as ReleaseSuccess).info.downloadUrl,
+        'https://x/alpha2.apk',
+      );
+    });
+
+    test('skips draft releases', () async {
+      final client = MockClient((request) async {
+        return http.Response(
+          jsonEncode([
+            {
+              'tag_name': 'v1.0.0-draft',
+              'draft': true,
+              'assets': [
+                {
+                  'name': 'app.apk',
+                  'browser_download_url': 'https://x/draft.apk',
+                  'size': 1,
+                },
+              ],
+            },
+            {
+              'tag_name': 'v1.0.0-alpha.1',
+              'prerelease': true,
+              'assets': [
+                {
+                  'name': 'app.apk',
+                  'browser_download_url': 'https://x/alpha1.apk',
+                  'size': 1,
+                },
+              ],
+            },
+          ]),
+          200,
+        );
+      });
+
+      final result = await GithubService(
+        client: client,
+      ).fetchLatestRelease('owner/repo', includePrereleases: true);
+
+      expect(
+        (result as ReleaseSuccess).info.downloadUrl,
+        'https://x/alpha1.apk',
+      );
+    });
+
+    test('returns ReleaseNotFound for an empty releases list', () async {
+      final client = MockClient(
+        (request) async => http.Response(jsonEncode([]), 200),
+      );
+
+      final result = await GithubService(
+        client: client,
+      ).fetchLatestRelease('owner/repo', includePrereleases: true);
+
+      expect(result, isA<ReleaseNotFound>());
+    });
+  });
 }

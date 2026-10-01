@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:app_updater/models/app_source_type.dart';
+import 'package:app_updater/models/curated_app.dart';
 import 'package:app_updater/services/codeberg_service.dart';
 import 'package:app_updater/services/fdroid_service.dart';
 import 'package:app_updater/services/github_service.dart';
@@ -124,6 +127,84 @@ void main() {
         );
 
         expect(authHeader, 'token codeberg-example');
+      },
+    );
+  });
+
+  group('includePrereleases', () {
+    test(
+      'addCustomApp with includePrereleases queries the full releases list',
+      () async {
+        String? requestedPath;
+        final client = MockClient((request) async {
+          requestedPath = request.url.path;
+          return http.Response(jsonEncode([]), 200);
+        });
+        final library = AppLibrary(
+          resolver: ReleaseResolver(github: GithubService(client: client)),
+        );
+        await library.load(curatedAppsOverride: testCuratedApps);
+
+        await library.addCustomApp(
+          name: 'MijnApp',
+          type: AppSourceType.github,
+          source: 'owner/repo',
+          includePrereleases: true,
+        );
+
+        expect(requestedPath, '/repos/owner/repo/releases');
+      },
+    );
+
+    test(
+      'addCustomApp without includePrereleases uses releases/latest',
+      () async {
+        String? requestedPath;
+        final client = MockClient((request) async {
+          requestedPath = request.url.path;
+          return http.Response('', 404);
+        });
+        final library = AppLibrary(
+          resolver: ReleaseResolver(github: GithubService(client: client)),
+        );
+        await library.load(curatedAppsOverride: testCuratedApps);
+
+        await library.addCustomApp(
+          name: 'MijnApp',
+          type: AppSourceType.github,
+          source: 'owner/repo',
+        );
+
+        expect(requestedPath, '/repos/owner/repo/releases/latest');
+      },
+    );
+
+    test(
+      'addFavorite propagates a curated app\'s includePrereleases flag',
+      () async {
+        String? requestedPath;
+        final client = MockClient((request) async {
+          requestedPath = request.url.path;
+          return http.Response(jsonEncode([]), 200);
+        });
+        final library = AppLibrary(
+          resolver: ReleaseResolver(github: GithubService(client: client)),
+        );
+        await library.load(curatedAppsOverride: testCuratedApps);
+
+        await library.addFavorite(
+          const CuratedApp(
+            id: 'alpha_app',
+            name: 'AlphaApp',
+            sourceType: AppSourceType.github,
+            sourceIdentifier: 'owner/alpha-repo',
+            infoUrl: 'https://github.com/owner/alpha-repo',
+            includePrereleases: true,
+          ),
+        );
+
+        expect(requestedPath, '/repos/owner/alpha-repo/releases');
+        expect(library.entries.single.app.includePrereleases, isTrue);
       },
     );
   });

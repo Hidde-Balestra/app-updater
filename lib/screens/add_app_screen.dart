@@ -39,6 +39,7 @@ class _AddAppScreenState extends State<AddAppScreen>
   final _packageNameController = TextEditingController();
 
   AppSourceType _sourceType = AppSourceType.github;
+  bool _includePrereleases = false;
   Timer? _debounce;
   String? _resolvedIdentifier;
   ReleaseResult? _previewResult;
@@ -238,7 +239,11 @@ class _AddAppScreenState extends State<AddAppScreen>
     }
 
     setState(() => _isChecking = true);
-    final result = await widget.library.previewSource(_sourceType, identifier);
+    final result = await widget.library.previewSource(
+      _sourceType,
+      identifier,
+      includePrereleases: _includePrereleases,
+    );
     if (!mounted) return;
     setState(() {
       _isChecking = false;
@@ -266,6 +271,7 @@ class _AddAppScreenState extends State<AddAppScreen>
       packageName: _packageNameController.text.trim().isNotEmpty
           ? _packageNameController.text.trim()
           : null,
+      includePrereleases: _includePrereleases,
     );
     await widget.library.installIfMissingFromDevice(app.id);
     if (!mounted) return;
@@ -276,6 +282,7 @@ class _AddAppScreenState extends State<AddAppScreen>
     setState(() {
       _previewResult = null;
       _resolvedIdentifier = null;
+      _includePrereleases = false;
     });
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
@@ -367,6 +374,20 @@ class _AddAppScreenState extends State<AddAppScreen>
           controller: _sourceController,
           decoration: InputDecoration(hintText: l10n.sourceFieldHint),
         ),
+        if (_sourceType == AppSourceType.github)
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
+            value: _includePrereleases,
+            title: Text(l10n.includePrereleasesLabel),
+            subtitle: Text(l10n.includePrereleasesSubtitle),
+            onChanged: (value) {
+              setState(() => _includePrereleases = value ?? false);
+              if (_sourceController.text.trim().isNotEmpty) {
+                _resolvePreview(_sourceController.text);
+              }
+            },
+          ),
         const SizedBox(height: 20),
         Text(
           l10n.displayNameLabel,

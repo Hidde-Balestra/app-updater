@@ -109,6 +109,8 @@
   "openInAccrescentButton": "Apri in Accrescent",
   "accrescentNoDirectDownload": "Le app di Accrescent non possono essere scaricate automaticamente — questa fonte controlla solo gli aggiornamenti. Tocca \"Apri in Accrescent\" per installare l'aggiornamento lì.",
   "sourceFieldHint": "GitHub / F-Droid / URL .apk diretto",
+  "includePrereleasesLabel": "Includi pre-release",
+  "includePrereleasesSubtitle": "Considera anche le release alpha/beta/rc come 'ultima' (per progetti senza release stabili)",
   "displayNameLabel": "NOME VISUALIZZATO (opzionale)",
   "displayNameHint": "es. IlMioBudget",
   "packageNameLabel": "NOME PACCHETTO (opzionale)",

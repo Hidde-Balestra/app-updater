@@ -27,6 +27,14 @@ class TrackedApp {
   /// matches, so skipping never silences updates forever.
   final String? skippedVersion;
 
+  /// For GitHub sources only: whether to also consider releases marked
+  /// "pre-release" (alpha/beta/rc) as the latest, instead of only the one
+  /// GitHub's own `/releases/latest` endpoint returns (which always skips
+  /// pre-releases and drafts). Off by default since most tracked apps ship
+  /// stable releases; apps that are permanently in alpha/beta need this on
+  /// or App Updater would never see a "latest" release for them at all.
+  final bool includePrereleases;
+
   const TrackedApp({
     required this.id,
     required this.name,
@@ -37,6 +45,7 @@ class TrackedApp {
     this.packageName,
     this.lastInstalledAt,
     this.skippedVersion,
+    this.includePrereleases = false,
   });
 
   TrackedApp copyWith({
@@ -45,6 +54,7 @@ class TrackedApp {
     String? packageName,
     DateTime? lastInstalledAt,
     String? skippedVersion,
+    bool? includePrereleases,
     bool clearSkippedVersion = false,
     bool clearInstalledVersion = false,
     bool clearLastInstalledAt = false,
@@ -64,6 +74,7 @@ class TrackedApp {
     skippedVersion: clearSkippedVersion
         ? null
         : (skippedVersion ?? this.skippedVersion),
+    includePrereleases: includePrereleases ?? this.includePrereleases,
   );
 
   Map<String, dynamic> toJson() => {
@@ -76,6 +87,7 @@ class TrackedApp {
     'packageName': packageName,
     'lastInstalledAt': lastInstalledAt?.toIso8601String(),
     'skippedVersion': skippedVersion,
+    'includePrereleases': includePrereleases,
   };
 
   factory TrackedApp.fromJson(Map<String, dynamic> json) => TrackedApp(
@@ -90,6 +102,7 @@ class TrackedApp {
         ? DateTime.parse(json['lastInstalledAt'] as String)
         : null,
     skippedVersion: json['skippedVersion'] as String?,
+    includePrereleases: json['includePrereleases'] as bool? ?? false,
   );
 
   /// Two initials used for the avatar, e.g. "MijnBudget" -> "MB".

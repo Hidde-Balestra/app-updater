@@ -27,6 +27,7 @@ void main() {
         packageName: 'nl.hiddebalestra.taalleer',
         lastInstalledAt: DateTime.utc(2026, 1, 2, 3, 4, 5),
         skippedVersion: '1.9.0',
+        includePrereleases: true,
       );
 
       final restored = TrackedApp.fromJson(app.toJson());
@@ -40,6 +41,18 @@ void main() {
       expect(restored.packageName, app.packageName);
       expect(restored.lastInstalledAt, app.lastInstalledAt);
       expect(restored.skippedVersion, app.skippedVersion);
+      expect(restored.includePrereleases, app.includePrereleases);
+    });
+
+    test('fromJson defaults includePrereleases to false when absent', () {
+      final app = TrackedApp.fromJson({
+        'id': '123',
+        'name': 'TaalLeer',
+        'sourceType': 'github',
+        'sourceIdentifier': 'Hidde-Balestra/taalleer',
+      });
+
+      expect(app.includePrereleases, isFalse);
     });
 
     test('fromJson defaults lastInstalledAt/skippedVersion to null when '

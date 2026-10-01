@@ -206,13 +206,18 @@ class AppLibrary extends ChangeNotifier {
     await prefs.setString(StorageKeys.updateHistory, raw);
   }
 
-  Future<ReleaseResult> previewSource(AppSourceType type, String source) {
+  Future<ReleaseResult> previewSource(
+    AppSourceType type,
+    String source, {
+    bool includePrereleases = false,
+  }) {
     return _resolver.resolve(
       type,
       source,
       githubToken: githubToken,
       gitlabToken: gitlabToken,
       codebergToken: codebergToken,
+      includePrereleases: includePrereleases,
     );
   }
 
@@ -221,6 +226,7 @@ class AppLibrary extends ChangeNotifier {
     required AppSourceType type,
     required String source,
     String? packageName,
+    bool includePrereleases = false,
   }) async {
     final trimmedPackageName = packageName?.trim();
     final app = TrackedApp(
@@ -231,6 +237,7 @@ class AppLibrary extends ChangeNotifier {
       packageName: (trimmedPackageName == null || trimmedPackageName.isEmpty)
           ? null
           : trimmedPackageName,
+      includePrereleases: includePrereleases,
     );
     entries = [
       ...entries,
@@ -256,6 +263,7 @@ class AppLibrary extends ChangeNotifier {
       sourceIdentifier: curated.sourceIdentifier,
       isCurated: true,
       packageName: curated.packageName,
+      includePrereleases: curated.includePrereleases,
     );
     entries = [
       ...entries,
@@ -754,6 +762,7 @@ class AppLibrary extends ChangeNotifier {
       githubToken: githubToken,
       gitlabToken: gitlabToken,
       codebergToken: codebergToken,
+      includePrereleases: entry.app.includePrereleases,
     );
 
     final checkedAt = DateTime.now();

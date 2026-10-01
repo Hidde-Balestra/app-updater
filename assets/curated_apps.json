@@ -50,7 +50,8 @@
     "sourceType": "github",
     "sourceIdentifier": "Hidde-Balestra/chat-flutter",
     "infoUrl": "https://github.com/Hidde-Balestra/chat-flutter",
-    "packageName": "nl.hiddebalestra.privacychat"
+    "packageName": "nl.hiddebalestra.privacychat",
+    "includePrereleases": true
   },
   {
     "id": "alarm",
@@ -59,5 +60,13 @@
     "sourceIdentifier": "Hidde-Balestra/alarm",
     "infoUrl": "https://github.com/Hidde-Balestra/alarm/releases",
     "packageName": "nl.hiddebalestra.alarm"
+  },
+  {
+    "id": "app_updater",
+    "name": "App Updater",
+    "sourceType": "github",
+    "sourceIdentifier": "Hidde-Balestra/app-updater",
+    "infoUrl": "https://github.com/Hidde-Balestra/app-updater/releases",
+    "packageName": "nl.hiddebalestra.app_updater"
   }
 ]

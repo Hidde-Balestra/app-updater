@@ -16,6 +16,12 @@ class CuratedApp {
   /// user to type it in by hand.
   final String? packageName;
 
+  /// For GitHub sources only: see [TrackedApp.includePrereleases]. Set in
+  /// assets/curated_apps.json for curated apps that only ever ship
+  /// pre-release builds (e.g. still-in-alpha projects), propagated onto the
+  /// [TrackedApp] created when the user adds this favorite.
+  final bool includePrereleases;
+
   const CuratedApp({
     required this.id,
     required this.name,
@@ -23,6 +29,7 @@ class CuratedApp {
     required this.sourceIdentifier,
     required this.infoUrl,
     this.packageName,
+    this.includePrereleases = false,
   });
 
   factory CuratedApp.fromJson(Map<String, dynamic> json) => CuratedApp(
@@ -32,5 +39,6 @@ class CuratedApp {
     sourceIdentifier: json['sourceIdentifier'] as String,
     infoUrl: json['infoUrl'] as String,
     packageName: json['packageName'] as String?,
+    includePrereleases: json['includePrereleases'] as bool? ?? false,
   );
 }

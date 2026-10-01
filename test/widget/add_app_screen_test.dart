@@ -376,4 +376,57 @@ void main() {
       );
     },
   );
+
+  testWidgets(
+    'toggling "include prereleases" on the custom-app tab queries the full '
+    'GitHub releases list',
+    (tester) async {
+      String? requestedPath;
+      final client = MockClient((request) async {
+        requestedPath = request.url.path;
+        if (requestedPath == '/repos/owner/repo/releases') {
+          return http.Response(
+            jsonEncode([
+              {
+                'tag_name': 'v1.0.0-alpha.1',
+                'assets': [
+                  {
+                    'name': 'app.apk',
+                    'browser_download_url': 'https://x/app.apk',
+                    'size': 1,
+                  },
+                ],
+              },
+            ]),
+            200,
+          );
+        }
+        return http.Response('', 404);
+      });
+      final library = AppLibrary(
+        resolver: ReleaseResolver(
+          github: GithubService(client: client),
+          fdroid: FdroidService(client: client),
+        ),
+      );
+      await library.load(curatedAppsOverride: testCuratedApps);
+
+      await tester.pumpWidget(_wrap(AddAppScreen(library: library)));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Inclusief pre-releases'), findsOneWidget);
+      await tester.tap(find.text('Inclusief pre-releases'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField).first, 'owner/repo');
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
+
+      expect(requestedPath, '/repos/owner/repo/releases');
+      expect(
+        find.text('Laatste release: 1.0.0-alpha.1 — gevonden via GitHub'),
+        findsOneWidget,
+      );
+    },
+  );
 }

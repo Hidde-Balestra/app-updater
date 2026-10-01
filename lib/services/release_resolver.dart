@@ -35,10 +35,15 @@ class ReleaseResolver {
     String? githubToken,
     String? gitlabToken,
     String? codebergToken,
+    bool includePrereleases = false,
   }) {
     switch (type) {
       case AppSourceType.github:
-        return _github.fetchLatestRelease(sourceIdentifier, token: githubToken);
+        return _github.fetchLatestRelease(
+          sourceIdentifier,
+          token: githubToken,
+          includePrereleases: includePrereleases,
+        );
       case AppSourceType.gitlab:
         return _gitlab.fetchLatestRelease(sourceIdentifier, token: gitlabToken);
       case AppSourceType.codeberg:
