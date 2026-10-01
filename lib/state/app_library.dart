@@ -735,6 +735,14 @@ class AppLibrary extends ChangeNotifier {
       return _SyncOutcome.removed;
     }
     if (detected == app.installedVersion) return _SyncOutcome.unchanged;
+    // Don't let a coarser device-reported version (e.g. "0.1.0") downgrade
+    // an already-recorded, more precise one (e.g. "0.1.0-alpha.25" from a
+    // GitHub release tag) — see isCoarserVersionOf's doc for why that would
+    // otherwise flag the exact same install as a false update forever.
+    final recorded = app.installedVersion;
+    if (recorded != null && isCoarserVersionOf(detected, recorded)) {
+      return _SyncOutcome.unchanged;
+    }
 
     _updateEntry(
       id,

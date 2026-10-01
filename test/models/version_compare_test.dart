@@ -125,6 +125,33 @@ void main() {
     });
   });
 
+  group('isCoarserVersionOf', () {
+    test('true for a dash-suffixed precise version sharing the prefix', () {
+      expect(isCoarserVersionOf('0.1.0', '0.1.0-alpha.25'), isTrue);
+    });
+
+    test('true for a plus-suffixed precise version sharing the prefix', () {
+      expect(isCoarserVersionOf('1.0.0', '1.0.0+42'), isTrue);
+    });
+
+    test('false when the versions are identical', () {
+      expect(isCoarserVersionOf('0.1.0', '0.1.0'), isFalse);
+    });
+
+    test('false when precise does not start with coarse at all', () {
+      expect(isCoarserVersionOf('0.1.0', '0.2.0-alpha.1'), isFalse);
+    });
+
+    test(
+      'false when the shared prefix is not followed by a version separator',
+      () {
+        // "0.1.0" is a textual prefix of "0.1.01" but not a coarser
+        // rendering of it — must not be treated as the same release.
+        expect(isCoarserVersionOf('0.1.0', '0.1.01'), isFalse);
+      },
+    );
+  });
+
   group('isVersionSkipped', () {
     test('true when the latest version exactly matches the skipped one', () {
       expect(

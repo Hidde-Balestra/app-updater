@@ -59,6 +59,30 @@ bool appHasUpdate({
   );
 }
 
+/// Whether [coarse] looks like a lower-precision rendering of [precise] —
+/// e.g. "0.1.0" is a coarser version of "0.1.0-alpha.25". Used to stop a
+/// freshly-read device version from downgrading an already-recorded, more
+/// precise one.
+///
+/// Android's `versionName` is whatever an app's own build baked into it —
+/// for a project that always builds from the same base version (e.g.
+/// pubspec `version: 0.1.0`) and only varies its git tag per release (e.g.
+/// "v0.1.0-alpha.24", "v0.1.0-alpha.25", ...), every installed build reports
+/// the exact same coarse "0.1.0" from the device's package manager,
+/// regardless of which alpha is actually installed. A periodic device-version
+/// resync (see [AppLibrary.syncInstalledVersions]) would otherwise treat
+/// that coarse read as more authoritative and overwrite a precise
+/// "0.1.0-alpha.25" (recorded from the release that was actually installed)
+/// back down to "0.1.0" — which then never again matches a GitHub release's
+/// tag-derived version, so the exact same install keeps showing as a false
+/// "update available" forever.
+bool isCoarserVersionOf(String coarse, String precise) {
+  if (coarse == precise) return false;
+  if (!precise.startsWith(coarse)) return false;
+  final nextChar = precise[coarse.length];
+  return nextChar == '-' || nextChar == '+';
+}
+
 /// Whether [latestVersion] is exactly the version a user previously chose
 /// to skip. Shared between [AppLibrary]'s live status and the headless
 /// background checker (see [appHasUpdate]'s doc) so a skipped version never

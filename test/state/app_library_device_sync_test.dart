@@ -224,4 +224,30 @@ void main() {
 
     expect(reopened.entries.single.app.installedVersion, '2.0.0');
   });
+
+  test('does not downgrade a precise recorded version to a coarser device '
+      'read of the exact same install', () async {
+    // Mirrors a real project whose pubspec version never changes between
+    // alpha builds (always "0.1.0"), so the device's real versionName
+    // can never distinguish one alpha from the next — only the
+    // GitHub-release-derived version recorded by markInstalled() can.
+    final deviceApps = _FakeDeviceAppsService({'com.example.app': '0.1.0'});
+    final library = AppLibrary(
+      resolver: _offlineResolver(),
+      deviceApps: deviceApps,
+    );
+    await library.load(curatedAppsOverride: testCuratedApps);
+    final app = await library.addCustomApp(
+      name: 'MijnApp',
+      type: AppSourceType.github,
+      source: 'owner/repo',
+      packageName: 'com.example.app',
+    );
+    await library.markInstalled(app.id, '0.1.0-alpha.25');
+
+    final result = await library.syncInstalledVersions();
+
+    expect(result.updated, 0);
+    expect(library.entries.single.app.installedVersion, '0.1.0-alpha.25');
+  });
 }
