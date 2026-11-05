@@ -359,46 +359,46 @@ class _AddAppScreenState extends State<AddAppScreen>
         ),
         const SizedBox(height: 12),
         if (showSourceTypePicker)
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: SegmentedButton<AppSourceType>(
-              segments: [
-                ButtonSegment(
-                  value: AppSourceType.github,
-                  label: Text(l10n.sourceTypeGithub),
-                ),
-                ButtonSegment(
-                  value: AppSourceType.gitlab,
-                  label: Text(l10n.sourceTypeGitlab),
-                ),
-                ButtonSegment(
-                  value: AppSourceType.codeberg,
-                  label: Text(l10n.sourceTypeCodeberg),
-                ),
-                ButtonSegment(
-                  value: AppSourceType.fdroid,
-                  label: Text(l10n.sourceTypeFdroid),
-                ),
-                ButtonSegment(
-                  value: AppSourceType.direct,
-                  label: Text(l10n.sourceTypeDirect),
-                ),
-                ButtonSegment(
-                  value: AppSourceType.accrescent,
-                  label: Text(l10n.sourceTypeAccrescent),
-                ),
-              ],
-              selected: {_sourceType},
-              onSelectionChanged: (selection) {
-                setState(() {
-                  _sourceType = selection.first;
-                  _showSourceTypePicker = false;
-                });
-                if (_sourceController.text.trim().isNotEmpty) {
-                  _resolvePreview(_sourceController.text);
-                }
-              },
-            ),
+          DropdownMenu<AppSourceType>(
+            width: MediaQuery.sizeOf(context).width - 32,
+            initialSelection: _sourceType,
+            label: Text(l10n.sourceTypePickerLabel),
+            dropdownMenuEntries: [
+              DropdownMenuEntry(
+                value: AppSourceType.github,
+                label: l10n.sourceTypeGithub,
+              ),
+              DropdownMenuEntry(
+                value: AppSourceType.gitlab,
+                label: l10n.sourceTypeGitlab,
+              ),
+              DropdownMenuEntry(
+                value: AppSourceType.codeberg,
+                label: l10n.sourceTypeCodeberg,
+              ),
+              DropdownMenuEntry(
+                value: AppSourceType.fdroid,
+                label: l10n.sourceTypeFdroid,
+              ),
+              DropdownMenuEntry(
+                value: AppSourceType.direct,
+                label: l10n.sourceTypeDirect,
+              ),
+              DropdownMenuEntry(
+                value: AppSourceType.accrescent,
+                label: l10n.sourceTypeAccrescent,
+              ),
+            ],
+            onSelected: (value) {
+              if (value == null) return;
+              setState(() {
+                _sourceType = value;
+                _showSourceTypePicker = false;
+              });
+              if (_sourceController.text.trim().isNotEmpty) {
+                _resolvePreview(_sourceController.text);
+              }
+            },
           )
         else
           Row(

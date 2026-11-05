@@ -40,7 +40,7 @@
       "eligible": {"type": "int"}
     }
   },
-  "scanDeviceNoneEligible": "Geen van je apps heeft een package naam ingesteld. Voeg er een toe bij ‘Eigen app’ voor automatische synchronisatie.",
+  "scanDeviceNoneEligible": "Geen van je apps heeft een package naam ingesteld. Voeg er een toe bij ‘Online app’ voor automatische synchronisatie.",
   "scanDeviceResultWithRemoved": "{updated} van {eligible} apps gesynchroniseerd, {removed} niet meer gevonden op je toestel",
   "@scanDeviceResultWithRemoved": {
     "placeholders": {
@@ -65,7 +65,7 @@
   },
 
   "addAppTitle": "App toevoegen",
-  "tabCustomApp": "Eigen app",
+  "tabCustomApp": "Online app",
   "tabFavorite": "Aangeraden",
   "tabDeviceApps": "Van toestel",
   "tabFdroidCatalog": "F-Droid",
@@ -111,6 +111,7 @@
   "sourceFieldHint": "GitHub / F-Droid / directe .apk URL",
   "includePrereleasesLabel": "Inclusief pre-releases",
   "includePrereleasesSubtitle": "Ook alpha/beta/rc-releases als 'laatste' beschouwen (voor projecten zonder stabiele releases)",
+  "sourceTypePickerLabel": "Brontype",
   "sourceTypeDetectedLabel": "Brontype: {type}",
   "@sourceTypeDetectedLabel": {
     "placeholders": {

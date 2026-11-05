@@ -108,13 +108,13 @@ void main() {
 
       expect(find.text('Brontype: GitLab'), findsOneWidget);
       expect(find.text('Wijzigen'), findsOneWidget);
-      // The 6-option picker itself is gone now that a type was detected.
-      expect(find.byType(SegmentedButton<AppSourceType>), findsNothing);
+      // The picker itself is gone now that a type was detected.
+      expect(find.byType(DropdownMenu<AppSourceType>), findsNothing);
 
       await tester.tap(find.text('Wijzigen'));
       await tester.pumpAndSettle();
 
-      expect(find.byType(SegmentedButton<AppSourceType>), findsOneWidget);
+      expect(find.byType(DropdownMenu<AppSourceType>), findsOneWidget);
     },
   );
 

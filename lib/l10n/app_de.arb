@@ -40,7 +40,7 @@
       "eligible": {"type": "int"}
     }
   },
-  "scanDeviceNoneEligible": "Keine deiner Apps hat einen Paketnamen festgelegt. Füge einen unter „Eigene App“ hinzu, um die automatische Synchronisierung zu aktivieren.",
+  "scanDeviceNoneEligible": "Keine deiner Apps hat einen Paketnamen festgelegt. Füge einen unter „Online-App“ hinzu, um die automatische Synchronisierung zu aktivieren.",
   "scanDeviceResultWithRemoved": "{updated} von {eligible} Apps synchronisiert, {removed} nicht mehr auf deinem Gerät gefunden",
   "@scanDeviceResultWithRemoved": {
     "placeholders": {
@@ -65,7 +65,7 @@
   },
 
   "addAppTitle": "App hinzufügen",
-  "tabCustomApp": "Eigene App",
+  "tabCustomApp": "Online-App",
   "tabFavorite": "Empfohlen",
   "tabDeviceApps": "Vom Gerät",
   "tabFdroidCatalog": "F-Droid",
@@ -111,6 +111,7 @@
   "sourceFieldHint": "GitHub / F-Droid / direkte .apk-URL",
   "includePrereleasesLabel": "Pre-Releases einbeziehen",
   "includePrereleasesSubtitle": "Alpha-/Beta-/RC-Releases ebenfalls als „neueste“ betrachten (für Projekte ohne stabile Releases)",
+  "sourceTypePickerLabel": "Quellentyp",
   "sourceTypeDetectedLabel": "Quellentyp: {type}",
   "@sourceTypeDetectedLabel": {
     "placeholders": {

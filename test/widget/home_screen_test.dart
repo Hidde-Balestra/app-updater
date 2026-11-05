@@ -153,7 +153,7 @@ void main() {
       expect(
         find.text(
           "Geen van je apps heeft een package naam ingesteld. "
-          "Voeg er een toe bij ‘Eigen app’ voor automatische synchronisatie.",
+          "Voeg er een toe bij ‘Online app’ voor automatische synchronisatie.",
         ),
         findsOneWidget,
       );

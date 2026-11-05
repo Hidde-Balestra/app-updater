@@ -119,7 +119,7 @@ String? parseAccrescentSource(String input) {
   }
 }
 
-/// Guesses which [AppSourceType] a pasted URL belongs to, so the "Eigen app"
+/// Guesses which [AppSourceType] a pasted URL belongs to, so the "Online app"
 /// tab can select it automatically instead of making the user pick a type
 /// before pasting. Only recognizes an unambiguous URL (a host it knows, or
 /// a direct ".apk" link) — a bare "owner/repo"-shaped string with no host is
