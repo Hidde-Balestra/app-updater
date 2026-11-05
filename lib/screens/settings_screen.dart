@@ -9,6 +9,7 @@ import '../l10n/app_localizations.dart';
 import '../state/app_library.dart';
 import '../state/settings_controller.dart';
 import '../widgets/section_header.dart';
+import 'access_tokens_screen.dart';
 import 'device_apps_screen.dart';
 import 'update_history_screen.dart';
 
@@ -109,71 +110,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _editToken({
-    required String dialogTitle,
-    required String fieldHint,
-    required String? currentValue,
-    required Future<void> Function(String?) onSave,
-  }) async {
-    final l10n = AppLocalizations.of(context)!;
-    var draft = currentValue ?? '';
-    final result = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(dialogTitle),
-        content: TextFormField(
-          initialValue: draft,
-          obscureText: true,
-          decoration: InputDecoration(hintText: fieldHint),
-          onChanged: (value) => draft = value,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(draft),
-            child: Text(l10n.save),
-          ),
-        ],
-      ),
-    );
-    if (result != null) {
-      await onSave(result);
-    }
-  }
-
-  Future<void> _editGithubToken() async {
-    final l10n = AppLocalizations.of(context)!;
-    await _editToken(
-      dialogTitle: l10n.githubTokenDialogTitle,
-      fieldHint: l10n.githubTokenFieldHint,
-      currentValue: widget.settings.githubToken,
-      onSave: widget.settings.setGithubToken,
-    );
-  }
-
-  Future<void> _editGitlabToken() async {
-    final l10n = AppLocalizations.of(context)!;
-    await _editToken(
-      dialogTitle: l10n.gitlabTokenDialogTitle,
-      fieldHint: l10n.gitlabTokenFieldHint,
-      currentValue: widget.settings.gitlabToken,
-      onSave: widget.settings.setGitlabToken,
-    );
-  }
-
-  Future<void> _editCodebergToken() async {
-    final l10n = AppLocalizations.of(context)!;
-    await _editToken(
-      dialogTitle: l10n.codebergTokenDialogTitle,
-      fieldHint: l10n.codebergTokenFieldHint,
-      currentValue: widget.settings.codebergToken,
-      onSave: widget.settings.setCodebergToken,
-    );
-  }
-
   Future<void> _pickLanguage() async {
     final l10n = AppLocalizations.of(context)!;
     final options = <Locale?>[null, ...supportedLocales];
@@ -260,38 +196,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.vpn_key_outlined),
-                title: Text(l10n.githubTokenTitle),
-                subtitle: Text(
-                  settings.githubToken == null
-                      ? l10n.githubTokenNotSet
-                      : l10n.githubTokenSet,
-                ),
+                title: Text(l10n.accessTokensMenuTitle),
+                subtitle: Text(l10n.accessTokensMenuSubtitle),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: _editGithubToken,
-              ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.vpn_key_outlined),
-                title: Text(l10n.gitlabTokenTitle),
-                subtitle: Text(
-                  settings.gitlabToken == null
-                      ? l10n.gitlabTokenNotSet
-                      : l10n.githubTokenSet,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => AccessTokensScreen(settings: settings),
+                  ),
                 ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: _editGitlabToken,
-              ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.vpn_key_outlined),
-                title: Text(l10n.codebergTokenTitle),
-                subtitle: Text(
-                  settings.codebergToken == null
-                      ? l10n.codebergTokenNotSet
-                      : l10n.githubTokenSet,
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: _editCodebergToken,
               ),
               SectionHeader(title: l10n.sectionDevice),
               ListTile(

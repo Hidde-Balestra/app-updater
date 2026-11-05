@@ -4,6 +4,8 @@
 /// calls and widgets that use them.
 library;
 
+import 'app_source_type.dart';
+
 /// GitHub: accepts "owner/repo", a github.com URL, or a releases URL and
 /// returns "owner/repo", or null if it can't be parsed.
 String? parseGithubSource(String input) {
@@ -112,6 +114,37 @@ String? parseAccrescentSource(String input) {
     final idx = segments.indexOf('app');
     if (idx != -1 && idx + 1 < segments.length) return segments[idx + 1];
     return null;
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Guesses which [AppSourceType] a pasted URL belongs to, so the "Eigen app"
+/// tab can select it automatically instead of making the user pick a type
+/// before pasting. Only recognizes an unambiguous URL (a host it knows, or
+/// a direct ".apk" link) — a bare "owner/repo"-shaped string with no host is
+/// deliberately left undetected (returns null) rather than guessing, since
+/// that exact shape is valid for GitHub, GitLab *and* Codeberg alike and a
+/// wrong guess would be worse than leaving the user's current selection
+/// alone.
+AppSourceType? detectSourceType(String input) {
+  final trimmed = input.trim();
+  if (trimmed.isEmpty) return null;
+  if (!trimmed.contains('://')) return null;
+
+  if (trimmed.toLowerCase().endsWith('.apk')) return AppSourceType.direct;
+
+  try {
+    final host = Uri.parse(trimmed).host.toLowerCase();
+    final withoutWww = host.startsWith('www.') ? host.substring(4) : host;
+    return switch (withoutWww) {
+      'github.com' => AppSourceType.github,
+      'gitlab.com' => AppSourceType.gitlab,
+      'codeberg.org' => AppSourceType.codeberg,
+      'f-droid.org' => AppSourceType.fdroid,
+      'accrescent.app' => AppSourceType.accrescent,
+      _ => null,
+    };
   } catch (_) {
     return null;
   }

@@ -111,6 +111,15 @@
   "sourceFieldHint": "GitHub / F-Droid / directe .apk URL",
   "includePrereleasesLabel": "Inclusief pre-releases",
   "includePrereleasesSubtitle": "Ook alpha/beta/rc-releases als 'laatste' beschouwen (voor projecten zonder stabiele releases)",
+  "sourceTypeDetectedLabel": "Brontype: {type}",
+  "@sourceTypeDetectedLabel": {
+    "placeholders": {
+      "type": {"type": "String"}
+    }
+  },
+  "changeSourceTypeButton": "Wijzigen",
+  "advancedOptionsLabel": "Geavanceerd",
+  "advancedOptionsSubtitle": "Naam, package naam, pre-releases",
   "displayNameLabel": "WEERGAVENAAM (optioneel)",
   "displayNameHint": "bijv. MijnBudget",
   "packageNameLabel": "PACKAGE NAAM (optioneel)",
@@ -227,6 +236,9 @@
   "codebergTokenNotSet": "Niet ingesteld — checks kunnen tegen de limiet van Codeberg aanlopen",
   "codebergTokenDialogTitle": "Codeberg access token",
   "codebergTokenFieldHint": "...",
+  "accessTokensMenuTitle": "Toegangstokens",
+  "accessTokensMenuSubtitle": "GitHub, GitLab en Codeberg",
+  "accessTokensScreenIntro": "Optioneel — alleen nodig als je tegen een limiet van de bron aanloopt of een privérepository volgt.",
   "sectionPrivacy": "PRIVACY",
   "privacyTitle": "Geen Google Play Services",
   "privacyMessage": "Deze app installeert en werkt volledig buiten de Play Store om. Geen tracking, geen analytics, geen accounts nodig.",

@@ -111,6 +111,15 @@
   "sourceFieldHint": "GitHub / F-Droid / URL .apk directa",
   "includePrereleasesLabel": "Incluir pre-lanzamientos",
   "includePrereleasesSubtitle": "Considerar también los lanzamientos alpha/beta/rc como el 'último' (para proyectos sin lanzamientos estables)",
+  "sourceTypeDetectedLabel": "Tipo de fuente: {type}",
+  "@sourceTypeDetectedLabel": {
+    "placeholders": {
+      "type": {"type": "String"}
+    }
+  },
+  "changeSourceTypeButton": "Cambiar",
+  "advancedOptionsLabel": "Avanzado",
+  "advancedOptionsSubtitle": "Nombre, nombre de paquete, pre-lanzamientos",
   "displayNameLabel": "NOMBRE VISIBLE (opcional)",
   "displayNameHint": "p. ej. MiPresupuesto",
   "packageNameLabel": "NOMBRE DE PAQUETE (opcional)",
@@ -227,6 +236,9 @@
   "codebergTokenNotSet": "No configurado — las comprobaciones pueden alcanzar el límite de Codeberg",
   "codebergTokenDialogTitle": "Token de acceso de Codeberg",
   "codebergTokenFieldHint": "...",
+  "accessTokensMenuTitle": "Tokens de acceso",
+  "accessTokensMenuSubtitle": "GitHub, GitLab y Codeberg",
+  "accessTokensScreenIntro": "Opcional — solo necesario si alcanzas un límite de una fuente o sigues un repositorio privado.",
   "sectionPrivacy": "PRIVACIDAD",
   "privacyTitle": "Sin Google Play Services",
   "privacyMessage": "Esta app se instala y funciona completamente fuera de la Play Store. Sin seguimiento, sin análisis, sin cuentas necesarias.",

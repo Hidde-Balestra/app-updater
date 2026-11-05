@@ -1,7 +1,66 @@
+import 'package:app_updater/models/app_source_type.dart';
 import 'package:app_updater/models/source_parser.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  group('detectSourceType', () {
+    test('recognizes a github.com URL', () {
+      expect(
+        detectSourceType('https://github.com/Hidde-Balestra/taalleer'),
+        AppSourceType.github,
+      );
+    });
+
+    test('recognizes a www.gitlab.com URL', () {
+      expect(
+        detectSourceType('https://www.gitlab.com/AuroraOSS/AuroraStore'),
+        AppSourceType.gitlab,
+      );
+    });
+
+    test('recognizes a codeberg.org URL', () {
+      expect(
+        detectSourceType('https://codeberg.org/owner/repo'),
+        AppSourceType.codeberg,
+      );
+    });
+
+    test('recognizes an f-droid.org packages URL', () {
+      expect(
+        detectSourceType('https://f-droid.org/packages/org.fdroid.fdroid/'),
+        AppSourceType.fdroid,
+      );
+    });
+
+    test('recognizes an accrescent.app deep link', () {
+      expect(
+        detectSourceType('https://accrescent.app/app/app.organicmaps'),
+        AppSourceType.accrescent,
+      );
+    });
+
+    test('recognizes a direct .apk URL regardless of host', () {
+      expect(
+        detectSourceType('https://example.com/releases/app-1.0.0.apk'),
+        AppSourceType.direct,
+      );
+    });
+
+    test('returns null for a bare owner/repo with no host', () {
+      // Valid for GitHub, GitLab and Codeberg alike — guessing would risk
+      // silently switching to the wrong one.
+      expect(detectSourceType('Hidde-Balestra/taalleer'), isNull);
+    });
+
+    test('returns null for an unrecognized host', () {
+      expect(detectSourceType('https://example.com/some/repo'), isNull);
+    });
+
+    test('returns null for blank input', () {
+      expect(detectSourceType('   '), isNull);
+    });
+  });
+
   group('parseGithubSource', () {
     test('accepts bare owner/repo', () {
       expect(

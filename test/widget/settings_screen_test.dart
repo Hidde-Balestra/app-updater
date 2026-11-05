@@ -112,6 +112,16 @@ void main() {
   testWidgets('exporting to clipboard shows a confirmation snackbar', (
     tester,
   ) async {
+    // The whole settings list is taller than the default 800x600 test
+    // viewport, and the BACK-UP section sits below the fold — resizing
+    // the viewport to fit everything is far more reliable than scrolling a
+    // ListView by hand (scrollUntilVisible's jump size is fiddly to get
+    // right: too small and a drag can be eaten by touch slop with no
+    // effect, too large and it can overshoot past the target).
+    tester.view.physicalSize = const Size(800, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
     final settings = _settings();
     await settings.load();
     final library = _offlineLibrary();
@@ -127,14 +137,6 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // The BACK-UP section is below the fold now that a DEVICE section sits
-    // above it, so scroll it into view before tapping — a plain ListView
-    // only mounts elements near the viewport, `find` alone won't see it.
-    await tester.scrollUntilVisible(
-      find.text('Exporteren naar klembord'),
-      100,
-      scrollable: find.byType(Scrollable),
-    );
     await tester.tap(find.text('Exporteren naar klembord'));
     await tester.pumpAndSettle();
 
@@ -144,6 +146,10 @@ void main() {
   testWidgets('tapping "Update geschiedenis" opens the history screen', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(800, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
     final settings = _settings();
     await settings.load();
     final library = _offlineLibrary();
@@ -154,11 +160,6 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.scrollUntilVisible(
-      find.text('Update geschiedenis'),
-      300,
-      scrollable: find.byType(Scrollable),
-    );
     await tester.tap(find.text('Update geschiedenis'));
     await tester.pumpAndSettle();
 
@@ -177,6 +178,9 @@ void main() {
     await tester.pumpWidget(
       _wrap(SettingsScreen(settings: settings, library: library)),
     );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Toegangstokens'));
     await tester.pumpAndSettle();
 
     expect(
@@ -208,11 +212,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.scrollUntilVisible(
-      find.text('GitLab-token'),
-      100,
-      scrollable: find.byType(Scrollable),
-    );
+    await tester.tap(find.text('Toegangstokens'));
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('GitLab-token'));
     await tester.pumpAndSettle();
 
@@ -227,6 +229,10 @@ void main() {
   testWidgets(
     'importing a backup restores tracked apps, ignored packages and settings',
     (tester) async {
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
       final sourceSettings = _settings();
       await sourceSettings.load();
       await sourceSettings.setThemeMode(ThemeMode.dark);
@@ -243,11 +249,6 @@ void main() {
         _wrap(SettingsScreen(settings: sourceSettings, library: sourceLibrary)),
       );
       await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(
-        find.text('Exporteren naar klembord'),
-        100,
-        scrollable: find.byType(Scrollable),
-      );
       await tester.tap(find.text('Exporteren naar klembord'));
       await tester.pumpAndSettle();
 
@@ -271,11 +272,6 @@ void main() {
         _wrap(SettingsScreen(settings: targetSettings, library: targetLibrary)),
       );
       await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(
-        find.text('Importeren vanaf klembord'),
-        100,
-        scrollable: find.byType(Scrollable),
-      );
       await tester.tap(find.text('Importeren vanaf klembord'));
       await tester.pumpAndSettle();
 

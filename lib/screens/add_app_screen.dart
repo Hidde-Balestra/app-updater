@@ -40,6 +40,8 @@ class _AddAppScreenState extends State<AddAppScreen>
 
   AppSourceType _sourceType = AppSourceType.github;
   bool _includePrereleases = false;
+  bool _showAdvanced = false;
+  bool _showSourceTypePicker = false;
   Timer? _debounce;
   String? _resolvedIdentifier;
   ReleaseResult? _previewResult;
@@ -124,6 +126,7 @@ class _AddAppScreenState extends State<AddAppScreen>
     _sourceType = AppSourceType.fdroid;
     _previewResult = null;
     _resolvedIdentifier = null;
+    _showAdvanced = true;
     _sourceController.text = app.packageName;
   }
 
@@ -212,8 +215,17 @@ class _AddAppScreenState extends State<AddAppScreen>
       setState(() {
         _previewResult = null;
         _resolvedIdentifier = null;
+        _showSourceTypePicker = false;
       });
       return;
+    }
+    // A recognizable URL (github.com/..., a direct .apk link, ...) picks
+    // its own source type — the user only has to fall back to the manual
+    // picker for the one genuinely ambiguous case, a bare "owner/repo"
+    // with no host to go by.
+    final detected = detectSourceType(text);
+    if (detected != null && detected != _sourceType) {
+      setState(() => _sourceType = detected);
     }
     _debounce = Timer(
       const Duration(milliseconds: 400),
@@ -283,6 +295,8 @@ class _AddAppScreenState extends State<AddAppScreen>
       _previewResult = null;
       _resolvedIdentifier = null;
       _includePrereleases = false;
+      _showAdvanced = false;
+      _showSourceTypePicker = false;
     });
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
@@ -320,6 +334,14 @@ class _AddAppScreenState extends State<AddAppScreen>
   }
 
   Widget _buildCustomAppTab(AppLocalizations l10n) {
+    // A recognized URL picks its own source type (see detectSourceType), so
+    // the full 6-option picker only needs to be shown up front (nothing
+    // typed yet, so there's nothing to detect from) or when the user
+    // explicitly asks to override it — not permanently alongside the
+    // source field once something's been typed.
+    final showSourceTypePicker =
+        _showSourceTypePicker || _sourceController.text.trim().isEmpty;
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -331,92 +353,75 @@ class _AddAppScreenState extends State<AddAppScreen>
           ),
         ),
         const SizedBox(height: 8),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SegmentedButton<AppSourceType>(
-            segments: [
-              ButtonSegment(
-                value: AppSourceType.github,
-                label: Text(l10n.sourceTypeGithub),
-              ),
-              ButtonSegment(
-                value: AppSourceType.gitlab,
-                label: Text(l10n.sourceTypeGitlab),
-              ),
-              ButtonSegment(
-                value: AppSourceType.codeberg,
-                label: Text(l10n.sourceTypeCodeberg),
-              ),
-              ButtonSegment(
-                value: AppSourceType.fdroid,
-                label: Text(l10n.sourceTypeFdroid),
-              ),
-              ButtonSegment(
-                value: AppSourceType.direct,
-                label: Text(l10n.sourceTypeDirect),
-              ),
-              ButtonSegment(
-                value: AppSourceType.accrescent,
-                label: Text(l10n.sourceTypeAccrescent),
-              ),
-            ],
-            selected: {_sourceType},
-            onSelectionChanged: (selection) {
-              setState(() => _sourceType = selection.first);
-              if (_sourceController.text.trim().isNotEmpty) {
-                _resolvePreview(_sourceController.text);
-              }
-            },
-          ),
-        ),
-        const SizedBox(height: 16),
         TextField(
           controller: _sourceController,
           decoration: InputDecoration(hintText: l10n.sourceFieldHint),
         ),
-        if (_sourceType == AppSourceType.github)
-          CheckboxListTile(
-            contentPadding: EdgeInsets.zero,
-            controlAffinity: ListTileControlAffinity.leading,
-            value: _includePrereleases,
-            title: Text(l10n.includePrereleasesLabel),
-            subtitle: Text(l10n.includePrereleasesSubtitle),
-            onChanged: (value) {
-              setState(() => _includePrereleases = value ?? false);
-              if (_sourceController.text.trim().isNotEmpty) {
-                _resolvePreview(_sourceController.text);
-              }
-            },
+        const SizedBox(height: 12),
+        if (showSourceTypePicker)
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SegmentedButton<AppSourceType>(
+              segments: [
+                ButtonSegment(
+                  value: AppSourceType.github,
+                  label: Text(l10n.sourceTypeGithub),
+                ),
+                ButtonSegment(
+                  value: AppSourceType.gitlab,
+                  label: Text(l10n.sourceTypeGitlab),
+                ),
+                ButtonSegment(
+                  value: AppSourceType.codeberg,
+                  label: Text(l10n.sourceTypeCodeberg),
+                ),
+                ButtonSegment(
+                  value: AppSourceType.fdroid,
+                  label: Text(l10n.sourceTypeFdroid),
+                ),
+                ButtonSegment(
+                  value: AppSourceType.direct,
+                  label: Text(l10n.sourceTypeDirect),
+                ),
+                ButtonSegment(
+                  value: AppSourceType.accrescent,
+                  label: Text(l10n.sourceTypeAccrescent),
+                ),
+              ],
+              selected: {_sourceType},
+              onSelectionChanged: (selection) {
+                setState(() {
+                  _sourceType = selection.first;
+                  _showSourceTypePicker = false;
+                });
+                if (_sourceController.text.trim().isNotEmpty) {
+                  _resolvePreview(_sourceController.text);
+                }
+              },
+            ),
+          )
+        else
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.sourceTypeDetectedLabel(_sourceTypeLabel(l10n)),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () => setState(() => _showSourceTypePicker = true),
+                child: Text(l10n.changeSourceTypeButton),
+              ),
+            ],
           ),
-        const SizedBox(height: 20),
-        Text(
-          l10n.displayNameLabel,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _nameController,
-          decoration: InputDecoration(hintText: l10n.displayNameHint),
-        ),
-        const SizedBox(height: 20),
-        Text(
-          l10n.packageNameLabel,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _packageNameController,
-          decoration: InputDecoration(hintText: l10n.packageNameHint),
-        ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 12),
         _buildPreviewCard(l10n),
-        const SizedBox(height: 24),
+        const SizedBox(height: 12),
+        _buildAdvancedSection(l10n),
+        const SizedBox(height: 20),
         FilledButton(
           onPressed: (_previewResult is ReleaseSuccess && !_isSaving)
               ? _addCustomApp
@@ -429,6 +434,91 @@ class _AddAppScreenState extends State<AddAppScreen>
                 )
               : Text(l10n.addAppButton),
         ),
+      ],
+    );
+  }
+
+  /// Name, package name and (for GitHub) the pre-releases checkbox are all
+  /// optional, rarely-needed fields — collapsed behind one toggle instead of
+  /// always shown, so the common "paste a URL, tap Toevoegen" path isn't
+  /// competing with three extra fields for attention. Expands itself when
+  /// there's already something in it to show (e.g. "Gebruiken" from the
+  /// device-apps tab prefills name + package).
+  Widget _buildAdvancedSection(AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        InkWell(
+          onTap: () => setState(() => _showAdvanced = !_showAdvanced),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.advancedOptionsLabel,
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      Text(
+                        l10n.advancedOptionsSubtitle,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(_showAdvanced ? Icons.expand_less : Icons.expand_more),
+              ],
+            ),
+          ),
+        ),
+        if (_showAdvanced) ...[
+          const SizedBox(height: 8),
+          Text(
+            l10n.displayNameLabel,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _nameController,
+            decoration: InputDecoration(hintText: l10n.displayNameHint),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            l10n.packageNameLabel,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _packageNameController,
+            decoration: InputDecoration(hintText: l10n.packageNameHint),
+          ),
+          if (_sourceType == AppSourceType.github)
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              value: _includePrereleases,
+              title: Text(l10n.includePrereleasesLabel),
+              subtitle: Text(l10n.includePrereleasesSubtitle),
+              onChanged: (value) {
+                setState(() => _includePrereleases = value ?? false);
+                if (_sourceController.text.trim().isNotEmpty) {
+                  _resolvePreview(_sourceController.text);
+                }
+              },
+            ),
+        ],
       ],
     );
   }

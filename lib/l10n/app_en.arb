@@ -111,6 +111,15 @@
   "sourceFieldHint": "GitHub / F-Droid / direct .apk URL",
   "includePrereleasesLabel": "Include pre-releases",
   "includePrereleasesSubtitle": "Also treat alpha/beta/rc releases as 'latest' (for projects with no stable releases)",
+  "sourceTypeDetectedLabel": "Source type: {type}",
+  "@sourceTypeDetectedLabel": {
+    "placeholders": {
+      "type": {"type": "String"}
+    }
+  },
+  "changeSourceTypeButton": "Change",
+  "advancedOptionsLabel": "Advanced",
+  "advancedOptionsSubtitle": "Name, package name, pre-releases",
   "displayNameLabel": "DISPLAY NAME (optional)",
   "displayNameHint": "e.g. MyBudget",
   "packageNameLabel": "PACKAGE NAME (optional)",
@@ -227,6 +236,9 @@
   "codebergTokenNotSet": "Not set — checks may hit Codeberg's rate limit",
   "codebergTokenDialogTitle": "Codeberg access token",
   "codebergTokenFieldHint": "...",
+  "accessTokensMenuTitle": "Access tokens",
+  "accessTokensMenuSubtitle": "GitHub, GitLab and Codeberg",
+  "accessTokensScreenIntro": "Optional — only needed if you hit a rate limit from a source, or track a private repository.",
   "sectionPrivacy": "PRIVACY",
   "privacyTitle": "No Google Play Services",
   "privacyMessage": "This app installs and works entirely outside of the Play Store. No tracking, no analytics, no accounts required.",

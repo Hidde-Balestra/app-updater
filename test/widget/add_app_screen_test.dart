@@ -72,6 +72,52 @@ void main() {
     );
   });
 
+  testWidgets(
+    'the custom-app tab starts with the source-type picker visible and '
+    'the advanced section collapsed',
+    (tester) async {
+      final library = _offlineLibrary();
+      await library.load(curatedAppsOverride: testCuratedApps);
+
+      await tester.pumpWidget(_wrap(AddAppScreen(library: library)));
+      await tester.pumpAndSettle();
+
+      expect(find.text('GitHub'), findsWidgets);
+      expect(find.text('Geavanceerd'), findsOneWidget);
+      expect(find.text('WEERGAVENAAM (optioneel)'), findsNothing);
+      expect(find.text('PACKAGE NAAM (optioneel)'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'pasting a GitLab URL auto-selects GitLab and collapses the picker '
+    'into a compact "change" row',
+    (tester) async {
+      final library = _offlineLibrary();
+      await library.load(curatedAppsOverride: testCuratedApps);
+
+      await tester.pumpWidget(_wrap(AddAppScreen(library: library)));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byType(TextField).first,
+        'https://gitlab.com/AuroraOSS/AuroraStore',
+      );
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Brontype: GitLab'), findsOneWidget);
+      expect(find.text('Wijzigen'), findsOneWidget);
+      // The 6-option picker itself is gone now that a type was detected.
+      expect(find.byType(SegmentedButton<AppSourceType>), findsNothing);
+
+      await tester.tap(find.text('Wijzigen'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SegmentedButton<AppSourceType>), findsOneWidget);
+    },
+  );
+
   testWidgets('lists installed apps not already tracked', (tester) async {
     final library = _offlineLibrary(
       installed: const [
@@ -412,6 +458,9 @@ void main() {
       await library.load(curatedAppsOverride: testCuratedApps);
 
       await tester.pumpWidget(_wrap(AddAppScreen(library: library)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Geavanceerd'));
       await tester.pumpAndSettle();
 
       expect(find.text('Inclusief pre-releases'), findsOneWidget);

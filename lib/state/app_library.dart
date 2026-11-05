@@ -117,6 +117,9 @@ class AppLibrary extends ChangeNotifier {
     // against a fresh installed version, not a stale one.
     await _syncAllInstalledVersions();
     unawaited(checkAll());
+    // Best-effort storage housekeeping, not on the critical path for
+    // anything load() callers wait on.
+    unawaited(_installer.cleanUpOldDownloads());
   }
 
   /// Self-heals tracked favorites added before their [CuratedApp] gained a

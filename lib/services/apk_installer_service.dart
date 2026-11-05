@@ -52,6 +52,48 @@ class ApkInstallerService {
     }
   }
 
+  /// Deletes every downloaded `.apk` in the app's sandbox directory older
+  /// than [minAge] — every download through [downloadApk] stays on disk
+  /// forever otherwise (nothing currently deletes them), which adds up to
+  /// real storage over time for an app that tracks several frequently-
+  /// updated sources.
+  ///
+  /// [minAge] defaults to 10 minutes rather than deleting right after a
+  /// successful install: [installApk] only confirms the system installer's
+  /// intent was launched, not that the install finished — the system's own
+  /// confirmation dialog and the actual copy can still be reading the file
+  /// for a few seconds (or longer, if the user doesn't immediately respond
+  /// to the "Install" prompt) after that call returns. 10 minutes is ample
+  /// margin, run as best-effort maintenance on every app open rather than
+  /// tied to any one specific download.
+  Future<void> cleanUpOldDownloads({
+    Duration minAge = const Duration(minutes: 10),
+    Directory? directory,
+  }) async {
+    try {
+      final dir = directory ?? await getApplicationDocumentsDirectory();
+      if (!await dir.exists()) return;
+      final cutoff = DateTime.now().subtract(minAge);
+      await for (final entity in dir.list()) {
+        if (entity is! File || !entity.path.toLowerCase().endsWith('.apk')) {
+          continue;
+        }
+        try {
+          final modified = await entity.lastModified();
+          if (modified.isBefore(cutoff)) {
+            await entity.delete();
+          }
+        } catch (_) {
+          // Best-effort per file — one locked/already-gone file must not
+          // stop the rest of the sweep.
+        }
+      }
+    } catch (_) {
+      // Best-effort overall — a missing/unreadable directory must not
+      // surface as an error to the caller (this runs unawaited on load()).
+    }
+  }
+
   /// Hex-encoded SHA-256 of the file at [filePath], streamed rather than
   /// read fully into memory (APKs can be tens of MB). Shown to the user
   /// before install so they can cross-check it against a hash published
