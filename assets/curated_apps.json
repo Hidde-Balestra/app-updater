@@ -68,5 +68,13 @@
     "sourceIdentifier": "Hidde-Balestra/app-updater",
     "infoUrl": "https://github.com/Hidde-Balestra/app-updater/releases",
     "packageName": "nl.hiddebalestra.app_updater"
+  },
+  {
+    "id": "mediaspeler",
+    "name": "Mediaspeler",
+    "sourceType": "github",
+    "sourceIdentifier": "Hidde-Balestra/mediaspeler",
+    "infoUrl": "https://github.com/Hidde-Balestra/mediaspeler/releases",
+    "packageName": "nl.hiddebalestra.mediaspeler"
   }
 ]
