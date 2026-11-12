@@ -63,6 +63,14 @@
       "total": {"type": "int"}
     }
   },
+  "swipeUpdateLabel": "Updaten",
+  "swipeSkipLabel": "Overslaan",
+  "swipeUpdateSuccess": "{name} bijgewerkt",
+  "@swipeUpdateSuccess": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
 
   "addAppTitle": "App toevoegen",
   "tabCustomApp": "Online app",

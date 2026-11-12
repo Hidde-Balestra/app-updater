@@ -50,7 +50,7 @@ AppLibrary _offlineLibrary({
 /// fixed changelog, regardless of repo — used for the "updates available"
 /// sort-order and changelog-preview tests, where the exact release content
 /// doesn't matter as long as it's consistent.
-AppLibrary _githubLibrary() {
+AppLibrary _githubLibrary({ApkInstallerService? installer}) {
   final client = MockClient((request) async {
     if (request.url.host == 'api.github.com') {
       return http.Response(
@@ -75,6 +75,7 @@ AppLibrary _githubLibrary() {
       github: GithubService(client: client),
       fdroid: FdroidService(client: client),
     ),
+    installer: installer,
     signing: FakeSigningService(),
   );
 }
@@ -340,6 +341,48 @@ void main() {
       expect(find.text('Fixed a crash on startup.'), findsOneWidget);
     },
   );
+
+  testWidgets('swiping an updatable app right installs it', (tester) async {
+    final installer = FakeApkInstallerService();
+    final library = _githubLibrary(installer: installer);
+    await library.load(curatedAppsOverride: testCuratedApps);
+    await library.addCustomApp(
+      name: 'MijnApp',
+      type: AppSourceType.github,
+      source: 'owner/repo',
+    );
+
+    await tester.pumpWidget(_wrap(HomeScreen(library: library)));
+    await tester.pumpAndSettle();
+
+    await tester.drag(find.text('MijnApp'), const Offset(600, 0));
+    await tester.pumpAndSettle();
+
+    expect(installer.installedPaths, hasLength(1));
+    expect(find.text('MijnApp bijgewerkt'), findsOneWidget);
+    expect(library.entries.single.status, AppCheckStatus.upToDate);
+  });
+
+  testWidgets('swiping an updatable app left skips that version', (
+    tester,
+  ) async {
+    final library = _githubLibrary();
+    await library.load(curatedAppsOverride: testCuratedApps);
+    await library.addCustomApp(
+      name: 'MijnApp',
+      type: AppSourceType.github,
+      source: 'owner/repo',
+    );
+
+    await tester.pumpWidget(_wrap(HomeScreen(library: library)));
+    await tester.pumpAndSettle();
+
+    await tester.drag(find.text('MijnApp'), const Offset(-600, 0));
+    await tester.pumpAndSettle();
+
+    expect(library.entries.single.app.skippedVersion, '2.0.0');
+    expect(library.entries.single.status, AppCheckStatus.skipped);
+  });
 
   testWidgets('search filters the visible apps by name', (tester) async {
     final library = _offlineLibrary(

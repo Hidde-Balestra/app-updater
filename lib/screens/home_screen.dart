@@ -197,8 +197,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     for (final entry in visibleUpdatable)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: AppListTile(
+                        child: _SwipeableUpdateTile(
                           entry: entry,
+                          library: library,
                           onTap: () => _openDetail(context, entry.app.id),
                         ),
                       ),
@@ -338,6 +339,133 @@ class _EmptyState extends StatelessWidget {
             icon: const Icon(Icons.add),
             label: Text(l10n.addAppButton),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Wraps an updatable app's [AppListTile] so it can be updated or skipped
+/// with a swipe, without having to open the detail screen first. Only used
+/// for the "Updates beschikbaar" section — up-to-date/favorite apps have no
+/// equivalent one-tap action a swipe could stand in for.
+///
+/// [Dismissible.confirmDismiss] always returns false: the swiped action
+/// (install or skip) changes the app's status, which naturally moves the
+/// tile out of this section on the next rebuild — Dismissible's own
+/// removal animation would just fight with that for the same tile.
+class _SwipeableUpdateTile extends StatelessWidget {
+  final LibraryEntry entry;
+  final AppLibrary library;
+  final VoidCallback onTap;
+
+  const _SwipeableUpdateTile({
+    required this.entry,
+    required this.library,
+    required this.onTap,
+  });
+
+  Future<void> _update(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await library.downloadAndInstall(entry.app.id);
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.swipeUpdateSuccess(entry.app.name))),
+      );
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+    }
+  }
+
+  Future<void> _skip() async {
+    final version = entry.latestRelease?.version;
+    if (version == null) return;
+    await library.skipVersion(entry.app.id, version);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Dismissible(
+      key: ValueKey('updatable-${entry.app.id}'),
+      direction: DismissDirection.horizontal,
+      background: _SwipeBackground(
+        alignment: Alignment.centerLeft,
+        color: Colors.green.shade600,
+        foregroundColor: Colors.white,
+        icon: Icons.download,
+        label: l10n.swipeUpdateLabel,
+      ),
+      secondaryBackground: _SwipeBackground(
+        alignment: Alignment.centerRight,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+        icon: Icons.visibility_off_outlined,
+        label: l10n.swipeSkipLabel,
+      ),
+      confirmDismiss: (direction) async {
+        if (direction == DismissDirection.startToEnd) {
+          await _update(context);
+        } else {
+          await _skip();
+        }
+        return false;
+      },
+      child: AppListTile(entry: entry, onTap: onTap),
+    );
+  }
+}
+
+class _SwipeBackground extends StatelessWidget {
+  final Alignment alignment;
+  final Color color;
+  final Color foregroundColor;
+  final IconData icon;
+  final String label;
+
+  const _SwipeBackground({
+    required this.alignment,
+    required this.color,
+    required this.foregroundColor,
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final leading = alignment == Alignment.centerLeft;
+    return Container(
+      alignment: alignment,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (leading) ...[
+            Icon(icon, color: foregroundColor),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: foregroundColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ] else ...[
+            Text(
+              label,
+              style: TextStyle(
+                color: foregroundColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(icon, color: foregroundColor),
+          ],
         ],
       ),
     );

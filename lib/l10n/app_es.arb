@@ -63,6 +63,14 @@
       "total": {"type": "int"}
     }
   },
+  "swipeUpdateLabel": "Actualizar",
+  "swipeSkipLabel": "Omitir",
+  "swipeUpdateSuccess": "{name} actualizada",
+  "@swipeUpdateSuccess": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
 
   "addAppTitle": "Añadir app",
   "tabCustomApp": "App online",
