@@ -210,6 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: AppListTile(
+                          library: library,
                           entry: entry,
                           onTap: () => _openDetail(context, entry.app.id),
                         ),
@@ -221,6 +222,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: AppListTile(
+                          library: library,
                           entry: entry,
                           onTap: () => _openDetail(context, entry.app.id),
                         ),
@@ -412,7 +414,7 @@ class _SwipeableUpdateTile extends StatelessWidget {
         }
         return false;
       },
-      child: AppListTile(entry: entry, onTap: onTap),
+      child: AppListTile(library: library, entry: entry, onTap: onTap),
     );
   }
 }

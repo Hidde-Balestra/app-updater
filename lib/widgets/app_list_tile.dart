@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 
 import '../models/changelog_line.dart';
+import '../state/app_library.dart';
 import '../state/library_entry.dart';
-import 'app_avatar.dart';
+import 'app_icon_avatar.dart';
 import 'status_chip.dart';
 
 class AppListTile extends StatelessWidget {
+  final AppLibrary library;
   final LibraryEntry entry;
   final VoidCallback onTap;
 
-  const AppListTile({super.key, required this.entry, required this.onTap});
+  const AppListTile({
+    super.key,
+    required this.library,
+    required this.entry,
+    required this.onTap,
+  });
 
   String _versionLabel() {
     final installed = entry.app.installedVersion;
@@ -46,7 +53,12 @@ class AppListTile extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              AppAvatar(name: entry.app.name, initials: entry.app.initials),
+              AppIconAvatar(
+                library: library,
+                packageName: entry.app.packageName,
+                name: entry.app.name,
+                initials: entry.app.initials,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(

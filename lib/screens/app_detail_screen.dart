@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:intl/intl.dart';
@@ -10,7 +8,7 @@ import '../models/app_source_type.dart';
 import '../models/changelog_line.dart';
 import '../state/app_library.dart';
 import '../state/library_entry.dart';
-import '../widgets/app_avatar.dart';
+import '../widgets/app_icon_avatar.dart';
 import '../widgets/status_chip.dart';
 
 class AppDetailScreen extends StatefulWidget {
@@ -190,7 +188,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
             children: [
               Row(
                 children: [
-                  _AppIconAvatar(
+                  AppIconAvatar(
                     library: widget.library,
                     packageName: entry.app.packageName,
                     name: entry.app.name,
@@ -448,75 +446,4 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
 
 extension _FirstOrNull<T> on Iterable<T> {
   T? get firstOrNull => isEmpty ? null : first;
-}
-
-/// Shows the app's real launcher icon when it's actually installed on the
-/// device (fetched once via [AppLibrary.installedIcon]), falling back to
-/// the generic colored-initials [AppAvatar] while that's loading, if it
-/// comes back empty, or if there's no package name to look up at all —
-/// deliberately scoped to this one avatar per screen visit rather than
-/// every list tile across the app, to avoid a device query per row.
-class _AppIconAvatar extends StatefulWidget {
-  final AppLibrary library;
-  final String? packageName;
-  final String name;
-  final String initials;
-  final double size;
-
-  const _AppIconAvatar({
-    required this.library,
-    required this.packageName,
-    required this.name,
-    required this.initials,
-    required this.size,
-  });
-
-  @override
-  State<_AppIconAvatar> createState() => _AppIconAvatarState();
-}
-
-class _AppIconAvatarState extends State<_AppIconAvatar> {
-  Future<Uint8List?>? _iconFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    final packageName = widget.packageName;
-    if (packageName != null && packageName.trim().isNotEmpty) {
-      _iconFuture = widget.library.installedIcon(packageName);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final future = _iconFuture;
-    if (future == null) {
-      return AppAvatar(
-        name: widget.name,
-        initials: widget.initials,
-        size: widget.size,
-      );
-    }
-    return FutureBuilder<Uint8List?>(
-      future: future,
-      builder: (context, snapshot) {
-        final bytes = snapshot.data;
-        if (bytes == null || bytes.isEmpty) {
-          return AppAvatar(
-            name: widget.name,
-            initials: widget.initials,
-            size: widget.size,
-          );
-        }
-        return ClipOval(
-          child: Image.memory(
-            bytes,
-            width: widget.size,
-            height: widget.size,
-            fit: BoxFit.cover,
-          ),
-        );
-      },
-    );
-  }
 }

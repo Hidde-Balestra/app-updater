@@ -27,28 +27,25 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  test(
-    'load() adds bytes freed by cleanup to totalBytesCleanedUp and persists '
-    'them',
-    () async {
-      final installer = FakeApkInstallerService()
-        ..cleanUpOldDownloadsResult = 1234;
-      final library = AppLibrary(
-        resolver: _offlineResolver(),
-        installer: installer,
-      );
+  test('load() adds bytes freed by cleanup to totalBytesCleanedUp and persists '
+      'them', () async {
+    final installer = FakeApkInstallerService()
+      ..cleanUpOldDownloadsResult = 1234;
+    final library = AppLibrary(
+      resolver: _offlineResolver(),
+      installer: installer,
+    );
 
-      await library.load();
-      // cleanUpOldDownloads runs unawaited inside load(); give it a tick to
-      // complete before asserting on its effect.
-      await Future<void>.delayed(Duration.zero);
+    await library.load();
+    // cleanUpOldDownloads runs unawaited inside load(); give it a tick to
+    // complete before asserting on its effect.
+    await Future<void>.delayed(Duration.zero);
 
-      expect(library.totalBytesCleanedUp, 1234);
+    expect(library.totalBytesCleanedUp, 1234);
 
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getInt(StorageKeys.cleanedUpBytes), 1234);
-    },
-  );
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getInt(StorageKeys.cleanedUpBytes), 1234);
+  });
 
   test(
     'load() leaves totalBytesCleanedUp untouched when nothing was cleaned up',
@@ -68,11 +65,8 @@ void main() {
   );
 
   test('load() restores a previously persisted total', () async {
-    SharedPreferences.setMockInitialValues({
-      StorageKeys.cleanedUpBytes: 5000,
-    });
-    final installer = FakeApkInstallerService()
-      ..cleanUpOldDownloadsResult = 0;
+    SharedPreferences.setMockInitialValues({StorageKeys.cleanedUpBytes: 5000});
+    final installer = FakeApkInstallerService()..cleanUpOldDownloadsResult = 0;
     final library = AppLibrary(
       resolver: _offlineResolver(),
       installer: installer,
@@ -84,9 +78,7 @@ void main() {
   });
 
   test('successive cleanups accumulate rather than overwrite', () async {
-    SharedPreferences.setMockInitialValues({
-      StorageKeys.cleanedUpBytes: 1000,
-    });
+    SharedPreferences.setMockInitialValues({StorageKeys.cleanedUpBytes: 1000});
     final installer = FakeApkInstallerService()
       ..cleanUpOldDownloadsResult = 500;
     final library = AppLibrary(

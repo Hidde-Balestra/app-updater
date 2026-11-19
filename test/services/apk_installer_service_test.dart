@@ -98,12 +98,10 @@ void main() {
 
     test('sums the sizes of every deleted .apk', () async {
       writeApk('${tempDir.path}/a.apk', age: const Duration(minutes: 20));
-      File(
-        '${tempDir.path}/b.apk',
-      ).writeAsBytesSync(List.filled(10, 0));
-      File(
-        '${tempDir.path}/b.apk',
-      ).setLastModifiedSync(DateTime.now().subtract(const Duration(minutes: 20)));
+      File('${tempDir.path}/b.apk').writeAsBytesSync(List.filled(10, 0));
+      File('${tempDir.path}/b.apk').setLastModifiedSync(
+        DateTime.now().subtract(const Duration(minutes: 20)),
+      );
 
       final freedBytes = await ApkInstallerService().cleanUpOldDownloads(
         minAge: const Duration(minutes: 10),
