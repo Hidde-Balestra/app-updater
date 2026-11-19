@@ -76,5 +76,13 @@
     "sourceIdentifier": "Hidde-Balestra/mediaspeler",
     "infoUrl": "https://github.com/Hidde-Balestra/mediaspeler/releases",
     "packageName": "nl.hiddebalestra.mediaspeler"
+  },
+  {
+    "id": "agenda",
+    "name": "Agenda",
+    "sourceType": "github",
+    "sourceIdentifier": "Hidde-Balestra/Agenda",
+    "infoUrl": "https://github.com/Hidde-Balestra/Agenda/releases",
+    "packageName": "nl.hiddebalestra.agenda"
   }
 ]
