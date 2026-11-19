@@ -82,6 +82,11 @@ class AppLibrary extends ChangeNotifier {
   List<UpdateHistoryEntry> updateHistory = [];
   static const _maxHistoryEntries = 200;
 
+  /// Cumulative bytes freed by [_cleanUpOldDownloads] across every app open
+  /// — shown in Settings so the cleanup (see
+  /// [ApkInstallerService.cleanUpOldDownloads]) isn't entirely invisible.
+  int totalBytesCleanedUp = 0;
+
   bool isLoaded = false;
 
   List<CuratedApp> get availableFavorites => curatedApps
@@ -104,6 +109,7 @@ class AppLibrary extends ChangeNotifier {
     entries = await _loadTrackedApps();
     ignoredPackageNames = await _loadIgnoredPackageNames();
     updateHistory = await _loadUpdateHistory();
+    totalBytesCleanedUp = await _loadCleanedUpBytes();
     isLoaded = true;
     notifyListeners();
     await _backfillFromCuratedSource();
@@ -119,7 +125,15 @@ class AppLibrary extends ChangeNotifier {
     unawaited(checkAll());
     // Best-effort storage housekeeping, not on the critical path for
     // anything load() callers wait on.
-    unawaited(_installer.cleanUpOldDownloads());
+    unawaited(_cleanUpOldDownloads());
+  }
+
+  Future<void> _cleanUpOldDownloads() async {
+    final freedBytes = await _installer.cleanUpOldDownloads();
+    if (freedBytes <= 0) return;
+    totalBytesCleanedUp += freedBytes;
+    notifyListeners();
+    await _persistCleanedUpBytes();
   }
 
   /// Self-heals tracked favorites added before their [CuratedApp] gained a
@@ -225,6 +239,16 @@ class AppLibrary extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final raw = jsonEncode(updateHistory.map((e) => e.toJson()).toList());
     await prefs.setString(StorageKeys.updateHistory, raw);
+  }
+
+  Future<int> _loadCleanedUpBytes() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(StorageKeys.cleanedUpBytes) ?? 0;
+  }
+
+  Future<void> _persistCleanedUpBytes() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(StorageKeys.cleanedUpBytes, totalBytesCleanedUp);
   }
 
   Future<ReleaseResult> previewSource(

@@ -10,6 +10,7 @@ class StorageKeys {
   static const notificationsEnabled = 'settings.notifications';
   static const ignoredPackageNames = 'library.ignoredPackageNames';
   static const updateHistory = 'library.updateHistory';
+  static const cleanedUpBytes = 'library.cleanedUpBytes';
 
   /// Secure-storage keys (not SharedPreferences) for the optional personal
   /// access tokens — kept here anyway so the key names stay in one place

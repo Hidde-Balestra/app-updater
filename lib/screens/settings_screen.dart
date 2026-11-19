@@ -43,6 +43,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) setState(() => _version = info.version);
   }
 
+  String _formatMb(int bytes) {
+    final mb = bytes / (1024 * 1024);
+    return mb.toStringAsFixed(1);
+  }
+
   String _languageName(AppLocalizations l10n, Locale? locale) {
     if (locale == null) return l10n.languageSystem;
     return switch (locale.languageCode) {
@@ -146,7 +151,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsTitle)),
       body: ListenableBuilder(
-        listenable: widget.settings,
+        listenable: Listenable.merge([widget.settings, widget.library]),
         builder: (context, _) {
           final settings = widget.settings;
           return ListView(
@@ -289,6 +294,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   mode: LaunchMode.externalApplication,
                 ),
               ),
+              if (widget.library.totalBytesCleanedUp > 0)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(l10n.storageCleanedUpLabel),
+                  subtitle: Text(
+                    l10n.storageCleanedUpValue(
+                      _formatMb(widget.library.totalBytesCleanedUp),
+                    ),
+                  ),
+                ),
               const SizedBox(height: 24),
             ],
           );

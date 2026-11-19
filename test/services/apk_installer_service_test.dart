@@ -57,49 +57,70 @@ void main() {
       File(path).setLastModifiedSync(DateTime.now().subtract(age));
     }
 
-    test('deletes an .apk older than minAge', () async {
+    test('deletes an .apk older than minAge and returns its size', () async {
       final path = '${tempDir.path}/old.apk';
       writeApk(path, age: const Duration(minutes: 20));
 
-      await ApkInstallerService().cleanUpOldDownloads(
+      final freedBytes = await ApkInstallerService().cleanUpOldDownloads(
         minAge: const Duration(minutes: 10),
         directory: tempDir,
       );
 
       expect(File(path).existsSync(), isFalse);
+      expect(freedBytes, 3);
     });
 
     test('leaves an .apk newer than minAge untouched', () async {
       final path = '${tempDir.path}/fresh.apk';
       writeApk(path, age: const Duration(minutes: 1));
 
-      await ApkInstallerService().cleanUpOldDownloads(
+      final freedBytes = await ApkInstallerService().cleanUpOldDownloads(
         minAge: const Duration(minutes: 10),
         directory: tempDir,
       );
 
       expect(File(path).existsSync(), isTrue);
+      expect(freedBytes, 0);
     });
 
     test('leaves non-.apk files untouched regardless of age', () async {
       final path = '${tempDir.path}/notes.txt';
       writeApk(path, age: const Duration(days: 1));
 
-      await ApkInstallerService().cleanUpOldDownloads(
+      final freedBytes = await ApkInstallerService().cleanUpOldDownloads(
         minAge: const Duration(minutes: 10),
         directory: tempDir,
       );
 
       expect(File(path).existsSync(), isTrue);
+      expect(freedBytes, 0);
+    });
+
+    test('sums the sizes of every deleted .apk', () async {
+      writeApk('${tempDir.path}/a.apk', age: const Duration(minutes: 20));
+      File(
+        '${tempDir.path}/b.apk',
+      ).writeAsBytesSync(List.filled(10, 0));
+      File(
+        '${tempDir.path}/b.apk',
+      ).setLastModifiedSync(DateTime.now().subtract(const Duration(minutes: 20)));
+
+      final freedBytes = await ApkInstallerService().cleanUpOldDownloads(
+        minAge: const Duration(minutes: 10),
+        directory: tempDir,
+      );
+
+      expect(freedBytes, 13);
     });
 
     test('does nothing when the directory does not exist', () async {
       final missing = Directory('${tempDir.path}/does-not-exist');
 
-      await expectLater(
-        ApkInstallerService().cleanUpOldDownloads(directory: missing),
-        completes,
+      final freedBytes = await ApkInstallerService().cleanUpOldDownloads(
+        directory: missing,
       );
+
+      expect(freedBytes, 0);
     });
   });
 }

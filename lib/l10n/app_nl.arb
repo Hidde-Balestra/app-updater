@@ -296,5 +296,12 @@
       "version": {"type": "String"}
     }
   },
-  "sourceCodeLink": "Broncode op GitHub"
+  "sourceCodeLink": "Broncode op GitHub",
+  "storageCleanedUpLabel": "Opgeruimde opslag",
+  "storageCleanedUpValue": "{mb} MB bespaard door oude downloads op te ruimen",
+  "@storageCleanedUpValue": {
+    "placeholders": {
+      "mb": {"type": "String"}
+    }
+  }
 }

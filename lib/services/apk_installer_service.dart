@@ -66,22 +66,31 @@ class ApkInstallerService {
   /// to the "Install" prompt) after that call returns. 10 minutes is ample
   /// margin, run as best-effort maintenance on every app open rather than
   /// tied to any one specific download.
-  Future<void> cleanUpOldDownloads({
+  ///
+  /// Returns the total number of bytes freed, so callers can track how much
+  /// storage this has saved over time (see
+  /// [AppLibrary.totalBytesCleanedUp]) — purely informational, callers
+  /// should not treat a `0` as evidence of failure (it's also what a clean
+  /// sweep with nothing to delete returns).
+  Future<int> cleanUpOldDownloads({
     Duration minAge = const Duration(minutes: 10),
     Directory? directory,
   }) async {
+    var freedBytes = 0;
     try {
       final dir = directory ?? await getApplicationDocumentsDirectory();
-      if (!await dir.exists()) return;
+      if (!await dir.exists()) return 0;
       final cutoff = DateTime.now().subtract(minAge);
       await for (final entity in dir.list()) {
         if (entity is! File || !entity.path.toLowerCase().endsWith('.apk')) {
           continue;
         }
         try {
-          final modified = await entity.lastModified();
-          if (modified.isBefore(cutoff)) {
+          final stat = await entity.stat();
+          if (stat.modified.isBefore(cutoff)) {
+            final size = stat.size;
             await entity.delete();
+            freedBytes += size;
           }
         } catch (_) {
           // Best-effort per file — one locked/already-gone file must not
@@ -92,6 +101,7 @@ class ApkInstallerService {
       // Best-effort overall — a missing/unreadable directory must not
       // surface as an error to the caller (this runs unawaited on load()).
     }
+    return freedBytes;
   }
 
   /// Hex-encoded SHA-256 of the file at [filePath], streamed rather than

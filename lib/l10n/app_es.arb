@@ -296,5 +296,12 @@
       "version": {"type": "String"}
     }
   },
-  "sourceCodeLink": "Código fuente en GitHub"
+  "sourceCodeLink": "Código fuente en GitHub",
+  "storageCleanedUpLabel": "Almacenamiento liberado",
+  "storageCleanedUpValue": "{mb} MB ahorrados al limpiar descargas antiguas",
+  "@storageCleanedUpValue": {
+    "placeholders": {
+      "mb": {"type": "String"}
+    }
+  }
 }
