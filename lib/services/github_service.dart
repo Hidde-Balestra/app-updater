@@ -44,6 +44,24 @@ class GithubService {
       if (response.statusCode == 404) {
         return const ReleaseNotFound();
       }
+      if (response.statusCode == 401) {
+        return const ReleaseError(
+          'GitHub-token ongeldig of verlopen (HTTP 401)',
+        );
+      }
+      if (response.statusCode == 403) {
+        // GitHub signals both "rate limited" and genuine permission errors
+        // with 403; the rate-limit headers are how you tell them apart, and
+        // this is by far the more common cause here since most apps in this
+        // list hit the unauthenticated 60/hour limit from the same source.
+        if (response.headers['x-ratelimit-remaining'] == '0') {
+          return const ReleaseError(
+            'GitHub rate limit bereikt — voeg een token toe bij '
+            'Instellingen voor een hogere limiet (HTTP 403)',
+          );
+        }
+        return ReleaseError('HTTP 403');
+      }
       if (response.statusCode != 200) {
         return ReleaseError('HTTP ${response.statusCode}');
       }

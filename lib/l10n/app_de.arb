@@ -187,6 +187,12 @@
       "version": {"type": "String"}
     }
   },
+  "checkErrorBanner": "Prüfung fehlgeschlagen: {message}",
+  "@checkErrorBanner": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
   "sourceLabelDetail": "Quelle: {source}",
   "@sourceLabelDetail": {
     "placeholders": {

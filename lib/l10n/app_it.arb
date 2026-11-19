@@ -187,6 +187,12 @@
       "version": {"type": "String"}
     }
   },
+  "checkErrorBanner": "Controllo non riuscito: {message}",
+  "@checkErrorBanner": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
   "sourceLabelDetail": "Origine: {source}",
   "@sourceLabelDetail": {
     "placeholders": {

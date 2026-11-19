@@ -262,6 +262,35 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                     ),
                   ),
                 ),
+              if (entry.status == AppCheckStatus.error &&
+                  entry.errorMessage != null)
+                Card(
+                  color: Theme.of(context).colorScheme.errorContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.onErrorContainer,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            l10n.checkErrorBanner(entry.errorMessage!),
+                            style: TextStyle(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onErrorContainer,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               const SizedBox(height: 16),
               if (release != null && isAccrescent) ...[
                 FilledButton.icon(

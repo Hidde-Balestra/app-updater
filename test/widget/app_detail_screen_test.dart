@@ -290,6 +290,33 @@ void main() {
     expect(requestCount, requestsBeforeTap + 1);
   });
 
+  testWidgets('shows an error banner with the failure reason when the check '
+      'fails', (tester) async {
+    final client = MockClient((request) async => http.Response('', 403));
+    final library = AppLibrary(
+      resolver: ReleaseResolver(
+        github: GithubService(client: client),
+        fdroid: FdroidService(
+          client: MockClient((r) async => http.Response('', 503)),
+        ),
+      ),
+      deviceApps: _FakeDeviceAppsService(),
+    );
+    await library.load(curatedAppsOverride: testCuratedApps);
+    final app = await library.addCustomApp(
+      name: 'MijnApp',
+      type: AppSourceType.github,
+      source: 'owner/repo',
+    );
+
+    await tester.pumpWidget(
+      _wrap(AppDetailScreen(library: library, appId: app.id)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('403'), findsOneWidget);
+  });
+
   testWidgets('shows the app\'s real icon when it is installed on the '
       'device', (tester) async {
     // A minimal valid 1x1 transparent PNG, so Image.memory can actually

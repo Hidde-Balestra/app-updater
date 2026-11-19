@@ -187,6 +187,12 @@
       "version": {"type": "String"}
     }
   },
+  "checkErrorBanner": "Controleren mislukt: {message}",
+  "@checkErrorBanner": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
   "sourceLabelDetail": "Bron: {source}",
   "@sourceLabelDetail": {
     "placeholders": {

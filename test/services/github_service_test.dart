@@ -111,6 +111,40 @@ void main() {
     expect(result, isA<ReleaseError>());
   });
 
+  test('returns a token-specific ReleaseError on 401', () async {
+    final client = MockClient((request) async => http.Response('', 401));
+    final result = await GithubService(
+      client: client,
+    ).fetchLatestRelease('owner/repo');
+    expect(result, isA<ReleaseError>());
+    expect((result as ReleaseError).message, contains('401'));
+  });
+
+  test('returns a rate-limit-specific ReleaseError on 403 with '
+      'x-ratelimit-remaining: 0', () async {
+    final client = MockClient(
+      (request) async =>
+          http.Response('', 403, headers: {'x-ratelimit-remaining': '0'}),
+    );
+    final result = await GithubService(
+      client: client,
+    ).fetchLatestRelease('owner/repo');
+    expect(result, isA<ReleaseError>());
+    expect((result as ReleaseError).message, contains('rate limit'));
+  });
+
+  test(
+    'returns a plain ReleaseError on 403 without rate-limit headers',
+    () async {
+      final client = MockClient((request) async => http.Response('', 403));
+      final result = await GithubService(
+        client: client,
+      ).fetchLatestRelease('owner/repo');
+      expect(result, isA<ReleaseError>());
+      expect((result as ReleaseError).message, contains('403'));
+    },
+  );
+
   test('returns ReleaseError for a malformed source', () async {
     final result = await GithubService().fetchLatestRelease(
       'not-a-valid-source',
