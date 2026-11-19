@@ -80,6 +80,73 @@ void main() {
     });
   });
 
+  group('TrackedApp.sourceUrl', () {
+    test(
+      'github builds a real https URL, unlike the schemeless sourceLabel',
+      () {
+        final app = TrackedApp(
+          id: 'x',
+          name: 'TaalLeer',
+          sourceType: AppSourceType.github,
+          sourceIdentifier: 'Hidde-Balestra/taalleer',
+        );
+
+        expect(app.sourceUrl, 'https://github.com/Hidde-Balestra/taalleer');
+        expect(app.sourceLabel, 'github.com/Hidde-Balestra/taalleer');
+      },
+    );
+
+    test('gitlab builds a real https URL', () {
+      final app = TrackedApp(
+        id: 'x',
+        name: 'App',
+        sourceType: AppSourceType.gitlab,
+        sourceIdentifier: 'owner/repo',
+      );
+
+      expect(app.sourceUrl, 'https://gitlab.com/owner/repo');
+    });
+
+    test('codeberg builds a real https URL', () {
+      final app = TrackedApp(
+        id: 'x',
+        name: 'App',
+        sourceType: AppSourceType.codeberg,
+        sourceIdentifier: 'owner/repo',
+      );
+
+      expect(app.sourceUrl, 'https://codeberg.org/owner/repo');
+    });
+
+    test('fdroid links to the package\'s f-droid.org page', () {
+      final app = TrackedApp(
+        id: 'x',
+        name: 'App',
+        sourceType: AppSourceType.fdroid,
+        sourceIdentifier: 'org.example.app',
+      );
+
+      expect(app.sourceUrl, 'https://f-droid.org/packages/org.example.app/');
+    });
+
+    test('accrescent builds a real https URL', () {
+      final app = TrackedApp(
+        id: 'x',
+        name: 'App',
+        sourceType: AppSourceType.accrescent,
+        sourceIdentifier: 'org.example.app',
+      );
+
+      expect(app.sourceUrl, 'https://accrescent.app/app/org.example.app');
+    });
+
+    test('direct uses the already-complete URL as-is', () {
+      final app = _app('App');
+
+      expect(app.sourceUrl, 'https://example.com/app.apk');
+    });
+  });
+
   group('TrackedApp.copyWith', () {
     test('sets packageName without touching other fields', () {
       final app = _app('TaalLeer');

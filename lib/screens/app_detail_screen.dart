@@ -400,9 +400,8 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
               ],
               const SizedBox(height: 20),
               InkWell(
-                onTap: () => _openSource(
-                  release?.sourcePageUrl ?? entry.app.sourceLabel,
-                ),
+                onTap: () =>
+                    _openSource(release?.sourcePageUrl ?? entry.app.sourceUrl),
                 child: Row(
                   children: [
                     Icon(

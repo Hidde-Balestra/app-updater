@@ -138,4 +138,26 @@ class TrackedApp {
         return 'accrescent.app/app/$sourceIdentifier';
     }
   }
+
+  /// A real, clickable URL for the source — unlike [sourceLabel], which is
+  /// schemeless display text (e.g. "github.com/owner/repo") that `launchUrl`
+  /// silently fails to open. Used as the "Bron" link's target whenever no
+  /// release has been resolved yet to supply a more specific
+  /// [ReleaseInfo.sourcePageUrl].
+  String get sourceUrl {
+    switch (sourceType) {
+      case AppSourceType.github:
+        return 'https://github.com/$sourceIdentifier';
+      case AppSourceType.gitlab:
+        return 'https://gitlab.com/$sourceIdentifier';
+      case AppSourceType.codeberg:
+        return 'https://codeberg.org/$sourceIdentifier';
+      case AppSourceType.fdroid:
+        return 'https://f-droid.org/packages/$sourceIdentifier/';
+      case AppSourceType.direct:
+        return sourceIdentifier;
+      case AppSourceType.accrescent:
+        return 'https://accrescent.app/app/$sourceIdentifier';
+    }
+  }
 }
