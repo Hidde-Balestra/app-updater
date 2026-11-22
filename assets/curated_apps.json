@@ -84,5 +84,13 @@
     "sourceIdentifier": "Hidde-Balestra/Agenda",
     "infoUrl": "https://github.com/Hidde-Balestra/Agenda/releases",
     "packageName": "nl.hiddebalestra.agenda"
+  },
+  {
+    "id": "mail",
+    "name": "Mail",
+    "sourceType": "github",
+    "sourceIdentifier": "Hidde-Balestra/Mail",
+    "infoUrl": "https://github.com/Hidde-Balestra/Mail/releases",
+    "packageName": "nl.hiddebalestra.mail_client"
   }
 ]
