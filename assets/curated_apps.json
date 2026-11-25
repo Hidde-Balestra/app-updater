@@ -92,5 +92,13 @@
     "sourceIdentifier": "Hidde-Balestra/Mail",
     "infoUrl": "https://github.com/Hidde-Balestra/Mail/releases",
     "packageName": "nl.hiddebalestra.mail_client"
+  },
+  {
+    "id": "bestandskluis",
+    "name": "Bestandskluis",
+    "sourceType": "github",
+    "sourceIdentifier": "Hidde-Balestra/bestandskluis",
+    "infoUrl": "https://github.com/Hidde-Balestra/bestandskluis/releases",
+    "packageName": "nl.hiddebalestra.bestandskluis"
   }
 ]
